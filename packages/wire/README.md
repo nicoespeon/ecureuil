@@ -26,4 +26,4 @@ Les tests construisent leurs fixtures de la même façon, en décodant des objet
 - `quantity` est un entier strictement positif.
 - `actor` vaut `"proprietaire"` ou `"invite"`.
 - `magasin` est obligatoire pour les événements liés à un magasin, `string | null` pour ceux du foyer.
-- `ItemRayon` est une union taguée : `{ _tag: "Rayon", rayonId }`, `{ _tag: "PasVenduIci" }` ou `{ _tag: "NonClasse" }`.
+- `ItemRayon` est une union taguée : `{ _tag: "Rayon", rayonId }`, `{ _tag: "PasVenduIci" }` ou `{ _tag: "NonClasse" }`. Ses constructeurs : `ItemRayon.cases.Rayon.make({ rayonId })`, `ItemRayon.cases.PasVenduIci.make({})`.
