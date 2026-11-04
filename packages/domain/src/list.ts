@@ -1,15 +1,16 @@
+import type { Data } from "effect";
 import type { Item, State } from "./reducer";
 
 export type ListItem = { readonly id: string; readonly name: string; readonly quantity: number };
 
-export type Section =
-  | {
-      readonly _tag: "Rayon";
-      readonly rayonId: string;
-      readonly name: string;
-      readonly items: ReadonlyArray<ListItem>;
-    }
-  | { readonly _tag: "NonClasse"; readonly items: ReadonlyArray<ListItem> };
+export type Section = Data.TaggedEnum<{
+  Rayon: {
+    readonly rayonId: string;
+    readonly name: string;
+    readonly items: ReadonlyArray<ListItem>;
+  };
+  NonClasse: { readonly items: ReadonlyArray<ListItem> };
+}>;
 
 /**
  * The list as walked in one magasin: its rayons in order (empty ones skipped), "Non classé"

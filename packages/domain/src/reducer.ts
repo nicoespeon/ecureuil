@@ -1,5 +1,5 @@
 import type { Event, ItemRayon } from "@ecureuil/wire";
-import { Match } from "effect";
+import { type Data, Match } from "effect";
 
 export type Magasin = {
   readonly id: string;
@@ -47,10 +47,11 @@ export type Demande = {
   readonly status: DemandeStatus;
 };
 
-export type DemandeStatus =
-  | { readonly _tag: "Pending" }
-  | { readonly _tag: "Accepted"; readonly itemId: string }
-  | { readonly _tag: "Refused" };
+export type DemandeStatus = Data.TaggedEnum<{
+  Pending: Record<never, never>;
+  Accepted: { readonly itemId: string };
+  Refused: Record<never, never>;
+}>;
 
 export type State = {
   readonly magasins: Readonly<Record<string, Magasin>>;
