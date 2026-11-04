@@ -1,20 +1,20 @@
 import { Schema } from "effect";
 
 /**
- * The two secret links of the household: the owner arbitrates, the guest requests.
+ * The two secret links of the foyer: the owner arbitrates, the guest demandes.
  */
 export const Actor = Schema.Literals(["owner", "guest"]);
 export type Actor = Schema.Schema.Type<typeof Actor>;
 
 /**
- * Where an item sits in one store. Absent = unfiled ("Non classé").
+ * Where an item sits in one magasin. Absent = NonClasse ("Non classé").
  */
-export const Filing = Schema.Union([
-  Schema.TaggedStruct("Aisle", { aisleId: Schema.NonEmptyString }),
-  Schema.TaggedStruct("NotSoldHere", {}),
-  Schema.TaggedStruct("Unfiled", {}),
+export const ItemRayon = Schema.Union([
+  Schema.TaggedStruct("Rayon", { rayonId: Schema.NonEmptyString }),
+  Schema.TaggedStruct("PasVenduIci", {}),
+  Schema.TaggedStruct("NonClasse", {}),
 ]);
-export type Filing = Schema.Schema.Type<typeof Filing>;
+export type ItemRayon = Schema.Schema.Type<typeof ItemRayon>;
 
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 const id = Schema.NonEmptyString;
@@ -22,7 +22,7 @@ const id = Schema.NonEmptyString;
 /**
  * Envelope shared by every journal entry, readable without knowing the payloads:
  * `at` is epoch milliseconds, `device` the opaque id of the device that wrote the
- * event, `store` the store the actor was in (when any).
+ * event, `magasin` the magasin the actor was in (when any).
  */
 const envelope = {
   id,
@@ -31,25 +31,25 @@ const envelope = {
   device: id,
 };
 
-function householdEvent<const T extends string, const P extends Schema.Struct.Fields>(
+function foyerEvent<const T extends string, const P extends Schema.Struct.Fields>(
   type: T,
   payload: P,
 ) {
   return Schema.Struct({
     ...envelope,
-    store: Schema.NullOr(id),
+    magasin: Schema.NullOr(id),
     type: Schema.Literal(type),
     payload: Schema.Struct(payload),
   });
 }
 
-function storeEvent<const T extends string, const P extends Schema.Struct.Fields>(
+function magasinEvent<const T extends string, const P extends Schema.Struct.Fields>(
   type: T,
   payload: P,
 ) {
   return Schema.Struct({
     ...envelope,
-    store: id,
+    magasin: id,
     type: Schema.Literal(type),
     payload: Schema.Struct(payload),
   });
@@ -58,24 +58,24 @@ function storeEvent<const T extends string, const P extends Schema.Struct.Fields
 const name = Schema.NonEmptyString;
 
 export const Event = Schema.Union([
-  storeEvent("StoreCreated", { name }),
-  storeEvent("StoreRenamed", { name }),
-  storeEvent("AisleCreated", { aisleId: id, name }),
-  storeEvent("AisleRenamed", { aisleId: id, name }),
-  storeEvent("AislesReordered", { aisleIds: Schema.Array(Schema.String) }),
-  storeEvent("AisleRemoved", { aisleId: id }),
-  householdEvent("ItemCreated", { itemId: id, name }),
-  householdEvent("ItemRenamed", { itemId: id, name }),
-  householdEvent("ItemRemoved", { itemId: id }),
-  householdEvent("ItemQuantitySet", { itemId: id, quantity: Quantity }),
-  storeEvent("ItemFiled", { itemId: id, filing: Filing }),
-  householdEvent("ItemMarkedToBuy", { itemId: id }),
-  householdEvent("ItemMarkedNotToBuy", { itemId: id }),
-  householdEvent("ItemChecked", { itemId: id }),
-  householdEvent("ItemUnchecked", { itemId: id }),
-  storeEvent("TripFinished", {}),
-  householdEvent("RequestCreated", { requestId: id, name }),
-  householdEvent("RequestAccepted", { requestId: id, itemId: id }),
-  householdEvent("RequestDeclined", { requestId: id }),
+  magasinEvent("MagasinCreated", { name }),
+  magasinEvent("MagasinRenamed", { name }),
+  magasinEvent("RayonCreated", { rayonId: id, name }),
+  magasinEvent("RayonRenamed", { rayonId: id, name }),
+  magasinEvent("RayonsReordered", { rayonIds: Schema.Array(Schema.String) }),
+  magasinEvent("RayonRemoved", { rayonId: id }),
+  foyerEvent("ItemCreated", { itemId: id, name }),
+  foyerEvent("ItemRenamed", { itemId: id, name }),
+  foyerEvent("ItemRemoved", { itemId: id }),
+  foyerEvent("ItemQuantitySet", { itemId: id, quantity: Quantity }),
+  magasinEvent("ItemRayonSet", { itemId: id, rayon: ItemRayon }),
+  foyerEvent("ItemMarkedToBuy", { itemId: id }),
+  foyerEvent("ItemMarkedNotToBuy", { itemId: id }),
+  foyerEvent("ItemChecked", { itemId: id }),
+  foyerEvent("ItemUnchecked", { itemId: id }),
+  magasinEvent("SortieFinished", {}),
+  foyerEvent("DemandeCreated", { demandeId: id, name }),
+  foyerEvent("DemandeAccepted", { demandeId: id, itemId: id }),
+  foyerEvent("DemandeRefused", { demandeId: id }),
 ]);
 export type Event = Schema.Schema.Type<typeof Event>;

@@ -4,53 +4,53 @@ export type ListItem = { readonly id: string; readonly name: string; readonly qu
 
 export type Section =
   | {
-      readonly _tag: "Aisle";
-      readonly aisleId: string;
+      readonly _tag: "Rayon";
+      readonly rayonId: string;
       readonly name: string;
       readonly items: ReadonlyArray<ListItem>;
     }
-  | { readonly _tag: "Unfiled"; readonly items: ReadonlyArray<ListItem> };
+  | { readonly _tag: "NonClasse"; readonly items: ReadonlyArray<ListItem> };
 
 /**
- * The list as walked in one store: its aisles in order (empty ones skipped), "Non classé"
- * last, "Pas chez X" and the cart apart. Another store re-sorts the same items.
+ * The list as walked in one magasin: its rayons in order (empty ones skipped), "Non classé"
+ * last, "Pas chez X" and the panier apart. Another magasin re-sorts the same items.
  */
-export type StoreList = {
+export type Liste = {
   readonly sections: ReadonlyArray<Section>;
-  readonly notSoldHere: ReadonlyArray<ListItem>;
-  readonly cart: ReadonlyArray<ListItem>;
+  readonly pasVenduIci: ReadonlyArray<ListItem>;
+  readonly panier: ReadonlyArray<ListItem>;
 };
 
-export function listForStore(state: State, storeId: string): StoreList {
+export function listForMagasin(state: State, magasinId: string): Liste {
   const listed = Object.values(state.items)
     .filter((item) => item.status !== "notToBuy")
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));
   const toBuy = listed.filter((item) => item.status === "toBuy");
-  const filingOf = (item: Item) => item.filings[storeId];
-  const aisles = state.stores[storeId]?.aisles ?? [];
+  const rayonOf = (item: Item) => item.rayonParMagasin[magasinId];
+  const rayons = state.magasins[magasinId]?.rayons ?? [];
 
   const sections: ReadonlyArray<Section> = [
-    ...aisles.map((aisle) => ({
-      _tag: "Aisle" as const,
-      aisleId: aisle.id,
-      name: aisle.name,
+    ...rayons.map((rayon) => ({
+      _tag: "Rayon" as const,
+      rayonId: rayon.id,
+      name: rayon.name,
       items: toBuy
         .filter((item) => {
-          const filing = filingOf(item);
-          return filing?._tag === "Aisle" && filing.aisleId === aisle.id;
+          const itemRayon = rayonOf(item);
+          return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayon.id;
         })
         .map(toListItem),
     })),
     {
-      _tag: "Unfiled" as const,
-      items: toBuy.filter((item) => filingOf(item) === undefined).map(toListItem),
+      _tag: "NonClasse" as const,
+      items: toBuy.filter((item) => rayonOf(item) === undefined).map(toListItem),
     },
   ];
 
   return {
     sections: sections.filter((section) => section.items.length > 0),
-    notSoldHere: toBuy.filter((item) => filingOf(item)?._tag === "NotSoldHere").map(toListItem),
-    cart: listed.filter((item) => item.status === "inCart").map(toListItem),
+    pasVenduIci: toBuy.filter((item) => rayonOf(item)?._tag === "PasVenduIci").map(toListItem),
+    panier: listed.filter((item) => item.status === "inCart").map(toListItem),
   };
 }
 

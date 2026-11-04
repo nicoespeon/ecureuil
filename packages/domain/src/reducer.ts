@@ -1,13 +1,13 @@
-import type { Event, Filing } from "@ecureuil/wire";
+import type { Event, ItemRayon } from "@ecureuil/wire";
 import { Match } from "effect";
 
-export type Store = {
+export type Magasin = {
   readonly id: string;
   readonly name: string;
-  readonly aisles: ReadonlyArray<Aisle>;
+  readonly rayons: ReadonlyArray<Rayon>;
 };
 
-export type Aisle = { readonly id: string; readonly name: string };
+export type Rayon = { readonly id: string; readonly name: string };
 
 export type Item = {
   readonly id: string;
@@ -15,49 +15,51 @@ export type Item = {
   readonly quantity: number;
   readonly status: ItemStatus;
   /**
-   * Per store. An absent store means unfiled ("Non classé").
+   * Per magasin. An absent magasin means NonClasse ("Non classé").
    */
-  readonly filings: Readonly<Record<string, Exclude<Filing, { readonly _tag: "Unfiled" }>>>;
+  readonly rayonParMagasin: Readonly<
+    Record<string, Exclude<ItemRayon, { readonly _tag: "NonClasse" }>>
+  >;
 };
 
 /**
- * "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a trip.
+ * "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a sortie.
  */
 export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
 
 /**
  * One shopping run, closed by "Terminer les courses".
  */
-export type Trip = {
+export type Sortie = {
   readonly id: string;
-  readonly store: string;
+  readonly magasin: string;
   readonly at: number;
-  readonly purchases: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
+  readonly achats: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
 };
 
 /**
  * An item the guest asks for; the owner's first arbitration is final.
  */
-export type Request = {
+export type Demande = {
   readonly id: string;
   readonly name: string;
   readonly requestedAt: number;
-  readonly status: RequestStatus;
+  readonly status: DemandeStatus;
 };
 
-export type RequestStatus =
+export type DemandeStatus =
   | { readonly _tag: "Pending" }
   | { readonly _tag: "Accepted"; readonly itemId: string }
-  | { readonly _tag: "Declined" };
+  | { readonly _tag: "Refused" };
 
 export type State = {
-  readonly stores: Readonly<Record<string, Store>>;
+  readonly magasins: Readonly<Record<string, Magasin>>;
   readonly items: Readonly<Record<string, Item>>;
-  readonly requests: Readonly<Record<string, Request>>;
-  readonly trips: ReadonlyArray<Trip>;
+  readonly demandes: Readonly<Record<string, Demande>>;
+  readonly sorties: ReadonlyArray<Sortie>;
 };
 
-export const initialState: State = { stores: {}, items: {}, requests: {}, trips: [] };
+export const initialState: State = { magasins: {}, items: {}, demandes: {}, sorties: [] };
 
 /**
  * Devices sync out of order and may resend: the journal is replayed in one total order
@@ -83,43 +85,43 @@ function apply(state: State, event: Event): State {
 
 const applyEvent = Match.type<Event>().pipe(
   Match.discriminatorsExhaustive("type")({
-    StoreCreated: (event) => (state: State) =>
-      state.stores[event.store]
+    MagasinCreated: (event) => (state: State) =>
+      state.magasins[event.magasin]
         ? state
-        : withStore(state, { id: event.store, name: event.payload.name, aisles: [] }),
-    StoreRenamed: (event) => (state: State) =>
-      updateStore(state, event.store, (store) => ({ ...store, name: event.payload.name })),
-    AisleCreated: (event) => (state: State) =>
-      updateStore(state, event.store, (store) =>
-        store.aisles.some((aisle) => aisle.id === event.payload.aisleId)
-          ? store
+        : withMagasin(state, { id: event.magasin, name: event.payload.name, rayons: [] }),
+    MagasinRenamed: (event) => (state: State) =>
+      updateMagasin(state, event.magasin, (magasin) => ({ ...magasin, name: event.payload.name })),
+    RayonCreated: (event) => (state: State) =>
+      updateMagasin(state, event.magasin, (magasin) =>
+        magasin.rayons.some((rayon) => rayon.id === event.payload.rayonId)
+          ? magasin
           : {
-              ...store,
-              aisles: [...store.aisles, { id: event.payload.aisleId, name: event.payload.name }],
+              ...magasin,
+              rayons: [...magasin.rayons, { id: event.payload.rayonId, name: event.payload.name }],
             },
       ),
-    AisleRenamed: (event) => (state: State) =>
-      updateStore(state, event.store, (store) => ({
-        ...store,
-        aisles: store.aisles.map((aisle) =>
-          aisle.id === event.payload.aisleId ? { ...aisle, name: event.payload.name } : aisle,
+    RayonRenamed: (event) => (state: State) =>
+      updateMagasin(state, event.magasin, (magasin) => ({
+        ...magasin,
+        rayons: magasin.rayons.map((rayon) =>
+          rayon.id === event.payload.rayonId ? { ...rayon, name: event.payload.name } : rayon,
         ),
       })),
-    AislesReordered: (event) => (state: State) =>
-      updateStore(state, event.store, (store) => ({
-        ...store,
-        aisles: reorder(store.aisles, event.payload.aisleIds),
+    RayonsReordered: (event) => (state: State) =>
+      updateMagasin(state, event.magasin, (magasin) => ({
+        ...magasin,
+        rayons: reorder(magasin.rayons, event.payload.rayonIds),
       })),
-    AisleRemoved: (event) => (state: State) => {
-      const { aisleId } = event.payload;
-      const withoutAisle = updateStore(state, event.store, (store) => ({
-        ...store,
-        aisles: store.aisles.filter((aisle) => aisle.id !== aisleId),
+    RayonRemoved: (event) => (state: State) => {
+      const { rayonId } = event.payload;
+      const withoutRayon = updateMagasin(state, event.magasin, (magasin) => ({
+        ...magasin,
+        rayons: magasin.rayons.filter((rayon) => rayon.id !== rayonId),
       }));
-      return updateItems(withoutAisle, (item) => {
-        const filing = item.filings[event.store];
-        return filing?._tag === "Aisle" && filing.aisleId === aisleId
-          ? unfile(item, event.store)
+      return updateItems(withoutRayon, (item) => {
+        const itemRayon = item.rayonParMagasin[event.magasin];
+        return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayonId
+          ? unsetRayon(item, event.magasin)
           : item;
       });
     },
@@ -131,7 +133,7 @@ const applyEvent = Match.type<Event>().pipe(
             name: event.payload.name,
             quantity: 1,
             status: "notToBuy",
-            filings: {},
+            rayonParMagasin: {},
           }),
     ItemRenamed: (event) => (state: State) =>
       updateItem(state, event.payload.itemId, (item) => ({ ...item, name: event.payload.name })),
@@ -144,17 +146,20 @@ const applyEvent = Match.type<Event>().pipe(
       const { [event.payload.itemId]: _removed, ...items } = state.items;
       return { ...state, items };
     },
-    ItemFiled: (event) => (state: State) => {
-      const { filing } = event.payload;
-      const store = state.stores[event.store];
-      if (!store) return state;
-      if (filing._tag === "Aisle" && !store.aisles.some((aisle) => aisle.id === filing.aisleId)) {
+    ItemRayonSet: (event) => (state: State) => {
+      const { rayon: itemRayon } = event.payload;
+      const magasin = state.magasins[event.magasin];
+      if (!magasin) return state;
+      if (
+        itemRayon._tag === "Rayon" &&
+        !magasin.rayons.some((rayon) => rayon.id === itemRayon.rayonId)
+      ) {
         return state;
       }
       return updateItem(state, event.payload.itemId, (item) =>
-        filing._tag === "Unfiled"
-          ? unfile(item, event.store)
-          : { ...item, filings: { ...item.filings, [event.store]: filing } },
+        itemRayon._tag === "NonClasse"
+          ? unsetRayon(item, event.magasin)
+          : { ...item, rayonParMagasin: { ...item.rayonParMagasin, [event.magasin]: itemRayon } },
       );
     },
     ItemMarkedToBuy: (event) => (state: State) => updateItem(state, event.payload.itemId, list),
@@ -168,58 +173,62 @@ const applyEvent = Match.type<Event>().pipe(
       updateItem(state, event.payload.itemId, (item) =>
         item.status === "inCart" ? { ...item, status: "toBuy" } : item,
       ),
-    TripFinished: (event) => (state: State) => {
+    SortieFinished: (event) => (state: State) => {
       const bought = Object.values(state.items).filter((item) => item.status === "inCart");
-      const trip: Trip = {
+      const sortie: Sortie = {
         id: event.id,
-        store: event.store,
+        magasin: event.magasin,
         at: event.at,
-        purchases: bought.map(({ id, quantity }) => ({ itemId: id, quantity })),
+        achats: bought.map(({ id, quantity }) => ({ itemId: id, quantity })),
       };
       const emptied = updateItems(state, (item) =>
         item.status === "inCart" ? { ...item, status: "notToBuy" } : item,
       );
-      return { ...emptied, trips: [...state.trips, trip] };
+      return { ...emptied, sorties: [...state.sorties, sortie] };
     },
-    RequestCreated: (event) => (state: State) =>
-      state.requests[event.payload.requestId]
+    DemandeCreated: (event) => (state: State) =>
+      state.demandes[event.payload.demandeId]
         ? state
-        : withRequest(state, {
-            id: event.payload.requestId,
+        : withDemande(state, {
+            id: event.payload.demandeId,
             name: event.payload.name,
             requestedAt: event.at,
             status: { _tag: "Pending" },
           }),
-    RequestAccepted: (event) => (state: State) => {
-      const { requestId, itemId } = event.payload;
-      // Accepting toward an unknown item would settle the request for nothing: stay pending.
+    DemandeAccepted: (event) => (state: State) => {
+      const { demandeId, itemId } = event.payload;
+      // Accepting toward an unknown item would settle the demande for nothing: stay pending.
       if (!state.items[itemId]) return state;
-      return arbitrate(state, requestId, { _tag: "Accepted", itemId }, (arbitrated) =>
+      return arbitrate(state, demandeId, { _tag: "Accepted", itemId }, (arbitrated) =>
         updateItem(arbitrated, itemId, list),
       );
     },
-    RequestDeclined: (event) => (state: State) =>
-      arbitrate(state, event.payload.requestId, { _tag: "Declined" }, (arbitrated) => arbitrated),
+    DemandeRefused: (event) => (state: State) =>
+      arbitrate(state, event.payload.demandeId, { _tag: "Refused" }, (arbitrated) => arbitrated),
   }),
 );
 
-function withStore(state: State, store: Store): State {
-  return { ...state, stores: { ...state.stores, [store.id]: store } };
+function withMagasin(state: State, magasin: Magasin): State {
+  return { ...state, magasins: { ...state.magasins, [magasin.id]: magasin } };
 }
 
-function updateStore(state: State, storeId: string, update: (store: Store) => Store): State {
-  const store = state.stores[storeId];
-  return store ? withStore(state, update(store)) : state;
+function updateMagasin(
+  state: State,
+  magasinId: string,
+  update: (magasin: Magasin) => Magasin,
+): State {
+  const magasin = state.magasins[magasinId];
+  return magasin ? withMagasin(state, update(magasin)) : state;
 }
 
 /**
- * Aisles created concurrently on another device keep their place after the given order.
+ * Rayons created concurrently on another device keep their place after the given order.
  */
-function reorder(aisles: ReadonlyArray<Aisle>, aisleIds: ReadonlyArray<string>) {
-  const mentioned = [...new Set(aisleIds)].flatMap((id) =>
-    aisles.filter((aisle) => aisle.id === id),
+function reorder(rayons: ReadonlyArray<Rayon>, rayonIds: ReadonlyArray<string>) {
+  const mentioned = [...new Set(rayonIds)].flatMap((id) =>
+    rayons.filter((rayon) => rayon.id === id),
   );
-  const unmentioned = aisles.filter((aisle) => !aisleIds.includes(aisle.id));
+  const unmentioned = rayons.filter((rayon) => !rayonIds.includes(rayon.id));
   return [...mentioned, ...unmentioned];
 }
 
@@ -238,32 +247,32 @@ function updateItems(state: State, update: (item: Item) => Item): State {
 }
 
 /**
- * Puts an item on the list; already listed or in the cart, it stays where it is.
+ * Puts an item on the list; already listed or in the panier, it stays where it is.
  */
 function list(item: Item): Item {
   return item.status === "notToBuy" ? { ...item, status: "toBuy" } : item;
 }
 
-function unfile(item: Item, storeId: string): Item {
-  const { [storeId]: _unfiled, ...filings } = item.filings;
-  return { ...item, filings };
+function unsetRayon(item: Item, magasinId: string): Item {
+  const { [magasinId]: _unfiled, ...rayonParMagasin } = item.rayonParMagasin;
+  return { ...item, rayonParMagasin };
 }
 
-function withRequest(state: State, request: Request): State {
-  return { ...state, requests: { ...state.requests, [request.id]: request } };
+function withDemande(state: State, demande: Demande): State {
+  return { ...state, demandes: { ...state.demandes, [demande.id]: demande } };
 }
 
 /**
- * First arbitration wins: a request that is no longer pending ignores later verdicts.
+ * First arbitration wins: a demande that is no longer pending ignores later verdicts.
  */
 function arbitrate(
   state: State,
-  requestId: string,
-  verdict: RequestStatus,
+  demandeId: string,
+  verdict: DemandeStatus,
   then: (state: State) => State,
 ): State {
-  const request = state.requests[requestId];
-  return request?.status._tag === "Pending"
-    ? then(withRequest(state, { ...request, status: verdict }))
+  const demande = state.demandes[demandeId];
+  return demande?.status._tag === "Pending"
+    ? then(withDemande(state, { ...demande, status: verdict }))
     : state;
 }

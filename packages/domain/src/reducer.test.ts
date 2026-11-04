@@ -11,7 +11,7 @@ let sequence = 0;
 function event(fields: {
   type: string;
   payload: unknown;
-  store?: string;
+  magasin?: string;
   at?: number;
   actor?: Actor;
   id?: string;
@@ -22,106 +22,106 @@ function event(fields: {
     at: sequence,
     actor: "owner",
     device: "pixel",
-    store: null,
+    magasin: null,
     ...fields,
   });
 }
 
-const costco = event({ type: "StoreCreated", store: "costco", payload: { name: "Costco" } });
-const aisle = (aisleId: string, name: string, store = "costco") =>
-  event({ type: "AisleCreated", store, payload: { aisleId, name } });
+const costco = event({ type: "MagasinCreated", magasin: "costco", payload: { name: "Costco" } });
+const rayon = (rayonId: string, name: string, magasin = "costco") =>
+  event({ type: "RayonCreated", magasin, payload: { rayonId, name } });
 
 it("folds an empty journal into the initial state", () => {
   expect(fold([])).toEqual(initialState);
 });
 
-describe("stores and aisles", () => {
-  it("creates a store with no aisles", () => {
-    expect(fold([costco]).stores).toEqual({
-      costco: { id: "costco", name: "Costco", aisles: [] },
+describe("magasins and rayons", () => {
+  it("creates a magasin with no rayons", () => {
+    expect(fold([costco]).magasins).toEqual({
+      costco: { id: "costco", name: "Costco", rayons: [] },
     });
   });
 
-  it("renames a store", () => {
+  it("renames a magasin", () => {
     const renamed = event({
-      type: "StoreRenamed",
-      store: "costco",
+      type: "MagasinRenamed",
+      magasin: "costco",
       payload: { name: "Costco Anjou" },
     });
 
-    expect(fold([costco, renamed]).stores.costco).toMatchObject({ name: "Costco Anjou" });
+    expect(fold([costco, renamed]).magasins.costco).toMatchObject({ name: "Costco Anjou" });
   });
 
-  it("adds aisles in creation order and renames them", () => {
-    const fruits = aisle("fruits", "Fruits");
-    const bakery = aisle("bakery", "Boulangerie");
+  it("adds rayons in creation order and renames them", () => {
+    const fruits = rayon("fruits", "Fruits");
+    const bakery = rayon("bakery", "Boulangerie");
     const renamed = event({
-      type: "AisleRenamed",
-      store: "costco",
-      payload: { aisleId: "fruits", name: "Fruits et légumes" },
+      type: "RayonRenamed",
+      magasin: "costco",
+      payload: { rayonId: "fruits", name: "Fruits et légumes" },
     });
 
     const state = fold([costco, fruits, bakery, renamed]);
 
-    expect(state.stores.costco?.aisles).toEqual([
+    expect(state.magasins.costco?.rayons).toEqual([
       { id: "fruits", name: "Fruits et légumes" },
       { id: "bakery", name: "Boulangerie" },
     ]);
   });
 
-  it("reorders aisles, keeping unmentioned ones after the given order", () => {
-    const aisles = [
-      aisle("fruits", "Fruits"),
-      aisle("bakery", "Boulangerie"),
-      aisle("dairy", "Laitier"),
+  it("reorders rayons, keeping unmentioned ones after the given order", () => {
+    const rayons = [
+      rayon("fruits", "Fruits"),
+      rayon("bakery", "Boulangerie"),
+      rayon("dairy", "Laitier"),
     ];
     const reordered = event({
-      type: "AislesReordered",
-      store: "costco",
-      payload: { aisleIds: ["dairy", "ghost", "bakery"] },
+      type: "RayonsReordered",
+      magasin: "costco",
+      payload: { rayonIds: ["dairy", "ghost", "bakery"] },
     });
 
-    const state = fold([costco, ...aisles, reordered]);
+    const state = fold([costco, ...rayons, reordered]);
 
-    expect(state.stores.costco?.aisles.map((a) => a.id)).toEqual(["dairy", "bakery", "fruits"]);
+    expect(state.magasins.costco?.rayons.map((a) => a.id)).toEqual(["dairy", "bakery", "fruits"]);
   });
 
-  it("removes an aisle", () => {
-    const aisles = [aisle("fruits", "Fruits"), aisle("bakery", "Boulangerie")];
+  it("removes an rayon", () => {
+    const rayons = [rayon("fruits", "Fruits"), rayon("bakery", "Boulangerie")];
     const removed = event({
-      type: "AisleRemoved",
-      store: "costco",
-      payload: { aisleId: "fruits" },
+      type: "RayonRemoved",
+      magasin: "costco",
+      payload: { rayonId: "fruits" },
     });
 
-    const state = fold([costco, ...aisles, removed]);
+    const state = fold([costco, ...rayons, removed]);
 
-    expect(state.stores.costco?.aisles).toEqual([{ id: "bakery", name: "Boulangerie" }]);
+    expect(state.magasins.costco?.rayons).toEqual([{ id: "bakery", name: "Boulangerie" }]);
   });
 
-  it("keeps each store's aisles apart", () => {
-    const maxi = event({ type: "StoreCreated", store: "maxi", payload: { name: "Maxi" } });
+  it("keeps each magasin's rayons apart", () => {
+    const maxi = event({ type: "MagasinCreated", magasin: "maxi", payload: { name: "Maxi" } });
 
     const state = fold([
       costco,
       maxi,
-      aisle("c-bakery", "Boulangerie"),
-      aisle("m-bakery", "Boulangerie", "maxi"),
+      rayon("c-bakery", "Boulangerie"),
+      rayon("m-bakery", "Boulangerie", "maxi"),
     ]);
 
-    expect(state.stores.maxi?.aisles).toEqual([{ id: "m-bakery", name: "Boulangerie" }]);
+    expect(state.magasins.maxi?.rayons).toEqual([{ id: "m-bakery", name: "Boulangerie" }]);
   });
 });
 
 const milk = event({ type: "ItemCreated", payload: { itemId: "milk", name: "Lait" } });
-const filed = (itemId: string, store: string, filing: unknown) =>
-  event({ type: "ItemFiled", store, payload: { itemId, filing } });
-const inAisle = (aisleId: string) => ({ _tag: "Aisle", aisleId });
+const rayonSet = (itemId: string, magasin: string, rayon: unknown) =>
+  event({ type: "ItemRayonSet", magasin, payload: { itemId, rayon } });
+const inRayon = (rayonId: string) => ({ _tag: "Rayon", rayonId });
 
 describe("catalogue", () => {
-  it("creates an item with quantity 1, not to buy, unfiled everywhere", () => {
+  it("creates an item with quantity 1, not to buy, non classé everywhere", () => {
     expect(fold([milk]).items).toEqual({
-      milk: { id: "milk", name: "Lait", quantity: 1, status: "notToBuy", filings: {} },
+      milk: { id: "milk", name: "Lait", quantity: 1, status: "notToBuy", rayonParMagasin: {} },
     });
   });
 
@@ -143,50 +143,54 @@ describe("catalogue", () => {
     expect(fold([milk, removed]).items).toEqual({});
   });
 
-  it("files an item under an aisle in one store and as not sold in another", () => {
-    const maxi = event({ type: "StoreCreated", store: "maxi", payload: { name: "Maxi" } });
+  it("sets an item's rayon in one magasin and pas vendu ici in another", () => {
+    const maxi = event({ type: "MagasinCreated", magasin: "maxi", payload: { name: "Maxi" } });
 
     const state = fold([
       costco,
       maxi,
-      aisle("dairy", "Laitier"),
+      rayon("dairy", "Laitier"),
       milk,
-      filed("milk", "costco", inAisle("dairy")),
-      filed("milk", "maxi", { _tag: "NotSoldHere" }),
+      rayonSet("milk", "costco", inRayon("dairy")),
+      rayonSet("milk", "maxi", { _tag: "PasVenduIci" }),
     ]);
 
-    expect(state.items.milk?.filings).toEqual({
-      costco: { _tag: "Aisle", aisleId: "dairy" },
-      maxi: { _tag: "NotSoldHere" },
+    expect(state.items.milk?.rayonParMagasin).toEqual({
+      costco: { _tag: "Rayon", rayonId: "dairy" },
+      maxi: { _tag: "PasVenduIci" },
     });
   });
 
-  it("unfiles an item", () => {
+  it("sets an item back to non classé", () => {
     const state = fold([
       costco,
-      aisle("dairy", "Laitier"),
+      rayon("dairy", "Laitier"),
       milk,
-      filed("milk", "costco", inAisle("dairy")),
-      filed("milk", "costco", { _tag: "Unfiled" }),
+      rayonSet("milk", "costco", inRayon("dairy")),
+      rayonSet("milk", "costco", { _tag: "NonClasse" }),
     ]);
 
-    expect(state.items.milk?.filings).toEqual({});
+    expect(state.items.milk?.rayonParMagasin).toEqual({});
   });
 
-  it("ignores filing under an aisle the store does not have", () => {
-    const state = fold([costco, milk, filed("milk", "costco", inAisle("ghost"))]);
+  it("ignores a rayon the magasin does not have", () => {
+    const state = fold([costco, milk, rayonSet("milk", "costco", inRayon("ghost"))]);
 
-    expect(state.items.milk?.filings).toEqual({});
+    expect(state.items.milk?.rayonParMagasin).toEqual({});
   });
 
-  it("unfiles the items of a removed aisle", () => {
-    const dairy = aisle("dairy", "Laitier");
-    const filedInDairy = filed("milk", "costco", inAisle("dairy"));
-    const removed = event({ type: "AisleRemoved", store: "costco", payload: { aisleId: "dairy" } });
+  it("sets the items of a removed rayon back to non classé", () => {
+    const dairy = rayon("dairy", "Laitier");
+    const milkInDairy = rayonSet("milk", "costco", inRayon("dairy"));
+    const removed = event({
+      type: "RayonRemoved",
+      magasin: "costco",
+      payload: { rayonId: "dairy" },
+    });
 
-    const state = fold([costco, dairy, milk, filedInDairy, removed]);
+    const state = fold([costco, dairy, milk, milkInDairy, removed]);
 
-    expect(state.items.milk?.filings).toEqual({});
+    expect(state.items.milk?.rayonParMagasin).toEqual({});
   });
 });
 
@@ -194,22 +198,22 @@ const bread = event({ type: "ItemCreated", payload: { itemId: "bread", name: "Pa
 const toBuy = (itemId: string) => event({ type: "ItemMarkedToBuy", payload: { itemId } });
 const notToBuy = (itemId: string) => event({ type: "ItemMarkedNotToBuy", payload: { itemId } });
 const checked = (itemId: string) =>
-  event({ type: "ItemChecked", store: "costco", payload: { itemId } });
+  event({ type: "ItemChecked", magasin: "costco", payload: { itemId } });
 const unchecked = (itemId: string) =>
-  event({ type: "ItemUnchecked", store: "costco", payload: { itemId } });
+  event({ type: "ItemUnchecked", magasin: "costco", payload: { itemId } });
 
-describe("list, cart and trips", () => {
+describe("list, panier and sorties", () => {
   it("marks an item to buy", () => {
     expect(fold([milk, toBuy("milk")]).items.milk).toMatchObject({ status: "toBuy" });
   });
 
-  it("marks an item not to buy, even when it sits in the cart", () => {
+  it("marks an item not to buy, even when it sits in the panier", () => {
     const state = fold([milk, toBuy("milk"), checked("milk"), notToBuy("milk")]);
 
     expect(state.items.milk).toMatchObject({ status: "notToBuy" });
   });
 
-  it("checks a listed item into the cart", () => {
+  it("checks a listed item into the panier", () => {
     expect(fold([milk, toBuy("milk"), checked("milk")]).items.milk).toMatchObject({
       status: "inCart",
     });
@@ -225,13 +229,13 @@ describe("list, cart and trips", () => {
     expect(state.items.milk).toMatchObject({ status: "toBuy" });
   });
 
-  it("finishing a trip records the cart as purchases; unchecked items stay to buy", () => {
+  it("finishing a sortie records the panier as achats; unchecked items stay to buy", () => {
     const quantity = event({ type: "ItemQuantitySet", payload: { itemId: "milk", quantity: 2 } });
     const finished = event({
-      id: "trip-1",
+      id: "sortie-1",
       at: 1762282800000,
-      type: "TripFinished",
-      store: "costco",
+      type: "SortieFinished",
+      magasin: "costco",
       payload: {},
     });
 
@@ -248,12 +252,12 @@ describe("list, cart and trips", () => {
 
     expect(state).toMatchObject({
       items: { milk: { status: "notToBuy", quantity: 2 }, bread: { status: "toBuy" } },
-      trips: [
+      sorties: [
         {
-          id: "trip-1",
-          store: "costco",
+          id: "sortie-1",
+          magasin: "costco",
           at: 1762282800000,
-          purchases: [{ itemId: "milk", quantity: 2 }],
+          achats: [{ itemId: "milk", quantity: 2 }],
         },
       ],
     });
@@ -262,41 +266,41 @@ describe("list, cart and trips", () => {
 
 const chips = event({ type: "ItemCreated", payload: { itemId: "chips", name: "Chips" } });
 const requested = event({
-  type: "RequestCreated",
+  type: "DemandeCreated",
   actor: "guest",
-  payload: { requestId: "r1", name: "Chips" },
+  payload: { demandeId: "r1", name: "Chips" },
 });
 const accepted = () =>
-  event({ type: "RequestAccepted", payload: { requestId: "r1", itemId: "chips" } });
-const declined = () => event({ type: "RequestDeclined", payload: { requestId: "r1" } });
+  event({ type: "DemandeAccepted", payload: { demandeId: "r1", itemId: "chips" } });
+const refused = () => event({ type: "DemandeRefused", payload: { demandeId: "r1" } });
 
-describe("requests", () => {
-  it("records a guest request as pending", () => {
-    expect(fold([requested]).requests).toEqual({
+describe("demandes", () => {
+  it("records a guest demande as pending", () => {
+    expect(fold([requested]).demandes).toEqual({
       r1: { id: "r1", name: "Chips", requestedAt: requested.at, status: { _tag: "Pending" } },
     });
   });
 
-  it("accepting a request puts the chosen item on the list", () => {
+  it("accepting a demande puts the chosen item on the list", () => {
     expect(fold([requested, chips, accepted()])).toMatchObject({
-      requests: { r1: { status: { _tag: "Accepted", itemId: "chips" } } },
+      demandes: { r1: { status: { _tag: "Accepted", itemId: "chips" } } },
       items: { chips: { status: "toBuy" } },
     });
   });
 
-  it("declining a request leaves the list untouched", () => {
-    expect(fold([requested, chips, declined()])).toMatchObject({
-      requests: { r1: { status: { _tag: "Declined" } } },
+  it("refusing a demande leaves the list untouched", () => {
+    expect(fold([requested, chips, refused()])).toMatchObject({
+      demandes: { r1: { status: { _tag: "Refused" } } },
       items: { chips: { status: "notToBuy" } },
     });
   });
 
   it.each([
-    ["accepted", [accepted(), declined()], "Accepted", "toBuy"],
-    ["declined", [declined(), accepted()], "Declined", "notToBuy"],
+    ["accepted", [accepted(), refused()], "Accepted", "toBuy"],
+    ["refused", [refused(), accepted()], "Refused", "notToBuy"],
   ] as const)("the first arbitration wins: %s then the other", (_, arbitrations, tag, status) => {
     expect(fold([requested, chips, ...arbitrations])).toMatchObject({
-      requests: { r1: { status: { _tag: tag } } },
+      demandes: { r1: { status: { _tag: tag } } },
       items: { chips: { status } },
     });
   });
@@ -330,11 +334,16 @@ describe("conflicts: the journal replays by timestamp, then by event id", () => 
   );
 
   it("a duplicated event is applied once", () => {
-    const finished = event({ id: "trip-dup", type: "TripFinished", store: "costco", payload: {} });
+    const finished = event({
+      id: "sortie-dup",
+      type: "SortieFinished",
+      magasin: "costco",
+      payload: {},
+    });
 
     const state = fold([costco, milk, toBuy("milk"), checked("milk"), finished, finished]);
 
-    expect(state.trips).toHaveLength(1);
+    expect(state.sorties).toHaveLength(1);
   });
 
   it("checking twice, from two devices, is one check", () => {
@@ -355,14 +364,14 @@ describe("conflicts: the journal replays by timestamp, then by event id", () => 
   });
 
   it("the first arbitration by timestamp wins, whatever the arrival order", () => {
-    const lateDecline = event({ at: 300, type: "RequestDeclined", payload: { requestId: "r1" } });
+    const lateDecline = event({ at: 300, type: "DemandeRefused", payload: { demandeId: "r1" } });
     const earlyAccept = event({
       at: 200,
-      type: "RequestAccepted",
-      payload: { requestId: "r1", itemId: "chips" },
+      type: "DemandeAccepted",
+      payload: { demandeId: "r1", itemId: "chips" },
     });
 
-    expect(fold([requested, chips, lateDecline, earlyAccept]).requests.r1?.status).toEqual({
+    expect(fold([requested, chips, lateDecline, earlyAccept]).demandes.r1?.status).toEqual({
       _tag: "Accepted",
       itemId: "chips",
     });
@@ -370,27 +379,27 @@ describe("conflicts: the journal replays by timestamp, then by event id", () => 
 });
 
 describe("review fixes", () => {
-  it("reordering with a repeated id keeps each aisle once", () => {
-    const aisles = [aisle("fruits", "Fruits"), aisle("bakery", "Boulangerie")];
+  it("reordering with a repeated id keeps each rayon once", () => {
+    const rayons = [rayon("fruits", "Fruits"), rayon("bakery", "Boulangerie")];
     const reordered = event({
-      type: "AislesReordered",
-      store: "costco",
-      payload: { aisleIds: ["bakery", "bakery", "fruits"] },
+      type: "RayonsReordered",
+      magasin: "costco",
+      payload: { rayonIds: ["bakery", "bakery", "fruits"] },
     });
 
-    const state = fold([costco, ...aisles, reordered]);
+    const state = fold([costco, ...rayons, reordered]);
 
-    expect(state.stores.costco?.aisles.map((a) => a.id)).toEqual(["bakery", "fruits"]);
+    expect(state.magasins.costco?.rayons.map((a) => a.id)).toEqual(["bakery", "fruits"]);
   });
 
-  it("accepting a request for an item that does not exist leaves it pending", () => {
-    expect(fold([requested, accepted()]).requests.r1?.status).toEqual({ _tag: "Pending" });
+  it("accepting a demande for an item that does not exist leaves it pending", () => {
+    expect(fold([requested, accepted()]).demandes.r1?.status).toEqual({ _tag: "Pending" });
   });
 
-  it("ignores filing in a store that does not exist", () => {
-    const state = fold([milk, filed("milk", "ghost", { _tag: "NotSoldHere" })]);
+  it("ignores a rayon in a magasin that does not exist", () => {
+    const state = fold([milk, rayonSet("milk", "ghost", { _tag: "PasVenduIci" })]);
 
-    expect(state.items.milk?.filings).toEqual({});
+    expect(state.items.milk?.rayonParMagasin).toEqual({});
   });
 
   it("a second creation of the same item is ignored", () => {
