@@ -228,6 +228,9 @@ importers:
 
   packages/domain:
     dependencies:
+      '@ecureuil/wire':
+        specifier: workspace:*
+        version: link:../wire
       effect:
         specifier: 4.1.2
         version: 4.1.2

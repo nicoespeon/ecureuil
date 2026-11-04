@@ -1,5 +1,5 @@
+import type { Event } from "@ecureuil/wire";
 import { Context, type Effect } from "effect";
-import type { Event } from "./event";
 
 // Position in the journal, as handed out by the server. Opaque to the domain.
 export type Cursor = string;
