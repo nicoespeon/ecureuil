@@ -12,3 +12,4 @@ export {
   type Sortie,
   type State,
 } from "./reducer";
+export { seed } from "./seed";
