@@ -86,7 +86,7 @@ describe("magasins and rayons", () => {
     expect(state.magasins.costco?.rayons.map((a) => a.id)).toEqual(["dairy", "bakery", "fruits"]);
   });
 
-  it("removes an rayon", () => {
+  it("removes a rayon", () => {
     const rayons = [rayon("fruits", "Fruits"), rayon("bakery", "Boulangerie")];
     const removed = event({
       type: "RayonRemoved",
