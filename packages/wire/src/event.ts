@@ -1,10 +1,14 @@
 import { Schema } from "effect";
 
-// The two secret links of the household: the owner arbitrates, the guest requests.
+/**
+ * The two secret links of the household: the owner arbitrates, the guest requests.
+ */
 export const Actor = Schema.Literals(["owner", "guest"]);
 export type Actor = Schema.Schema.Type<typeof Actor>;
 
-// Where an item sits in one store. Absent = unfiled ("Non classé").
+/**
+ * Where an item sits in one store. Absent = unfiled ("Non classé").
+ */
 export const Filing = Schema.Union([
   Schema.TaggedStruct("Aisle", { aisleId: Schema.NonEmptyString }),
   Schema.TaggedStruct("NotSoldHere", {}),
@@ -15,9 +19,11 @@ export type Filing = Schema.Schema.Type<typeof Filing>;
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 const id = Schema.NonEmptyString;
 
-// Envelope shared by every journal entry, readable without knowing the payloads:
-// `at` is epoch milliseconds, `device` the opaque id of the device that wrote the
-// event, `store` the store the actor was in (when any).
+/**
+ * Envelope shared by every journal entry, readable without knowing the payloads:
+ * `at` is epoch milliseconds, `device` the opaque id of the device that wrote the
+ * event, `store` the store the actor was in (when any).
+ */
 const envelope = {
   id,
   at: Schema.Int,

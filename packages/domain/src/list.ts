@@ -11,8 +11,10 @@ export type Section =
     }
   | { readonly _tag: "Unfiled"; readonly items: ReadonlyArray<ListItem> };
 
-// The list as walked in one store: its aisles in order (empty ones skipped), "Non classé"
-// last, "Pas chez X" and the cart apart. Another store re-sorts the same items.
+/**
+ * The list as walked in one store: its aisles in order (empty ones skipped), "Non classé"
+ * last, "Pas chez X" and the cart apart. Another store re-sorts the same items.
+ */
 export type StoreList = {
   readonly sections: ReadonlyArray<Section>;
   readonly notSoldHere: ReadonlyArray<ListItem>;

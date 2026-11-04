@@ -1,7 +1,9 @@
 import type { Event } from "@ecureuil/wire";
 import { Context, type Effect } from "effect";
 
-// Position in the journal, as handed out by the server. Opaque to the domain.
+/**
+ * Position in the journal, as handed out by the server. Opaque to the domain.
+ */
 export type Cursor = string;
 
 export class Clock extends Context.Service<Clock, { readonly now: Effect.Effect<number> }>()(

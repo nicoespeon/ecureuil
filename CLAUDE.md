@@ -1,6 +1,6 @@
 # Écureuil
 
-Offline-first grocery list for one household, with a catalogue of items filed under a rayon per store so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
+Offline-first grocery list for one household, with a catalogue of items filed under an aisle per store so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
 
 ## Repo layout
 
@@ -44,11 +44,12 @@ Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
 
 The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named exports, co-located types, exact dependency versions). Project-specific:
 
-- All code, comments, identifiers and commit messages in **English**. The UI and the glossary are in French.
+- All code, comments, identifiers and commit messages in **English**. The glossary keys each term in English with its French label; the UI is in French.
 - Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`…), small. **No `Co-Authored-By`.**
 - Effect stays in `packages/domain` and `packages/wire`. React components consume plain state and plain functions.
 - Dependencies pinned to exact versions (`pnpm add -E`).
 - Accessibility is not negotiable; motion honours `prefers-reduced-motion`.
+- A comment on a declaration (type, property, function, constant) is JSDoc (`/** … */`); `//` is for a line inside a body.
 
 ## Workflow
 

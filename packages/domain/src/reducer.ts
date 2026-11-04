@@ -13,14 +13,20 @@ export type Item = {
   readonly name: string;
   readonly quantity: number;
   readonly status: ItemStatus;
-  // Per store. An absent store means unfiled ("Non classé").
+  /**
+   * Per store. An absent store means unfiled ("Non classé").
+   */
   readonly filings: Readonly<Record<string, Exclude<Filing, { readonly _tag: "Unfiled" }>>>;
 };
 
-// "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a trip.
+/**
+ * "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a trip.
+ */
 export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
 
-// One shopping run, closed by "Terminer les courses".
+/**
+ * One shopping run, closed by "Terminer les courses".
+ */
 export type Trip = {
   readonly id: string;
   readonly store: string;
@@ -28,7 +34,9 @@ export type Trip = {
   readonly purchases: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
 };
 
-// An item the guest asks for; the owner's first arbitration is final.
+/**
+ * An item the guest asks for; the owner's first arbitration is final.
+ */
 export type Request = {
   readonly id: string;
   readonly name: string;
@@ -50,8 +58,10 @@ export type State = {
 
 export const initialState: State = { stores: {}, items: {}, requests: {}, trips: [] };
 
-// Devices sync out of order and may resend: the journal is replayed in one total order
-// (timestamp, then event id), each event once. Conflict rules fall out of that order.
+/**
+ * Devices sync out of order and may resend: the journal is replayed in one total order
+ * (timestamp, then event id), each event once. Conflict rules fall out of that order.
+ */
 export function fold(events: ReadonlyArray<Event>) {
   const unique = [...new Map(events.map((event) => [event.id, event])).values()];
   return unique.sort(byTimestampThenId).reduce(apply, initialState);
@@ -208,7 +218,9 @@ function updateStore(state: State, storeId: string, update: (store: Store) => St
   return store ? withStore(state, update(store)) : state;
 }
 
-// Aisles created concurrently on another device keep their place after the given order.
+/**
+ * Aisles created concurrently on another device keep their place after the given order.
+ */
 function reorder(aisles: ReadonlyArray<Aisle>, aisleIds: ReadonlyArray<string>) {
   const mentioned = [...new Set(aisleIds)].flatMap((id) =>
     aisles.filter((aisle) => aisle.id === id),
@@ -231,7 +243,9 @@ function updateItems(state: State, update: (item: Item) => Item): State {
   return { ...state, items: Object.fromEntries(items) };
 }
 
-// Puts an item on the list; already listed or in the cart, it stays where it is.
+/**
+ * Puts an item on the list; already listed or in the cart, it stays where it is.
+ */
 function list(item: Item): Item {
   return item.status === "notToBuy" ? { ...item, status: "toBuy" } : item;
 }
@@ -245,7 +259,9 @@ function withRequest(state: State, request: Request): State {
   return { ...state, requests: { ...state.requests, [request.id]: request } };
 }
 
-// First arbitration wins: a request that is no longer pending ignores later verdicts.
+/**
+ * First arbitration wins: a request that is no longer pending ignores later verdicts.
+ */
 function arbitrate(
   state: State,
   requestId: string,
