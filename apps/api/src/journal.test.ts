@@ -3,7 +3,7 @@ import { authorizationHeader, Event, journalPath, PullResponse } from "@ecureuil
 import { Schema } from "effect";
 import { beforeEach, expect, it } from "vitest";
 import { app } from "./index";
-import { hashSecret } from "./lien";
+import { hashSecret } from "./secret";
 
 const secrets = { proprietaire: "secret-du-proprietaire", invite: "secret-de-l-invite" };
 
