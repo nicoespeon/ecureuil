@@ -30,13 +30,27 @@ export type Trip = {
   readonly purchases: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
 };
 
+// An item the guest asks for; the owner's first arbitration is final.
+export type Request = {
+  readonly id: string;
+  readonly name: string;
+  readonly requestedAt: number;
+  readonly status: RequestStatus;
+};
+
+export type RequestStatus =
+  | { readonly _tag: "Pending" }
+  | { readonly _tag: "Accepted"; readonly itemId: string }
+  | { readonly _tag: "Declined" };
+
 export type State = {
   readonly stores: Readonly<Record<string, Store>>;
   readonly items: Readonly<Record<string, Item>>;
+  readonly requests: Readonly<Record<string, Request>>;
   readonly trips: ReadonlyArray<Trip>;
 };
 
-export const initialState: State = { stores: {}, items: {}, trips: [] };
+export const initialState: State = { stores: {}, items: {}, requests: {}, trips: [] };
 
 export function fold(events: ReadonlyArray<Event>) {
   return events.reduce(apply, initialState);
@@ -147,6 +161,30 @@ function apply(state: State, event: Event): State {
       );
       return { ...emptied, trips: [...state.trips, trip] };
     }
+    case "RequestCreated":
+      return state.requests[event.payload.requestId]
+        ? state
+        : withRequest(state, {
+            id: event.payload.requestId,
+            name: event.payload.name,
+            requestedAt: event.at,
+            status: { _tag: "Pending" },
+          });
+    case "RequestAccepted": {
+      const { requestId, itemId } = event.payload;
+      return arbitrate(state, requestId, { _tag: "Accepted", itemId }, (arbitrated) =>
+        updateItem(arbitrated, itemId, (item) =>
+          item.status === "notToBuy" ? { ...item, status: "toBuy" } : item,
+        ),
+      );
+    }
+    case "RequestDeclined":
+      return arbitrate(
+        state,
+        event.payload.requestId,
+        { _tag: "Declined" },
+        (arbitrated) => arbitrated,
+      );
     default:
       return state;
   }
@@ -184,4 +222,21 @@ function updateItems(state: State, update: (item: Item) => Item): State {
 function unfile(item: Item, storeId: string): Item {
   const { [storeId]: _unfiled, ...placements } = item.placements;
   return { ...item, placements };
+}
+
+function withRequest(state: State, request: Request): State {
+  return { ...state, requests: { ...state.requests, [request.id]: request } };
+}
+
+// First arbitration wins: a request that is no longer pending ignores later verdicts.
+function arbitrate(
+  state: State,
+  requestId: string,
+  verdict: RequestStatus,
+  then: (state: State) => State,
+): State {
+  const request = state.requests[requestId];
+  return request?.status._tag === "Pending"
+    ? then(withRequest(state, { ...request, status: verdict }))
+    : state;
 }

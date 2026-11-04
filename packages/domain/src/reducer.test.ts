@@ -264,3 +264,46 @@ describe("list, cart and trips", () => {
     });
   });
 });
+
+const chips = event({ type: "ItemCreated", payload: { itemId: "chips", name: "Chips" } });
+const requested = event({
+  type: "RequestCreated",
+  actor: "guest",
+  at: 50,
+  payload: { requestId: "r1", name: "Chips" },
+});
+const accepted = () =>
+  event({ type: "RequestAccepted", payload: { requestId: "r1", itemId: "chips" } });
+const declined = () => event({ type: "RequestDeclined", payload: { requestId: "r1" } });
+
+describe("requests", () => {
+  it("records a guest request as pending", () => {
+    expect(fold([requested]).requests).toEqual({
+      r1: { id: "r1", name: "Chips", requestedAt: 50, status: { _tag: "Pending" } },
+    });
+  });
+
+  it("accepting a request puts the chosen item on the list", () => {
+    expect(fold([requested, chips, accepted()])).toMatchObject({
+      requests: { r1: { status: { _tag: "Accepted", itemId: "chips" } } },
+      items: { chips: { status: "toBuy" } },
+    });
+  });
+
+  it("declining a request leaves the list untouched", () => {
+    expect(fold([requested, chips, declined()])).toMatchObject({
+      requests: { r1: { status: { _tag: "Declined" } } },
+      items: { chips: { status: "notToBuy" } },
+    });
+  });
+
+  it.each([
+    ["accepted", [accepted(), declined()], "Accepted", "toBuy"],
+    ["declined", [declined(), accepted()], "Declined", "notToBuy"],
+  ] as const)("the first arbitration wins: %s then the other", (_, arbitrations, tag, status) => {
+    expect(fold([requested, chips, ...arbitrations])).toMatchObject({
+      requests: { r1: { status: { _tag: tag } } },
+      items: { chips: { status } },
+    });
+  });
+});
