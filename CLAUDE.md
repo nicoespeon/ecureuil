@@ -56,7 +56,8 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 - New domain term, changed concept, or any architectural decision: invoke `/domain-modeling` (mattpocock-skills); it challenges terms against `GLOSSARY.md` and records ADRs in `docs/adr/`. Never edit `GLOSSARY.md` or add an ADR outside it.
 - UI layout or state-machine question: invoke `/prototype` (throwaway, never merged to `main`).
 - Fact about a library (Effect, D1, vite-plugin-pwa, Base UI…): invoke `/research`; findings go to `docs/research/<topic>.md` with sources.
-- Implementation: TDD per `~/.claude/CLAUDE.md` (`/tdd` or `/test-driven-development`), then `/code-review` before opening a PR; `/ship` runs the whole worktree → review → PR recipe.
+- Working a Notion task: own worktree and branch; `/grilling` first if the task is fuzzy; TDD, red before green; small conventional commits; `/code-review` on the branch with confirmed findings fixed BEFORE the PR is opened — never open a PR that has not been through it; QA evidence as described under "Pull requests"; `/pr-description` for the body; open the PR.
+- Mark the Notion task Doing at start and Done once the PR is open; archive the session after merge.
 - Tasks live in Notion (project page https://app.notion.com/p/4053f52c56c18004bbc6e30d10a1a4a3, "All Tasks" database): set the task to Doing when starting and Done when finished; one session per task, started in a worktree.
 
 ### Pull requests
