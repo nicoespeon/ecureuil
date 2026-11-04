@@ -4,7 +4,7 @@ Date: 2026-11-04
 
 ## Status
 
-Accepted
+Accepted. Extended by [ADR 4](0004-journal-envelope-and-replay-order.md), which fixes the event envelope and the replay order behind the conflict rules.
 
 ## Context
 

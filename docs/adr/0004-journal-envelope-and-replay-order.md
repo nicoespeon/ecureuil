@@ -4,7 +4,7 @@ Date: 2026-11-04
 
 ## Status
 
-Accepted
+Accepted. Extends [ADR 2](0002-event-log-as-sync-primitive.md): it makes the conflict rules named there concrete; ADR 2 stays in force.
 
 ## Context
 
