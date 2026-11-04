@@ -8,7 +8,7 @@ import {
 import { Result, Schema } from "effect";
 import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
-import { appendEvents, eventsAfter, isKnownCursor, startCursor } from "./journal";
+import { appendEvents, eventsAfter, isWellFormedCursor, startCursor } from "./journal";
 import { roleOfSecret } from "./lien";
 
 type Bindings = {
@@ -60,7 +60,7 @@ app.get(journalPath, async (c) => {
   if (Result.isFailure(pull)) return c.json({ error: pull.failure.message }, 400);
 
   const since = pull.success.since ?? startCursor;
-  if (!isKnownCursor(since)) return c.json({ error: `Unknown cursor: ${since}` }, 400);
+  if (!isWellFormedCursor(since)) return c.json({ error: `Unknown cursor: ${since}` }, 400);
 
   return c.json(await eventsAfter(c.env.DB, since));
 });

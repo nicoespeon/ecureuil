@@ -6,10 +6,11 @@ import type { Event } from "@ecureuil/wire";
 export const startCursor = "0";
 
 /**
- * A cursor is the `seq` of the last event a device has seen, as a string.
+ * A cursor is the `seq` of the last event a device has seen, written the way
+ * `String(seq)` writes it: no leading zero, small enough to stay a safe integer.
  */
-export function isKnownCursor(cursor: string) {
-  return /^\d+$/.test(cursor);
+export function isWellFormedCursor(cursor: string) {
+  return /^(0|[1-9]\d{0,14})$/.test(cursor);
 }
 
 /**
@@ -44,10 +45,10 @@ export async function eventsAfter(db: D1Database, cursor: string) {
     .all<JournalRow>();
   const last = rows.at(-1);
   return {
-    events: rows.map(({ seq: _, payload, ...envelope }) => ({
-      ...envelope,
-      payload: JSON.parse(payload),
-    })),
+    events: rows.map(({ seq: _, payload, ...envelope }) => {
+      const parsed: unknown = JSON.parse(payload);
+      return { ...envelope, payload: parsed };
+    }),
     cursor: last === undefined ? cursor : String(last.seq),
   };
 }

@@ -89,6 +89,12 @@ it.each([
   expect((await send()).status).toBe(401);
 });
 
+it("still recognizes a secret when another lien row is malformed", async () => {
+  await env.DB.prepare("UPDATE lien SET secret_hash = 'abc' WHERE role = 'proprietaire'").run();
+
+  expect((await pull(undefined, secrets.invite)).status).toBe(200);
+});
+
 it("answers 400 with the schema error to an invalid push", async () => {
   const pushed = await push({ events: [{ id: "e1" }] });
 
@@ -106,9 +112,12 @@ it("answers 400 to a body that is not JSON", async () => {
   expect(pushed.status).toBe(400);
 });
 
-it("answers 400 to a cursor it did not hand out", async () => {
-  expect((await pull("pas-un-curseur")).status).toBe(400);
-});
+it.each(["pas-un-curseur", "007", "99999999999999999999"])(
+  "answers 400 to the cursor %s, which it never hands out",
+  async (cursor) => {
+    expect((await pull(cursor)).status).toBe(400);
+  },
+);
 
 function itemCreated(id: string, actor = "proprietaire") {
   return Schema.decodeUnknownSync(Event)({

@@ -18,7 +18,7 @@ const liens = await Promise.all(
 );
 
 const createdAt = Date.now();
-// Values are our own role names and hex hashes, so inlining them in SQL is safe.
+/** Our own role names and hex hashes only, so inlining them in SQL is safe. */
 const sql = liens
   .map(
     ({ role, hash }) =>
