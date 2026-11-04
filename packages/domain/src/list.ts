@@ -1,4 +1,4 @@
-import type { Data } from "effect";
+import { Data } from "effect";
 import type { Item, State } from "./reducer";
 
 export type ListItem = { readonly id: string; readonly name: string; readonly quantity: number };
@@ -11,6 +11,7 @@ export type Section = Data.TaggedEnum<{
   };
   NonClasse: { readonly items: ReadonlyArray<ListItem> };
 }>;
+const Section = Data.taggedEnum<Section>();
 
 /**
  * The list as walked in one magasin: its rayons in order (empty ones skipped), "Non classé"
@@ -31,21 +32,21 @@ export function listForMagasin(state: State, magasinId: string): Liste {
   const rayons = state.magasins[magasinId]?.rayons ?? [];
 
   const sections: ReadonlyArray<Section> = [
-    ...rayons.map((rayon) => ({
-      _tag: "Rayon" as const,
-      rayonId: rayon.id,
-      name: rayon.name,
-      items: toBuy
-        .filter((item) => {
-          const itemRayon = rayonOf(item);
-          return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayon.id;
-        })
-        .map(toListItem),
-    })),
-    {
-      _tag: "NonClasse" as const,
+    ...rayons.map((rayon) =>
+      Section.Rayon({
+        rayonId: rayon.id,
+        name: rayon.name,
+        items: toBuy
+          .filter((item) => {
+            const itemRayon = rayonOf(item);
+            return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayon.id;
+          })
+          .map(toListItem),
+      }),
+    ),
+    Section.NonClasse({
       items: toBuy.filter((item) => rayonOf(item) === undefined).map(toListItem),
-    },
+    }),
   ];
 
   return {

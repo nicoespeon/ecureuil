@@ -1,5 +1,5 @@
 import type { Event, ItemRayon } from "@ecureuil/wire";
-import { type Data, Match } from "effect";
+import { Data, Match } from "effect";
 
 export type Magasin = {
   readonly id: string;
@@ -52,6 +52,7 @@ export type DemandeStatus = Data.TaggedEnum<{
   Accepted: { readonly itemId: string };
   Refused: Record<never, never>;
 }>;
+const DemandeStatus = Data.taggedEnum<DemandeStatus>();
 
 export type State = {
   readonly magasins: Readonly<Record<string, Magasin>>;
@@ -194,18 +195,23 @@ const applyEvent = Match.type<Event>().pipe(
             id: event.payload.demandeId,
             name: event.payload.name,
             requestedAt: event.at,
-            status: { _tag: "Pending" },
+            status: DemandeStatus.Pending(),
           }),
     DemandeAccepted: (event) => (state: State) => {
       const { demandeId, itemId } = event.payload;
       // Accepting toward an unknown item would settle the demande for nothing: stay pending.
       if (!state.items[itemId]) return state;
-      return arbitrate(state, demandeId, { _tag: "Accepted", itemId }, (arbitrated) =>
+      return arbitrate(state, demandeId, DemandeStatus.Accepted({ itemId }), (arbitrated) =>
         updateItem(arbitrated, itemId, list),
       );
     },
     DemandeRefused: (event) => (state: State) =>
-      arbitrate(state, event.payload.demandeId, { _tag: "Refused" }, (arbitrated) => arbitrated),
+      arbitrate(
+        state,
+        event.payload.demandeId,
+        DemandeStatus.Refused(),
+        (arbitrated) => arbitrated,
+      ),
   }),
 );
 
