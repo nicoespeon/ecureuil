@@ -10,7 +10,14 @@ let sequence = 0;
 
 function event(fields: { type: string; payload: unknown; store?: string; actor?: Actor }) {
   sequence += 1;
-  return decode({ id: `e${sequence}`, at: sequence, actor: "owner", store: null, ...fields });
+  return decode({
+    id: `e${sequence}`,
+    at: sequence,
+    actor: "owner",
+    device: "pixel",
+    store: null,
+    ...fields,
+  });
 }
 
 const store = (id: string, name: string) =>

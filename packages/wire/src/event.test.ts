@@ -4,7 +4,7 @@ import { Event } from "./event";
 
 const decode = Schema.decodeUnknownSync(Event);
 
-const envelope = { id: "e1", at: 1762282800000, actor: "owner", store: "costco" };
+const envelope = { id: "e1", at: 1762282800000, actor: "owner", device: "pixel", store: "costco" };
 
 describe("Event wire schema", () => {
   it("decodes a store-scoped event with its envelope", () => {
@@ -27,6 +27,12 @@ describe("Event wire schema", () => {
     };
 
     expect(decode(raw)).toEqual(raw);
+  });
+
+  it("rejects an event that does not say which device wrote it", () => {
+    const { device: _device, ...withoutDevice } = envelope;
+
+    expect(() => decode({ ...withoutDevice, type: "TripFinished", payload: {} })).toThrow();
   });
 
   it("rejects an unknown event type", () => {

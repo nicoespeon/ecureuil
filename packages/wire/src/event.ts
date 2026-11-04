@@ -15,11 +15,13 @@ export type Filing = Schema.Schema.Type<typeof Filing>;
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 
 // Envelope shared by every journal entry, readable without knowing the payloads:
-// `at` is epoch milliseconds, `store` the store the actor was in (when any).
+// `at` is epoch milliseconds, `device` the opaque id of the device that wrote the
+// event, `store` the store the actor was in (when any).
 const envelope = {
   id: Schema.String,
   at: Schema.Int,
   actor: Actor,
+  device: Schema.String,
 };
 
 function householdEvent<const T extends string, const P extends Schema.Struct.Fields>(

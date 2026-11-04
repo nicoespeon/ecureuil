@@ -17,7 +17,14 @@ function event(fields: {
   id?: string;
 }) {
   sequence += 1;
-  return decode({ id: `e${sequence}`, at: sequence, actor: "owner", store: null, ...fields });
+  return decode({
+    id: `e${sequence}`,
+    at: sequence,
+    actor: "owner",
+    device: "pixel",
+    store: null,
+    ...fields,
+  });
 }
 
 const costco = event({ type: "StoreCreated", store: "costco", payload: { name: "Costco" } });
