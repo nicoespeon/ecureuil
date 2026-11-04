@@ -47,7 +47,7 @@ The ubiquitous language is French, deliberately hybrid with English technical vo
 - Domain nouns are French identifiers, exactly as in [`GLOSSARY.md`](GLOSSARY.md): `Foyer`, `Magasin`, `Rayon`, `Item`, `Liste`, `Panier`, `Sortie`, `Achat`, `Demande`. No accents in identifiers (`NonClasse`, `PasVenduIci`).
 - Events are a French noun with an English verb: `MagasinCreated`, `ItemRayonSet`, `SortieFinished`, `DemandeRefused`.
 - Technical vocabulary stays English: roles `owner` / `guest`, `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
-- Code comments and commit messages in English. ADRs, PR bodies and the glossary in French (ADRs 1 to 3 predate this rule and stay English for now).
+- Code comments and commit messages in English. ADRs, PR bodies and the glossary in French.
 - Never introduce or rename a domain term without asking Nicolas, through `/domain-modeling`.
 
 ## Conventions

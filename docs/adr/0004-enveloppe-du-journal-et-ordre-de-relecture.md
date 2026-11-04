@@ -4,7 +4,7 @@ Date : 2026-11-04
 
 ## Statut
 
-Accepté. Étend l'[ADR 2](0002-event-log-as-sync-primitive.md) : il rend concrètes les règles de conflit que l'ADR 2 nomme ; l'ADR 2 reste en vigueur.
+Accepté. Étend l'[ADR 2](0002-journal-d-evenements-comme-primitive-de-sync.md) : il rend concrètes les règles de conflit que l'ADR 2 nomme ; l'ADR 2 reste en vigueur.
 
 ## Contexte
 
