@@ -21,7 +21,11 @@ pnpm check                 # biome + typecheck + vitest, the one gate (also runs
 pnpm check:fix             # biome auto-fix
 pnpm --filter web dev      # http://localhost:5173
 pnpm --filter api dev      # http://localhost:8787/health (wrangler, local D1)
+pnpm --filter api db:migrate   # apply apps/api/migrations to the local D1 (--remote for production)
+pnpm --filter api liens        # create (or replace) the two secret links (--remote for production)
 ```
+
+The API (`/journal` push and pull, curl examples) is documented in [`apps/api/README.md`](apps/api/README.md).
 
 `.claude/launch.json` declares both dev servers (`web`, `api`).
 
