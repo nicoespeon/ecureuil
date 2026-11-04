@@ -82,13 +82,20 @@ it("walks the store: aisles in order, unfiled last, not sold and cart apart", ()
 });
 
 it("re-sorts the same list for another store without changing its content", () => {
-  const list = listForStore(fold(journal), "maxi");
-
-  expect(list.sections.flatMap((section) => section.items.map((i) => i.id)).sort()).toEqual([
-    "beer",
-    "bread",
-    "chips",
-    "milk",
-    "water",
-  ]);
+  expect(listForStore(fold(journal), "maxi")).toEqual({
+    sections: [
+      {
+        _tag: "Unfiled",
+        items: [
+          { id: "beer", name: "Bière", quantity: 1 },
+          { id: "chips", name: "Chips", quantity: 1 },
+          { id: "water", name: "Eau", quantity: 1 },
+          { id: "milk", name: "Lait", quantity: 2 },
+          { id: "bread", name: "Pain", quantity: 1 },
+        ],
+      },
+    ],
+    notSoldHere: [],
+    cart: [{ id: "eggs", name: "Œufs", quantity: 1 }],
+  });
 });
