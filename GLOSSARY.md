@@ -3,6 +3,7 @@
 The domain vocabulary is French, as in the UI. Code uses the English names in parentheses.
 
 - **Foyer** (household) — The unit everything belongs to: one catalogue, its stores, its list, its journal. Two people share it today, through two secret links (owner and guest), with no accounts.
+- **Appareil** (device) — One phone or computer a person uses the foyer from, identified once when it joins. Every journal entry says which appareil wrote it, so the owner's phone and the owner's Mac can be told apart.
 - **Propriétaire / Invité** (owner / guest) — The two roles of the foyer, one per secret link. The owner shops, configures and arbitrates; the guest requests. Every journal entry records which of the two acted.
 - **Magasin** (store) — A place we shop at (Costco, Maxi). Each store has its own ordered rayons; switching the active store changes how the list is sorted, never what it contains.
 - **Rayon** (aisle) — A section of one store, named and ordered per store by drag & drop. Rayons are store-scoped entities: Costco's "Boulangerie" and Maxi's "Boulangerie" are two different rayons.

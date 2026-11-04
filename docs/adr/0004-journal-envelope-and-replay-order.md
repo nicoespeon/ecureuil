@@ -12,7 +12,7 @@ ADR 2 resolves conflicts by event semantics: checking is idempotent, a quantity 
 
 ## Decision
 
-**Envelope.** Every event is `{ id, at, actor, store, type, payload }`: a unique id, the device clock in epoch milliseconds, who acted (`owner` or `guest`), the store the actor was in, then the event-specific payload. Store-scoped events (rayons, filing, finishing a trip) require a store; household events (catalogue, list, cart, requests) carry it as nullable context. The schema lives in `@ecureuil/wire`, so web and API validate the same contract.
+**Envelope.** Every event is `{ id, at, actor, device, store, type, payload }`: a unique id, the device clock in epoch milliseconds, who acted (`owner` or `guest`), which device wrote it (an opaque id generated once per device), the store the actor was in, then the event-specific payload. The role is the authority for permissions; the device serves sync bookkeeping and analytics, and no rule is keyed on it. Store-scoped events (rayons, filing, finishing a trip) require a store; household events (catalogue, list, cart, requests) carry it as nullable context. The schema lives in `@ecureuil/wire`, so web and API validate the same contract.
 
 **Replay order.** `fold(events)` drops duplicate ids, sorts by `(at, id)` and reduces in that order. The conflict rules fall out of it: last-write-wins is "last in order", first-wins is "a request that is no longer pending ignores later verdicts", tombstones are "events about an entity that no longer exists are ignored, and ids are never reused".
 
