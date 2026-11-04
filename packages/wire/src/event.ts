@@ -9,11 +9,11 @@ export type Actor = Schema.Schema.Type<typeof Actor>;
 /**
  * Where an item sits in one magasin. Absent = NonClasse ("Non classé").
  */
-export const ItemRayon = Schema.Union([
-  Schema.TaggedStruct("Rayon", { rayonId: Schema.NonEmptyString }),
-  Schema.TaggedStruct("PasVenduIci", {}),
-  Schema.TaggedStruct("NonClasse", {}),
-]);
+export const ItemRayon = Schema.TaggedUnion({
+  Rayon: { rayonId: Schema.NonEmptyString },
+  PasVenduIci: {},
+  NonClasse: {},
+});
 export type ItemRayon = Schema.Schema.Type<typeof ItemRayon>;
 
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));

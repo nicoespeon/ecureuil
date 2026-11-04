@@ -89,6 +89,19 @@ Les règles de conflit générales viennent de l'ordre de relecture (ADR 4) : de
 - `ItemChecked` sur un item `notToBuy` est ignoré ; `ItemUnchecked` ne fait revenir à `toBuy` qu'un item `inCart`. `ItemMarkedToBuy` laisse dans le panier un item déjà `inCart`.
 - `SortieFinished` enregistre une `Sortie` dont les achats sont les items `inCart` avec leur quantité, puis les repasse à `notToBuy`. La quantité de l'item survit à la sortie.
 
+## Seed
+
+`seed` est un journal de dev réaliste : Costco et Maxi avec leurs rayons dans l'ordre du parcours, une vingtaine d'items (ceux de la liste Cookidoo en tête), dont une partie à acheter, quelques-uns « Non classé » ou « Pas chez Maxi », et une demande de l'invité en attente. Il sert aux tests et aux agents qui ont besoin d'un foyer peuplé.
+
+```ts
+import { fold, listForMagasin, seed } from "@ecureuil/domain";
+
+const state = fold(seed);
+const liste = listForMagasin(state, "magasin-costco");
+```
+
+Il est déterministe : ids lisibles et fixes (`magasin-costco`, `rayon-costco-boulangerie`, `item-lait`), `at` croissant d'une minute à partir d'une epoch fixe, `device` `seed`. Chaque événement est décodé par le schéma `Event` de `@ecureuil/wire`, donc la fixture casse au chargement si elle sort du contrat. Le chargement dans un `EventStore` arrive avec la sync client.
+
 ## Ports
 
 Services Effect (`Context.Service`), sans implémentation ici :
