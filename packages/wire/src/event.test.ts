@@ -43,6 +43,16 @@ describe("Event wire schema", () => {
     expect(() => decode({ ...envelope, store: null, type: "TripFinished", payload: {} })).toThrow();
   });
 
+  it.each(["id", "device", "store"])("rejects an empty %s", (field) => {
+    expect(() => decode({ ...envelope, [field]: "", type: "TripFinished", payload: {} })).toThrow();
+  });
+
+  it("rejects an empty entity id in a payload", () => {
+    expect(() =>
+      decode({ ...envelope, type: "AisleCreated", payload: { aisleId: "", name: "Fruits" } }),
+    ).toThrow();
+  });
+
   it.each([0, -1, 1.5])("rejects quantity %s: must be a positive integer", (quantity) => {
     expect(() =>
       decode({
