@@ -20,7 +20,7 @@ function event(fields: {
   return decode({
     id: `e${sequence}`,
     at: sequence,
-    actor: "owner",
+    actor: "proprietaire",
     device: "pixel",
     magasin: null,
     ...fields,
@@ -267,7 +267,7 @@ describe("list, panier and sorties", () => {
 const chips = event({ type: "ItemCreated", payload: { itemId: "chips", name: "Chips" } });
 const requested = event({
   type: "DemandeCreated",
-  actor: "guest",
+  actor: "invite",
   payload: { demandeId: "r1", name: "Chips" },
 });
 const accepted = () =>

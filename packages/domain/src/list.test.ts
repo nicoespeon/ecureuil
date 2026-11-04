@@ -13,7 +13,7 @@ function event(fields: { type: string; payload: unknown; magasin?: string; actor
   return decode({
     id: `e${sequence}`,
     at: sequence,
-    actor: "owner",
+    actor: "proprietaire",
     device: "pixel",
     magasin: null,
     ...fields,

@@ -46,9 +46,9 @@ The ubiquitous language is French, deliberately hybrid with English technical vo
 
 - Domain nouns are French identifiers, exactly as in [`GLOSSARY.md`](GLOSSARY.md): `Foyer`, `Magasin`, `Rayon`, `Item`, `Liste`, `Panier`, `Sortie`, `Achat`, `Demande`. No accents in identifiers (`NonClasse`, `PasVenduIci`).
 - Events are a French noun with an English verb: `MagasinCreated`, `ItemRayonSet`, `SortieFinished`, `DemandeRefused`.
-- Technical vocabulary stays English: roles `owner` / `guest`, `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
-- Code comments and commit messages in English. ADRs, PR bodies and the glossary in French.
-- PR titles are English conventional commits (they become the squash commit); PR bodies are French.
+- Roles are domain terms too: `proprietaire` / `invite`. Technical vocabulary stays English: `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
+- Code comments in English. ADRs, PR bodies and the glossary in French.
+- Commit subjects and PR titles follow the conventional commit format; French is fine, especially for domain terms, and PR titles become the squash commit.
 - Never introduce or rename a domain term without asking Nicolas, through `/domain-modeling`.
 
 ## Conventions

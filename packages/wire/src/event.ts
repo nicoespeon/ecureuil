@@ -3,7 +3,7 @@ import { Schema } from "effect";
 /**
  * The two secret links of the foyer: the owner arbitrates, the guest demandes.
  */
-export const Actor = Schema.Literals(["owner", "guest"]);
+export const Actor = Schema.Literals(["proprietaire", "invite"]);
 export type Actor = Schema.Schema.Type<typeof Actor>;
 
 /**

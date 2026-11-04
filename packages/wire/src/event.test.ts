@@ -7,7 +7,7 @@ const decode = Schema.decodeUnknownSync(Event);
 const envelope = {
   id: "e1",
   at: 1762282800000,
-  actor: "owner",
+  actor: "proprietaire",
   device: "pixel",
   magasin: "costco",
 };
@@ -27,7 +27,7 @@ describe("Event wire schema", () => {
     const raw = {
       ...envelope,
       magasin: null,
-      actor: "guest",
+      actor: "invite",
       type: "DemandeCreated",
       payload: { demandeId: "r1", name: "Chips" },
     };
