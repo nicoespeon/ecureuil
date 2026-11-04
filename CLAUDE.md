@@ -49,3 +49,12 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 - Effect stays in `packages/domain` and `packages/wire`. React components consume plain state and plain functions.
 - Dependencies pinned to exact versions (`pnpm add -E`).
 - Accessibility is not negotiable; motion honours `prefers-reduced-motion`.
+
+## Workflow
+
+- New feature or fuzzy task: invoke `/grilling` (mattpocock-skills) before writing any code; settle the design tree with Nicolas first.
+- New domain term, changed concept, or any architectural decision: invoke `/domain-modeling` (mattpocock-skills); it challenges terms against `GLOSSARY.md` and records ADRs in `docs/adr/`. Never edit `GLOSSARY.md` or add an ADR outside it.
+- UI layout or state-machine question: invoke `/prototype` (throwaway, never merged to `main`).
+- Fact about a library (Effect, D1, vite-plugin-pwa, Base UI…): invoke `/research`; findings go to `docs/research/<topic>.md` with sources.
+- Implementation: TDD per `~/.claude/CLAUDE.md` (`/tdd` or `/test-driven-development`), then `/code-review` before opening a PR; `/ship` runs the whole worktree → review → PR recipe.
+- Tasks live in Notion (project page https://app.notion.com/p/4053f52c56c18004bbc6e30d10a1a4a3, "All Tasks" database): set the task to Doing when starting and Done when finished; one session per task, started in a worktree.
