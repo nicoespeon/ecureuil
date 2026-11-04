@@ -1,0 +1,10 @@
+# The same `pnpm check` as CI, so a commit never lands red. Biome auto-fixes the
+# staged files first and re-stages them.
+pre-commit:
+  jobs:
+    - name: biome
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched --colors=off {staged_files}
+      stage_fixed: true
+    - name: check
+      run: pnpm check

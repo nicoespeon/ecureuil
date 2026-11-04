@@ -1,0 +1,23 @@
+{
+  "name": "ecureuil",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "prepare": "lefthook install",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "check": "biome check . && turbo run typecheck test",
+    "check:fix": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.5",
+    "lefthook": "2.2.2",
+    "turbo": "2.11.10",
+    "typescript": "7.0.2"
+  }
+}

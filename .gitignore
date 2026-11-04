@@ -1,0 +1,18 @@
+# Node / pnpm / Turbo
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+*.log

@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Pin exact dependency versions (no ^ / ~).
+saveExact: true
+# pnpm 12 refuses to install when a dependency's build script is not allowed.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  workerd: true
