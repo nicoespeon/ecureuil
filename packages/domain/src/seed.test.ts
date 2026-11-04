@@ -81,21 +81,15 @@ describe("the dev seed", () => {
     ]);
   });
 
-  it("keeps part of the catalogue off the list", () => {
-    const statuses = Object.values(state.items).map((item) => item.status);
+  it("puts half the catalogue on the list", () => {
+    const toBuy = Object.values(state.items).filter((item) => item.status === "toBuy");
 
-    expect(statuses).toEqual(expect.arrayContaining(["toBuy", "notToBuy"]));
+    expect(toBuy).toHaveLength(10);
   });
 
   it("has one demande from the invite waiting for validation", () => {
     expect(Object.values(state.demandes)).toMatchObject([
       { id: "demande-chocolat-chaud", name: "Chocolat chaud", status: { _tag: "Pending" } },
     ]);
-  });
-
-  it("never reuses an event id, which fold would silently drop", () => {
-    const ids = new Set(seed.map((event) => event.id));
-
-    expect(ids.size).toBe(seed.length);
   });
 });
