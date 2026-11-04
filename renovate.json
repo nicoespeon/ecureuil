@@ -2,6 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices", "group:allNonMajor"],
   "rangeStrategy": "pin",
+  "semanticCommits": "enabled",
+  "dependencyDashboard": false,
   "automergeStrategy": "squash",
   "lockFileMaintenance": {
     "enabled": true,

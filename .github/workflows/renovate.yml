@@ -3,7 +3,7 @@ name: Renovate
 
 on:
   schedule:
-    # Mondays 09:00 UTC (05:00 in Montreal, EDT).
+    # Mondays 09:00 UTC, early morning in Montreal.
     - cron: "0 9 * * 1"
   workflow_dispatch:
 
