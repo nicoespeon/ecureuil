@@ -1,4 +1,5 @@
 import type { Event, Filing } from "@ecureuil/wire";
+import { Match } from "effect";
 
 export type Store = {
   readonly id: string;
@@ -77,35 +78,39 @@ function compare(a: string, b: string) {
 }
 
 function apply(state: State, event: Event): State {
-  switch (event.type) {
-    case "StoreCreated":
-      return state.stores[event.store]
+  return applyEvent(event)(state);
+}
+
+const applyEvent = Match.type<Event>().pipe(
+  Match.discriminatorsExhaustive("type")({
+    StoreCreated: (event) => (state: State) =>
+      state.stores[event.store]
         ? state
-        : withStore(state, { id: event.store, name: event.payload.name, aisles: [] });
-    case "StoreRenamed":
-      return updateStore(state, event.store, (store) => ({ ...store, name: event.payload.name }));
-    case "AisleCreated":
-      return updateStore(state, event.store, (store) =>
+        : withStore(state, { id: event.store, name: event.payload.name, aisles: [] }),
+    StoreRenamed: (event) => (state: State) =>
+      updateStore(state, event.store, (store) => ({ ...store, name: event.payload.name })),
+    AisleCreated: (event) => (state: State) =>
+      updateStore(state, event.store, (store) =>
         store.aisles.some((aisle) => aisle.id === event.payload.aisleId)
           ? store
           : {
               ...store,
               aisles: [...store.aisles, { id: event.payload.aisleId, name: event.payload.name }],
             },
-      );
-    case "AisleRenamed":
-      return updateStore(state, event.store, (store) => ({
+      ),
+    AisleRenamed: (event) => (state: State) =>
+      updateStore(state, event.store, (store) => ({
         ...store,
         aisles: store.aisles.map((aisle) =>
           aisle.id === event.payload.aisleId ? { ...aisle, name: event.payload.name } : aisle,
         ),
-      }));
-    case "AislesReordered":
-      return updateStore(state, event.store, (store) => ({
+      })),
+    AislesReordered: (event) => (state: State) =>
+      updateStore(state, event.store, (store) => ({
         ...store,
         aisles: reorder(store.aisles, event.payload.aisleIds),
-      }));
-    case "AisleRemoved": {
+      })),
+    AisleRemoved: (event) => (state: State) => {
       const { aisleId } = event.payload;
       const withoutAisle = updateStore(state, event.store, (store) => ({
         ...store,
@@ -117,9 +122,9 @@ function apply(state: State, event: Event): State {
           ? unfile(item, event.store)
           : item;
       });
-    }
-    case "ItemCreated":
-      return state.items[event.payload.itemId]
+    },
+    ItemCreated: (event) => (state: State) =>
+      state.items[event.payload.itemId]
         ? state
         : withItem(state, {
             id: event.payload.itemId,
@@ -127,22 +132,19 @@ function apply(state: State, event: Event): State {
             quantity: 1,
             status: "notToBuy",
             filings: {},
-          });
-    case "ItemRenamed":
-      return updateItem(state, event.payload.itemId, (item) => ({
-        ...item,
-        name: event.payload.name,
-      }));
-    case "ItemQuantitySet":
-      return updateItem(state, event.payload.itemId, (item) => ({
+          }),
+    ItemRenamed: (event) => (state: State) =>
+      updateItem(state, event.payload.itemId, (item) => ({ ...item, name: event.payload.name })),
+    ItemQuantitySet: (event) => (state: State) =>
+      updateItem(state, event.payload.itemId, (item) => ({
         ...item,
         quantity: event.payload.quantity,
-      }));
-    case "ItemRemoved": {
+      })),
+    ItemRemoved: (event) => (state: State) => {
       const { [event.payload.itemId]: _removed, ...items } = state.items;
       return { ...state, items };
-    }
-    case "ItemFiled": {
+    },
+    ItemFiled: (event) => (state: State) => {
       const { filing } = event.payload;
       const store = state.stores[event.store];
       if (!store) return state;
@@ -154,20 +156,19 @@ function apply(state: State, event: Event): State {
           ? unfile(item, event.store)
           : { ...item, filings: { ...item.filings, [event.store]: filing } },
       );
-    }
-    case "ItemMarkedToBuy":
-      return updateItem(state, event.payload.itemId, list);
-    case "ItemMarkedNotToBuy":
-      return updateItem(state, event.payload.itemId, (item) => ({ ...item, status: "notToBuy" }));
-    case "ItemChecked":
-      return updateItem(state, event.payload.itemId, (item) =>
+    },
+    ItemMarkedToBuy: (event) => (state: State) => updateItem(state, event.payload.itemId, list),
+    ItemMarkedNotToBuy: (event) => (state: State) =>
+      updateItem(state, event.payload.itemId, (item) => ({ ...item, status: "notToBuy" })),
+    ItemChecked: (event) => (state: State) =>
+      updateItem(state, event.payload.itemId, (item) =>
         item.status === "notToBuy" ? item : { ...item, status: "inCart" },
-      );
-    case "ItemUnchecked":
-      return updateItem(state, event.payload.itemId, (item) =>
+      ),
+    ItemUnchecked: (event) => (state: State) =>
+      updateItem(state, event.payload.itemId, (item) =>
         item.status === "inCart" ? { ...item, status: "toBuy" } : item,
-      );
-    case "TripFinished": {
+      ),
+    TripFinished: (event) => (state: State) => {
       const bought = Object.values(state.items).filter((item) => item.status === "inCart");
       const trip: Trip = {
         id: event.id,
@@ -179,35 +180,28 @@ function apply(state: State, event: Event): State {
         item.status === "inCart" ? { ...item, status: "notToBuy" } : item,
       );
       return { ...emptied, trips: [...state.trips, trip] };
-    }
-    case "RequestCreated":
-      return state.requests[event.payload.requestId]
+    },
+    RequestCreated: (event) => (state: State) =>
+      state.requests[event.payload.requestId]
         ? state
         : withRequest(state, {
             id: event.payload.requestId,
             name: event.payload.name,
             requestedAt: event.at,
             status: { _tag: "Pending" },
-          });
-    case "RequestAccepted": {
+          }),
+    RequestAccepted: (event) => (state: State) => {
       const { requestId, itemId } = event.payload;
       // Accepting toward an unknown item would settle the request for nothing: stay pending.
       if (!state.items[itemId]) return state;
       return arbitrate(state, requestId, { _tag: "Accepted", itemId }, (arbitrated) =>
         updateItem(arbitrated, itemId, list),
       );
-    }
-    case "RequestDeclined":
-      return arbitrate(
-        state,
-        event.payload.requestId,
-        { _tag: "Declined" },
-        (arbitrated) => arbitrated,
-      );
-    default:
-      return state;
-  }
-}
+    },
+    RequestDeclined: (event) => (state: State) =>
+      arbitrate(state, event.payload.requestId, { _tag: "Declined" }, (arbitrated) => arbitrated),
+  }),
+);
 
 function withStore(state: State, store: Store): State {
   return { ...state, stores: { ...state.stores, [store.id]: store } };
