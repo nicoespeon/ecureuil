@@ -58,3 +58,10 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 - Fact about a library (Effect, D1, vite-plugin-pwa, Base UI…): invoke `/research`; findings go to `docs/research/<topic>.md` with sources.
 - Implementation: TDD per `~/.claude/CLAUDE.md` (`/tdd` or `/test-driven-development`), then `/code-review` before opening a PR; `/ship` runs the whole worktree → review → PR recipe.
 - Tasks live in Notion (project page https://app.notion.com/p/4053f52c56c18004bbc6e30d10a1a4a3, "All Tasks" database): set the task to Doing when starting and Done when finished; one session per task, started in a worktree.
+
+### Pull requests
+
+- Continuous integration: every task ends in a PR to `main`; merge = deploy (Cloudflare preview URL per PR, `main` deploys to production once task 12 is done). The PR is the QA gate, not `main`.
+- The session that did the work does the QA itself before opening the PR and puts the evidence in the PR body: a short brief of what changed and why (end result, not implementation details, no test plan), plus before/after screenshots for any UI change and a short video (webm) for any interaction change. Capture both states with `pnpm qa:capture` (Playwright script, loads the dev seed, takes named screenshots and records interactions; added by task 12 — until then, use Playwright or the built-in browser by hand).
+- Attach the files with `gh pr create --attach './after.png#Alt text'` (also `gh pr edit N --attach`); references like `![alt](./after.png)` in the body are rewritten to the uploaded asset. Up to 50 files per command.
+- Keep PRs small, one Notion task each; link the Notion task in the body.
