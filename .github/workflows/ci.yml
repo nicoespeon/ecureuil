@@ -20,3 +20,45 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm check
       - run: pnpm build
+
+  # Production on `main`, a preview per PR branch. Fork PRs get no secrets, so no preview.
+  deploy-web:
+    needs: check
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter web build
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          packageManager: pnpm
+          command: pages deploy --branch=${{ github.head_ref || github.ref_name }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # No per-PR API preview: a Worker preview runs with the production D1 binding.
+  deploy-api:
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/api
+          packageManager: pnpm
+          command: deploy
+      - name: Smoke /health
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "$API_URL/health" | grep '"ok":true'
+        env:
+          API_URL: ${{ steps.deploy.outputs.deployment-url }}
