@@ -1,7 +1,6 @@
-import { type Actor, Event } from "@ecureuil/wire";
+import { type Actor, Event, ItemRayon } from "@ecureuil/wire";
 import { Schema } from "effect";
 
-/** The Cookidoo list first, then everyday items kept in the catalogue. */
 const items = {
   babybel: "Babybel",
   champignons: "Champignons",
@@ -173,8 +172,8 @@ function itemPlacement({ slug, placements }: MagasinSeed<string>) {
       itemId: itemId(itemSlug),
       rayon:
         placement === "PasVenduIci"
-          ? { _tag: "PasVenduIci" }
-          : { _tag: "Rayon", rayonId: rayonId(slug, placement) },
+          ? ItemRayon.cases.PasVenduIci.make({})
+          : ItemRayon.cases.Rayon.make({ rayonId: rayonId(slug, placement) }),
     }),
   );
 }
