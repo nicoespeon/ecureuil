@@ -22,12 +22,21 @@ export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
 
 export type Filing = Exclude<Placement, { readonly _tag: "Unfiled" }>;
 
+// One shopping run, closed by "Terminer les courses".
+export type Trip = {
+  readonly id: string;
+  readonly store: string;
+  readonly at: number;
+  readonly purchases: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
+};
+
 export type State = {
   readonly stores: Readonly<Record<string, Store>>;
   readonly items: Readonly<Record<string, Item>>;
+  readonly trips: ReadonlyArray<Trip>;
 };
 
-export const initialState: State = { stores: {}, items: {} };
+export const initialState: State = { stores: {}, items: {}, trips: [] };
 
 export function fold(events: ReadonlyArray<Event>) {
   return events.reduce(apply, initialState);
@@ -110,6 +119,33 @@ function apply(state: State, event: Event): State {
           ? unfile(item, event.store)
           : { ...item, placements: { ...item.placements, [event.store]: placement } },
       );
+    }
+    case "ItemMarkedToBuy":
+      return updateItem(state, event.payload.itemId, (item) =>
+        item.status === "notToBuy" ? { ...item, status: "toBuy" } : item,
+      );
+    case "ItemMarkedNotToBuy":
+      return updateItem(state, event.payload.itemId, (item) => ({ ...item, status: "notToBuy" }));
+    case "ItemChecked":
+      return updateItem(state, event.payload.itemId, (item) =>
+        item.status === "notToBuy" ? item : { ...item, status: "inCart" },
+      );
+    case "ItemUnchecked":
+      return updateItem(state, event.payload.itemId, (item) =>
+        item.status === "inCart" ? { ...item, status: "toBuy" } : item,
+      );
+    case "TripFinished": {
+      const bought = Object.values(state.items).filter((item) => item.status === "inCart");
+      const trip: Trip = {
+        id: event.id,
+        store: event.store,
+        at: event.at,
+        purchases: bought.map(({ id, quantity }) => ({ itemId: id, quantity })),
+      };
+      const emptied = updateItems(state, (item) =>
+        item.status === "inCart" ? { ...item, status: "notToBuy" } : item,
+      );
+      return { ...emptied, trips: [...state.trips, trip] };
     }
     default:
       return state;

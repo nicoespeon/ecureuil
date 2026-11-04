@@ -194,3 +194,73 @@ describe("catalogue", () => {
     expect(state.items.milk?.placements).toEqual({});
   });
 });
+
+const bread = event({ type: "ItemCreated", payload: { itemId: "bread", name: "Pain" } });
+const toBuy = (itemId: string) => event({ type: "ItemMarkedToBuy", payload: { itemId } });
+const notToBuy = (itemId: string) => event({ type: "ItemMarkedNotToBuy", payload: { itemId } });
+const checked = (itemId: string) =>
+  event({ type: "ItemChecked", store: "costco", payload: { itemId } });
+const unchecked = (itemId: string) =>
+  event({ type: "ItemUnchecked", store: "costco", payload: { itemId } });
+
+describe("list, cart and trips", () => {
+  it("marks an item to buy", () => {
+    expect(fold([milk, toBuy("milk")]).items.milk).toMatchObject({ status: "toBuy" });
+  });
+
+  it("marks an item not to buy, even when it sits in the cart", () => {
+    const state = fold([milk, toBuy("milk"), checked("milk"), notToBuy("milk")]);
+
+    expect(state.items.milk).toMatchObject({ status: "notToBuy" });
+  });
+
+  it("checks a listed item into the cart", () => {
+    expect(fold([milk, toBuy("milk"), checked("milk")]).items.milk).toMatchObject({
+      status: "inCart",
+    });
+  });
+
+  it("ignores checking an item that is not on the list", () => {
+    expect(fold([milk, checked("milk")]).items.milk).toMatchObject({ status: "notToBuy" });
+  });
+
+  it("unchecks an item back onto the list", () => {
+    const state = fold([milk, toBuy("milk"), checked("milk"), unchecked("milk")]);
+
+    expect(state.items.milk).toMatchObject({ status: "toBuy" });
+  });
+
+  it("finishing a trip records the cart as purchases; unchecked items stay to buy", () => {
+    const quantity = event({ type: "ItemQuantitySet", payload: { itemId: "milk", quantity: 2 } });
+    const finished = event({
+      id: "trip-1",
+      at: 1762282800000,
+      type: "TripFinished",
+      store: "costco",
+      payload: {},
+    });
+
+    const state = fold([
+      costco,
+      milk,
+      bread,
+      toBuy("milk"),
+      toBuy("bread"),
+      quantity,
+      checked("milk"),
+      finished,
+    ]);
+
+    expect(state).toMatchObject({
+      items: { milk: { status: "notToBuy", quantity: 2 }, bread: { status: "toBuy" } },
+      trips: [
+        {
+          id: "trip-1",
+          store: "costco",
+          at: 1762282800000,
+          purchases: [{ itemId: "milk", quantity: 2 }],
+        },
+      ],
+    });
+  });
+});
