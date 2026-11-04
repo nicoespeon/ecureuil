@@ -1,31 +1,31 @@
-# 4. Journal envelope, and one replay order: timestamp then event id
+# 4. Enveloppe du journal, et un seul ordre de relecture : horodatage puis id d'événement
 
-Date: 2026-11-04
+Date : 2026-11-04
 
-## Status
+## Statut
 
-Accepted. Extends [ADR 2](0002-event-log-as-sync-primitive.md): it makes the conflict rules named there concrete; ADR 2 stays in force.
+Accepté. Étend l'[ADR 2](0002-event-log-as-sync-primitive.md) : il rend concrètes les règles de conflit que l'ADR 2 nomme ; l'ADR 2 reste en vigueur.
 
-## Context
+## Contexte
 
-ADR 2 resolves conflicts by event semantics: checking is idempotent, a quantity is last-write-wins, a request arbitration is first-wins, removals are tombstones. Devices append offline and sync later, so events reach a device out of order and can be delivered twice. Keeping a version per field in the state (a timestamp per quantity, per filing, tombstone sets) would spread the conflict rules all over the reducer. The journal must also stay readable by future analyses without knowing every payload.
+L'ADR 2 résout les conflits par la sémantique de chaque événement : cocher est idempotent, une quantité est « dernier écrit gagne », l'arbitrage d'une demande est « premier gagne », les suppressions sont des pierres tombales. Les appareils écrivent hors ligne et synchronisent plus tard, donc les événements arrivent dans le désordre et parfois deux fois. Garder une version par champ dans l'état (un horodatage par quantité, par rayon d'item, des ensembles de pierres tombales) disperserait les règles de conflit dans tout le reducer. Le journal doit aussi rester lisible par des analyses futures sans connaître chaque payload.
 
-## Decision
+## Décision
 
-**Envelope.** Every event is `{ id, at, actor, device, store, type, payload }`: a unique id, the device clock in epoch milliseconds, who acted (`owner` or `guest`), which device wrote it (an opaque id generated once per device), the store the actor was in, then the event-specific payload. The role is the authority for permissions; the device serves sync bookkeeping and analytics, and no rule is keyed on it. Store-scoped events (rayons, filing, finishing a trip) require a store; household events (catalogue, list, cart, requests) carry it as nullable context. The schema lives in `@ecureuil/wire`, so web and API validate the same contract.
+**Enveloppe.** Chaque événement est `{ id, at, actor, device, magasin, type, payload }` : un id unique, l'horloge de l'appareil en millisecondes epoch, qui a agi (`owner` ou `guest`), quel appareil l'a écrit (un id opaque généré une fois par appareil), le magasin où se trouvait l'acteur, puis le payload propre à l'événement. Les événements liés à un magasin (rayons, rayon d'un item, fin de sortie) exigent un magasin ; les événements du foyer (catalogue, liste, panier, demandes) le portent comme contexte, nullable. Le rôle fait autorité pour les permissions ; l'appareil sert à la comptabilité de synchronisation et aux analyses, et aucune règle ne dépend de lui. Le schéma vit dans `@ecureuil/wire`, pour que web et API valident le même contrat.
 
-**Replay order.** `fold(events)` drops duplicate ids, sorts by `(at, id)` and reduces in that order. The conflict rules fall out of it: last-write-wins is "last in order", first-wins is "a request that is no longer pending ignores later verdicts", tombstones are "events about an entity that no longer exists are ignored, and ids are never reused".
+**Ordre de relecture.** `fold(events)` élimine les ids en double, trie par `(at, id)` et réduit dans cet ordre. Les règles de conflit en découlent : « dernier écrit gagne » est « dernier dans l'ordre », « premier gagne » est « une demande qui n'est plus en attente ignore les verdicts suivants », les pierres tombales sont « les événements sur une entité disparue sont ignorés, et un id n'est jamais réutilisé ».
 
-## Consequences
+## Conséquences
 
-- The state stores no versions and the reducer is a plain switch; the rules are visible in one place.
-- Every device computes the same order, so they converge on the same state whatever the arrival order.
-- Clock skew between the two phones can reorder concurrent edits of the same field. Acceptable for a household list: the two people rarely touch the same thing within the skew.
-- `fold` sorts the whole journal; fine for one household, and compaction can come later behind the ports (ADR 2).
-- An event, once written, is immutable. Correcting a mistake is a new event.
+- L'état ne stocke aucune version et le reducer reste un simple dispatch ; les règles sont visibles en un seul endroit.
+- Chaque appareil calcule le même ordre, donc tous convergent vers le même état quel que soit l'ordre d'arrivée.
+- Un décalage d'horloge entre les deux téléphones peut réordonner des modifications concurrentes du même champ. Acceptable pour une liste de courses : les deux personnes touchent rarement la même chose dans la fenêtre du décalage.
+- `fold` trie tout le journal ; suffisant pour un foyer, et la compaction peut venir plus tard derrière les ports (ADR 2).
+- Un événement écrit est immuable. Corriger une erreur, c'est écrire un nouvel événement.
 
-## Alternatives rejected
+## Alternatives écartées
 
-- **Per-field timestamps or vector clocks**: more state and more code for the same outcome with two devices.
-- **Server-assigned order**: unknown while offline, and a device's own events would reorder under it after sync.
-- **Flat events without an envelope**: shorter to write, but the server and future analyses would need every payload type to read who, when and where.
+- **Horodatage par champ ou horloges vectorielles** : plus d'état et plus de code pour le même résultat à deux appareils.
+- **Ordre attribué par le serveur** : inconnu hors ligne, et les propres événements d'un appareil se réordonneraient après synchronisation.
+- **Événements plats sans enveloppe** : plus courts à écrire, mais le serveur et les analyses futures devraient connaître chaque payload pour lire qui, quand et où.
