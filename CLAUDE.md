@@ -1,6 +1,6 @@
 # Écureuil
 
-Offline-first grocery list for one household, with a catalogue of items filed under a rayon per store so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
+Offline-first grocery list for one household, with a catalogue of items with a rayon per magasin so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
 
 ## Repo layout
 
@@ -40,20 +40,31 @@ Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
 - pnpm 12 refuses to install when a dependency's build script is not allowed: add it to `allowBuilds` in `pnpm-workspace.yaml`.
 - Run long commands in the foreground, one per call.
 
+## Language
+
+The ubiquitous language is French, deliberately hybrid with English technical vocabulary:
+
+- Domain nouns are French identifiers, exactly as in [`GLOSSARY.md`](GLOSSARY.md): `Foyer`, `Magasin`, `Rayon`, `Item`, `Liste`, `Panier`, `Sortie`, `Achat`, `Demande`. No accents in identifiers (`NonClasse`, `PasVenduIci`).
+- Events are a French noun with an English verb: `MagasinCreated`, `ItemRayonSet`, `SortieFinished`, `DemandeRefused`.
+- Roles are domain terms too: `proprietaire` / `invite`. Technical vocabulary stays English: `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
+- Code comments in English. ADRs, PR bodies and the glossary in French.
+- Commit subjects and PR titles follow the conventional commit format; French is fine, especially for domain terms, and PR titles become the squash commit.
+- Never introduce or rename a domain term without asking Nicolas, through `/domain-modeling`.
+
 ## Conventions
 
 The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named exports, co-located types, exact dependency versions). Project-specific:
 
-- All code, comments, identifiers and commit messages in **English**. The UI and the glossary are in French.
 - Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`…), small. **No `Co-Authored-By`.**
 - Effect stays in `packages/domain` and `packages/wire`. React components consume plain state and plain functions.
 - Dependencies pinned to exact versions (`pnpm add -E`).
 - Accessibility is not negotiable; motion honours `prefers-reduced-motion`.
+- A comment on a declaration (type, property, function, constant) is JSDoc (`/** … */`); `//` is for a line inside a body.
 
 ## Workflow
 
 - New feature or fuzzy task: invoke `/grilling` (mattpocock-skills) before writing any code; settle the design tree with Nicolas first.
-- New domain term, changed concept, or any architectural decision: invoke `/domain-modeling` (mattpocock-skills); it challenges terms against `GLOSSARY.md` and records ADRs in `docs/adr/`. Never edit `GLOSSARY.md` or add an ADR outside it.
+- New domain term, changed concept, or any architectural decision: invoke `/domain-modeling` (mattpocock-skills); it challenges terms against `GLOSSARY.md`, asks Nicolas before settling a term, and records ADRs in `docs/adr/`. Never edit `GLOSSARY.md` or add an ADR outside it.
 - UI layout or state-machine question: invoke `/prototype` (throwaway, never merged to `main`).
 - Fact about a library (Effect, D1, vite-plugin-pwa, Base UI…): invoke `/research`; findings go to `docs/research/<topic>.md` with sources.
 - Working a Notion task: own worktree and branch; `/grilling` first if the task is fuzzy; TDD, red before green; small conventional commits; `/code-review` on the branch with confirmed findings fixed BEFORE the PR is opened — never open a PR that has not been through it; QA evidence as described under "Pull requests"; `/pr-description` for the body; open the PR.

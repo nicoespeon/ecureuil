@@ -1,13 +1,16 @@
-# Glossary
+# Glossaire
 
-The domain vocabulary is French, as in the UI. Code uses the English names in parentheses.
+Le langage du domaine est le français : chaque terme ci-dessous est l'identifiant utilisé dans le code. Les verbes des événements et le vocabulaire technique restent en anglais (voir la section Language de `CLAUDE.md`).
 
-- **Foyer** (household) — The unit everything belongs to: one catalogue, its stores, its list, its journal. Two people share it today, through two secret links (owner and guest), with no accounts.
-- **Magasin** (store) — A place we shop at (Costco, Maxi). Each store has its own ordered rayons; switching the active store changes how the list is sorted, never what it contains.
-- **Rayon** (aisle) — A section of one store, named and ordered per store by drag & drop. Rayons are store-scoped entities: Costco's "Boulangerie" and Maxi's "Boulangerie" are two different rayons.
-- **Item** — An entry of the household catalogue: a name, a quantity (integer, default 1) and, for each store, a rayon or "not sold here". Items persist across trips; about 90 % of what we buy is re-added, not retyped.
-- **Liste** (list) — The items currently marked "à acheter" (to buy). Viewed per store, grouped by rayon in that store's order, with "Non classé" (unfiled) at the bottom and "Pas chez X" (not sold here) folded away.
-- **Panier** (cart) — Where a checked item goes while shopping ("Dans le panier"). Checking is reversible until the trip ends.
-- **Sortie** (trip) — One shopping run at one store, closed by "Terminer les courses". Items in the cart stop being "à acheter"; items not found stay on the list and are called out.
-- **Demande** (request) — An item the guest suggests. It enters the owner's list under "À valider" (pending), then becomes "dans la liste" (accepted) or "pas cette fois" (declined). The guest sees the button as plain "Ajouter".
-- **Journal** (event log) — The generic, append-only, timestamped record of everything that happened (who, which store, what). It is the sync primitive between devices: state is always the replay of the journal through the reducer.
+- **Foyer** — L'unité à laquelle tout appartient : un catalogue, ses magasins, sa liste, son journal. Deux personnes le partagent aujourd'hui, par deux liens secrets, sans compte.
+- **Appareil** (`device`) — Un téléphone ou un ordinateur depuis lequel une personne utilise le foyer, identifié une fois quand il rejoint le foyer. Chaque entrée du journal dit quel appareil l'a écrite, pour distinguer le téléphone du propriétaire de son Mac.
+- **Propriétaire / Invité** (`proprietaire` / `invite`) — Les deux rôles du foyer, un par lien secret. Le propriétaire fait les courses, configure et arbitre ; l'invité demande. Chaque entrée du journal dit lequel des deux a agi.
+- **Magasin** — Un endroit où l'on fait les courses (Costco, Maxi). Chaque magasin a ses propres rayons ordonnés ; changer de magasin change le tri de la liste, jamais son contenu.
+- **Rayon** — Une section d'un magasin, nommée et ordonnée par magasin (glisser-déposer). Un rayon appartient à son magasin : la « Boulangerie » de Costco et celle de Maxi sont deux rayons distincts.
+- **Item** — Une entrée du catalogue du foyer : un nom, une quantité (entier, 1 par défaut) et, pour chaque magasin, un rayon, `PasVenduIci` (« Pas chez X ») ou `NonClasse` (« Non classé »). Les items persistent d'une sortie à l'autre ; environ 90 % de ce qu'on achète est ré-ajouté, pas retapé.
+- **Liste** — Les items marqués « à acheter ». Vue par magasin, groupée par rayon dans l'ordre du magasin, « Non classé » en bas, « Pas chez X » replié.
+- **Panier** — Où va un item coché pendant les courses (« Dans le panier »). Cocher reste réversible jusqu'à la fin de la sortie.
+- **Sortie** — Une session de courses dans un magasin, close par « Terminer les courses ». Les items du panier cessent d'être à acheter ; les items non trouvés restent sur la liste et sont rappelés.
+- **Achat** — Une ligne d'une sortie : un item et la quantité qui était dans le panier à la fin de la sortie.
+- **Demande** — Un item que l'invité propose. Elle entre en tête de la liste du propriétaire, « À valider » (`Pending`), puis devient « dans la liste » (`Accepted`) ou « pas cette fois » (`Refused`). Côté invité, le bouton s'appelle simplement « Ajouter ».
+- **Journal** — L'enregistrement générique, append-only et horodaté de tout ce qui s'est passé (qui, depuis quel appareil, dans quel magasin, quoi). C'est la primitive de synchronisation entre appareils : l'état est toujours la relecture du journal par le reducer.
