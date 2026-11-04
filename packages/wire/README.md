@@ -27,3 +27,12 @@ Les tests construisent leurs fixtures de la même façon, en décodant des objet
 - `actor` vaut `"proprietaire"` ou `"invite"`.
 - `magasin` est obligatoire pour les événements liés à un magasin, `string | null` pour ceux du foyer.
 - `ItemRayon` est une union taguée : `{ _tag: "Rayon", rayonId }`, `{ _tag: "PasVenduIci" }` ou `{ _tag: "NonClasse" }`.
+
+## Contrat de l'API
+
+Une seule route, `journalPath` (`/journal`), authentifiée par l'en-tête `authorizationHeader` (`Authorization: Bearer <secret>`, le secret du lien propriétaire ou invité).
+
+- **Push** : `POST /journal`, corps `PushRequest` (`{ events: Event[] }`), réponse `204` sans corps. Le serveur ignore les ids qu'il a déjà : un push rejoué ne crée rien.
+- **Pull** : `GET /journal?since=<cursor>`, query `PullQuery`, réponse `PullResponse` (`{ events: Event[], cursor }`). Sans `since`, le serveur rend le journal depuis le début.
+
+`Cursor` est une `NonEmptyString` opaque : le serveur la fabrique, le client la renvoie telle quelle au pull suivant.
