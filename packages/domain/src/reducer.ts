@@ -52,8 +52,20 @@ export type State = {
 
 export const initialState: State = { stores: {}, items: {}, requests: {}, trips: [] };
 
+// Devices sync out of order and may resend: the journal is replayed in one total order
+// (timestamp, then event id), each event once. Conflict rules fall out of that order.
 export function fold(events: ReadonlyArray<Event>) {
-  return events.reduce(apply, initialState);
+  const unique = [...new Map(events.map((event) => [event.id, event])).values()];
+  return unique.sort(byTimestampThenId).reduce(apply, initialState);
+}
+
+function byTimestampThenId(a: Event, b: Event) {
+  return a.at - b.at || compare(a.id, b.id);
+}
+
+function compare(a: string, b: string) {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
 }
 
 function apply(state: State, event: Event): State {

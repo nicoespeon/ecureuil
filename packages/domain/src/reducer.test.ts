@@ -46,18 +46,15 @@ describe("stores and aisles", () => {
   });
 
   it("adds aisles in creation order and renames them", () => {
+    const fruits = aisle("fruits", "Fruits");
+    const bakery = aisle("bakery", "Boulangerie");
     const renamed = event({
       type: "AisleRenamed",
       store: "costco",
       payload: { aisleId: "fruits", name: "Fruits et légumes" },
     });
 
-    const state = fold([
-      costco,
-      aisle("fruits", "Fruits"),
-      aisle("bakery", "Boulangerie"),
-      renamed,
-    ]);
+    const state = fold([costco, fruits, bakery, renamed]);
 
     expect(state.stores.costco?.aisles).toEqual([
       { id: "fruits", name: "Fruits et légumes" },
@@ -66,36 +63,31 @@ describe("stores and aisles", () => {
   });
 
   it("reorders aisles, keeping unmentioned ones after the given order", () => {
+    const aisles = [
+      aisle("fruits", "Fruits"),
+      aisle("bakery", "Boulangerie"),
+      aisle("dairy", "Laitier"),
+    ];
     const reordered = event({
       type: "AislesReordered",
       store: "costco",
       payload: { aisleIds: ["dairy", "ghost", "bakery"] },
     });
 
-    const state = fold([
-      costco,
-      aisle("fruits", "Fruits"),
-      aisle("bakery", "Boulangerie"),
-      aisle("dairy", "Laitier"),
-      reordered,
-    ]);
+    const state = fold([costco, ...aisles, reordered]);
 
     expect(state.stores.costco?.aisles.map((a) => a.id)).toEqual(["dairy", "bakery", "fruits"]);
   });
 
   it("removes an aisle", () => {
+    const aisles = [aisle("fruits", "Fruits"), aisle("bakery", "Boulangerie")];
     const removed = event({
       type: "AisleRemoved",
       store: "costco",
       payload: { aisleId: "fruits" },
     });
 
-    const state = fold([
-      costco,
-      aisle("fruits", "Fruits"),
-      aisle("bakery", "Boulangerie"),
-      removed,
-    ]);
+    const state = fold([costco, ...aisles, removed]);
 
     expect(state.stores.costco?.aisles).toEqual([{ id: "bakery", name: "Boulangerie" }]);
   });
@@ -181,15 +173,11 @@ describe("catalogue", () => {
   });
 
   it("unfiles the items of a removed aisle", () => {
+    const dairy = aisle("dairy", "Laitier");
+    const filedInDairy = filed("milk", "costco", inAisle("dairy"));
     const removed = event({ type: "AisleRemoved", store: "costco", payload: { aisleId: "dairy" } });
 
-    const state = fold([
-      costco,
-      aisle("dairy", "Laitier"),
-      milk,
-      filed("milk", "costco", inAisle("dairy")),
-      removed,
-    ]);
+    const state = fold([costco, dairy, milk, filedInDairy, removed]);
 
     expect(state.items.milk?.placements).toEqual({});
   });
@@ -269,7 +257,6 @@ const chips = event({ type: "ItemCreated", payload: { itemId: "chips", name: "Ch
 const requested = event({
   type: "RequestCreated",
   actor: "guest",
-  at: 50,
   payload: { requestId: "r1", name: "Chips" },
 });
 const accepted = () =>
@@ -279,7 +266,7 @@ const declined = () => event({ type: "RequestDeclined", payload: { requestId: "r
 describe("requests", () => {
   it("records a guest request as pending", () => {
     expect(fold([requested]).requests).toEqual({
-      r1: { id: "r1", name: "Chips", requestedAt: 50, status: { _tag: "Pending" } },
+      r1: { id: "r1", name: "Chips", requestedAt: requested.at, status: { _tag: "Pending" } },
     });
   });
 
@@ -304,6 +291,73 @@ describe("requests", () => {
     expect(fold([requested, chips, ...arbitrations])).toMatchObject({
       requests: { r1: { status: { _tag: tag } } },
       items: { chips: { status } },
+    });
+  });
+});
+
+describe("conflicts: the journal replays by timestamp, then by event id", () => {
+  const quantity = (fields: { id: string; at: number; quantity: number }) =>
+    event({
+      ...fields,
+      type: "ItemQuantitySet",
+      payload: { itemId: "milk", quantity: fields.quantity },
+    });
+
+  it("quantity is last-write-wins by timestamp, whatever the arrival order", () => {
+    const later = quantity({ id: "q-later", at: 200, quantity: 2 });
+    const earlier = quantity({ id: "q-earlier", at: 100, quantity: 5 });
+
+    expect(fold([milk, later, earlier]).items.milk).toMatchObject({ quantity: 2 });
+  });
+
+  it.each([["a then b"], ["b then a"]])(
+    "quantity on the same timestamp: the greater event id wins (%s)",
+    (order) => {
+      const a = quantity({ id: "q-a", at: 100, quantity: 3 });
+      const b = quantity({ id: "q-b", at: 100, quantity: 7 });
+
+      expect(fold([milk, ...(order === "a then b" ? [a, b] : [b, a])]).items.milk).toMatchObject({
+        quantity: 7,
+      });
+    },
+  );
+
+  it("a duplicated event is applied once", () => {
+    const finished = event({ id: "trip-dup", type: "TripFinished", store: "costco", payload: {} });
+
+    const state = fold([costco, milk, toBuy("milk"), checked("milk"), finished, finished]);
+
+    expect(state.trips).toHaveLength(1);
+  });
+
+  it("checking twice, from two devices, is one check", () => {
+    const state = fold([milk, toBuy("milk"), checked("milk"), checked("milk")]);
+
+    expect(state.items.milk).toMatchObject({ status: "inCart" });
+  });
+
+  it.each([
+    ["the edit is older than the removal", 2, 3],
+    ["the edit is newer than the removal", 3, 2],
+  ])("a removed item stays removed when an edit arrives late and %s", (_, editAt, removalAt) => {
+    const created = event({ at: 1, type: "ItemCreated", payload: { itemId: "i", name: "X" } });
+    const removed = event({ at: removalAt, type: "ItemRemoved", payload: { itemId: "i" } });
+    const renamed = event({ at: editAt, type: "ItemRenamed", payload: { itemId: "i", name: "Y" } });
+
+    expect(fold([created, removed, renamed]).items).toEqual({});
+  });
+
+  it("the first arbitration by timestamp wins, whatever the arrival order", () => {
+    const lateDecline = event({ at: 300, type: "RequestDeclined", payload: { requestId: "r1" } });
+    const earlyAccept = event({
+      at: 200,
+      type: "RequestAccepted",
+      payload: { requestId: "r1", itemId: "chips" },
+    });
+
+    expect(fold([requested, chips, lateDecline, earlyAccept]).requests.r1?.status).toEqual({
+      _tag: "Accepted",
+      itemId: "chips",
     });
   });
 });
