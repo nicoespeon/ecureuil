@@ -113,3 +113,84 @@ describe("stores and aisles", () => {
     expect(state.stores.maxi?.aisles).toEqual([{ id: "m-bakery", name: "Boulangerie" }]);
   });
 });
+
+const milk = event({ type: "ItemCreated", payload: { itemId: "milk", name: "Lait" } });
+const filed = (itemId: string, store: string, placement: unknown) =>
+  event({ type: "ItemFiled", store, payload: { itemId, placement } });
+const inAisle = (aisleId: string) => ({ _tag: "Aisle", aisleId });
+
+describe("catalogue", () => {
+  it("creates an item with quantity 1, not to buy, unfiled everywhere", () => {
+    expect(fold([milk]).items).toEqual({
+      milk: { id: "milk", name: "Lait", quantity: 1, status: "notToBuy", placements: {} },
+    });
+  });
+
+  it("renames an item", () => {
+    const renamed = event({ type: "ItemRenamed", payload: { itemId: "milk", name: "Lait 2 %" } });
+
+    expect(fold([milk, renamed]).items.milk).toMatchObject({ name: "Lait 2 %" });
+  });
+
+  it("sets the quantity", () => {
+    const set = event({ type: "ItemQuantitySet", payload: { itemId: "milk", quantity: 3 } });
+
+    expect(fold([milk, set]).items.milk).toMatchObject({ quantity: 3 });
+  });
+
+  it("removes an item from the catalogue", () => {
+    const removed = event({ type: "ItemRemoved", payload: { itemId: "milk" } });
+
+    expect(fold([milk, removed]).items).toEqual({});
+  });
+
+  it("files an item under an aisle in one store and as not sold in another", () => {
+    const maxi = event({ type: "StoreCreated", store: "maxi", payload: { name: "Maxi" } });
+
+    const state = fold([
+      costco,
+      maxi,
+      aisle("dairy", "Laitier"),
+      milk,
+      filed("milk", "costco", inAisle("dairy")),
+      filed("milk", "maxi", { _tag: "NotSoldHere" }),
+    ]);
+
+    expect(state.items.milk?.placements).toEqual({
+      costco: { _tag: "Aisle", aisleId: "dairy" },
+      maxi: { _tag: "NotSoldHere" },
+    });
+  });
+
+  it("unfiles an item", () => {
+    const state = fold([
+      costco,
+      aisle("dairy", "Laitier"),
+      milk,
+      filed("milk", "costco", inAisle("dairy")),
+      filed("milk", "costco", { _tag: "Unfiled" }),
+    ]);
+
+    expect(state.items.milk?.placements).toEqual({});
+  });
+
+  it("ignores filing under an aisle the store does not have", () => {
+    const state = fold([costco, milk, filed("milk", "costco", inAisle("ghost"))]);
+
+    expect(state.items.milk?.placements).toEqual({});
+  });
+
+  it("unfiles the items of a removed aisle", () => {
+    const removed = event({ type: "AisleRemoved", store: "costco", payload: { aisleId: "dairy" } });
+
+    const state = fold([
+      costco,
+      aisle("dairy", "Laitier"),
+      milk,
+      filed("milk", "costco", inAisle("dairy")),
+      removed,
+    ]);
+
+    expect(state.items.milk?.placements).toEqual({});
+  });
+});

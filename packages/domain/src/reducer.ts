@@ -1,4 +1,4 @@
-import type { Event } from "@ecureuil/wire";
+import type { Event, Placement } from "@ecureuil/wire";
 
 export type Store = {
   readonly id: string;
@@ -8,11 +8,26 @@ export type Store = {
 
 export type Aisle = { readonly id: string; readonly name: string };
 
-export type State = {
-  readonly stores: Readonly<Record<string, Store>>;
+export type Item = {
+  readonly id: string;
+  readonly name: string;
+  readonly quantity: number;
+  readonly status: ItemStatus;
+  // Per store. An absent store means unfiled ("Non classé").
+  readonly placements: Readonly<Record<string, Filing>>;
 };
 
-export const initialState: State = { stores: {} };
+// "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a trip.
+export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
+
+export type Filing = Exclude<Placement, { readonly _tag: "Unfiled" }>;
+
+export type State = {
+  readonly stores: Readonly<Record<string, Store>>;
+  readonly items: Readonly<Record<string, Item>>;
+};
+
+export const initialState: State = { stores: {}, items: {} };
 
 export function fold(events: ReadonlyArray<Event>) {
   return events.reduce(apply, initialState);
@@ -47,11 +62,55 @@ function apply(state: State, event: Event): State {
         ...store,
         aisles: reorder(store.aisles, event.payload.aisleIds),
       }));
-    case "AisleRemoved":
-      return updateStore(state, event.store, (store) => ({
+    case "AisleRemoved": {
+      const { aisleId } = event.payload;
+      const withoutAisle = updateStore(state, event.store, (store) => ({
         ...store,
-        aisles: store.aisles.filter((aisle) => aisle.id !== event.payload.aisleId),
+        aisles: store.aisles.filter((aisle) => aisle.id !== aisleId),
       }));
+      return updateItems(withoutAisle, (item) => {
+        const filing = item.placements[event.store];
+        return filing?._tag === "Aisle" && filing.aisleId === aisleId
+          ? unfile(item, event.store)
+          : item;
+      });
+    }
+    case "ItemCreated":
+      return state.items[event.payload.itemId]
+        ? state
+        : withItem(state, {
+            id: event.payload.itemId,
+            name: event.payload.name,
+            quantity: 1,
+            status: "notToBuy",
+            placements: {},
+          });
+    case "ItemRenamed":
+      return updateItem(state, event.payload.itemId, (item) => ({
+        ...item,
+        name: event.payload.name,
+      }));
+    case "ItemQuantitySet":
+      return updateItem(state, event.payload.itemId, (item) => ({
+        ...item,
+        quantity: event.payload.quantity,
+      }));
+    case "ItemRemoved": {
+      const { [event.payload.itemId]: _removed, ...items } = state.items;
+      return { ...state, items };
+    }
+    case "ItemFiled": {
+      const { placement } = event.payload;
+      const aisles = state.stores[event.store]?.aisles ?? [];
+      if (placement._tag === "Aisle" && !aisles.some((aisle) => aisle.id === placement.aisleId)) {
+        return state;
+      }
+      return updateItem(state, event.payload.itemId, (item) =>
+        placement._tag === "Unfiled"
+          ? unfile(item, event.store)
+          : { ...item, placements: { ...item.placements, [event.store]: placement } },
+      );
+    }
     default:
       return state;
   }
@@ -71,4 +130,22 @@ function reorder(aisles: ReadonlyArray<Aisle>, aisleIds: ReadonlyArray<string>) 
   const mentioned = aisleIds.flatMap((id) => aisles.filter((aisle) => aisle.id === id));
   const unmentioned = aisles.filter((aisle) => !aisleIds.includes(aisle.id));
   return [...mentioned, ...unmentioned];
+}
+
+function withItem(state: State, item: Item): State {
+  return { ...state, items: { ...state.items, [item.id]: item } };
+}
+
+function updateItem(state: State, itemId: string, update: (item: Item) => Item): State {
+  const item = state.items[itemId];
+  return item ? withItem(state, update(item)) : state;
+}
+
+function updateItems(state: State, update: (item: Item) => Item): State {
+  return Object.values(state.items).reduce((acc, item) => withItem(acc, update(item)), state);
+}
+
+function unfile(item: Item, storeId: string): Item {
+  const { [storeId]: _unfiled, ...placements } = item.placements;
+  return { ...item, placements };
 }
