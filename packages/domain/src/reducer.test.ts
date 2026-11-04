@@ -107,14 +107,14 @@ describe("stores and aisles", () => {
 });
 
 const milk = event({ type: "ItemCreated", payload: { itemId: "milk", name: "Lait" } });
-const filed = (itemId: string, store: string, placement: unknown) =>
-  event({ type: "ItemFiled", store, payload: { itemId, placement } });
+const filed = (itemId: string, store: string, filing: unknown) =>
+  event({ type: "ItemFiled", store, payload: { itemId, filing } });
 const inAisle = (aisleId: string) => ({ _tag: "Aisle", aisleId });
 
 describe("catalogue", () => {
   it("creates an item with quantity 1, not to buy, unfiled everywhere", () => {
     expect(fold([milk]).items).toEqual({
-      milk: { id: "milk", name: "Lait", quantity: 1, status: "notToBuy", placements: {} },
+      milk: { id: "milk", name: "Lait", quantity: 1, status: "notToBuy", filings: {} },
     });
   });
 
@@ -148,7 +148,7 @@ describe("catalogue", () => {
       filed("milk", "maxi", { _tag: "NotSoldHere" }),
     ]);
 
-    expect(state.items.milk?.placements).toEqual({
+    expect(state.items.milk?.filings).toEqual({
       costco: { _tag: "Aisle", aisleId: "dairy" },
       maxi: { _tag: "NotSoldHere" },
     });
@@ -163,13 +163,13 @@ describe("catalogue", () => {
       filed("milk", "costco", { _tag: "Unfiled" }),
     ]);
 
-    expect(state.items.milk?.placements).toEqual({});
+    expect(state.items.milk?.filings).toEqual({});
   });
 
   it("ignores filing under an aisle the store does not have", () => {
     const state = fold([costco, milk, filed("milk", "costco", inAisle("ghost"))]);
 
-    expect(state.items.milk?.placements).toEqual({});
+    expect(state.items.milk?.filings).toEqual({});
   });
 
   it("unfiles the items of a removed aisle", () => {
@@ -179,7 +179,7 @@ describe("catalogue", () => {
 
     const state = fold([costco, dairy, milk, filedInDairy, removed]);
 
-    expect(state.items.milk?.placements).toEqual({});
+    expect(state.items.milk?.filings).toEqual({});
   });
 });
 

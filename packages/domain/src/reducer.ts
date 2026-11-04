@@ -1,4 +1,4 @@
-import type { Event, Placement } from "@ecureuil/wire";
+import type { Event, Filing } from "@ecureuil/wire";
 
 export type Store = {
   readonly id: string;
@@ -14,13 +14,11 @@ export type Item = {
   readonly quantity: number;
   readonly status: ItemStatus;
   // Per store. An absent store means unfiled ("Non classé").
-  readonly placements: Readonly<Record<string, Filing>>;
+  readonly filings: Readonly<Record<string, Exclude<Filing, { readonly _tag: "Unfiled" }>>>;
 };
 
 // "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a trip.
 export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
-
-export type Filing = Exclude<Placement, { readonly _tag: "Unfiled" }>;
 
 // One shopping run, closed by "Terminer les courses".
 export type Trip = {
@@ -104,7 +102,7 @@ function apply(state: State, event: Event): State {
         aisles: store.aisles.filter((aisle) => aisle.id !== aisleId),
       }));
       return updateItems(withoutAisle, (item) => {
-        const filing = item.placements[event.store];
+        const filing = item.filings[event.store];
         return filing?._tag === "Aisle" && filing.aisleId === aisleId
           ? unfile(item, event.store)
           : item;
@@ -118,7 +116,7 @@ function apply(state: State, event: Event): State {
             name: event.payload.name,
             quantity: 1,
             status: "notToBuy",
-            placements: {},
+            filings: {},
           });
     case "ItemRenamed":
       return updateItem(state, event.payload.itemId, (item) => ({
@@ -135,15 +133,15 @@ function apply(state: State, event: Event): State {
       return { ...state, items };
     }
     case "ItemFiled": {
-      const { placement } = event.payload;
+      const { filing } = event.payload;
       const aisles = state.stores[event.store]?.aisles ?? [];
-      if (placement._tag === "Aisle" && !aisles.some((aisle) => aisle.id === placement.aisleId)) {
+      if (filing._tag === "Aisle" && !aisles.some((aisle) => aisle.id === filing.aisleId)) {
         return state;
       }
       return updateItem(state, event.payload.itemId, (item) =>
-        placement._tag === "Unfiled"
+        filing._tag === "Unfiled"
           ? unfile(item, event.store)
-          : { ...item, placements: { ...item.placements, [event.store]: placement } },
+          : { ...item, filings: { ...item.filings, [event.store]: filing } },
       );
     }
     case "ItemMarkedToBuy":
@@ -232,8 +230,8 @@ function updateItems(state: State, update: (item: Item) => Item): State {
 }
 
 function unfile(item: Item, storeId: string): Item {
-  const { [storeId]: _unfiled, ...placements } = item.placements;
-  return { ...item, placements };
+  const { [storeId]: _unfiled, ...filings } = item.filings;
+  return { ...item, filings };
 }
 
 function withRequest(state: State, request: Request): State {

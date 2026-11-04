@@ -19,8 +19,8 @@ const aisle = (aisleId: string, name: string) =>
   event({ type: "AisleCreated", store: "costco", payload: { aisleId, name } });
 const item = (itemId: string, name: string) =>
   event({ type: "ItemCreated", payload: { itemId, name } });
-const filed = (itemId: string, store: string, placement: unknown) =>
-  event({ type: "ItemFiled", store, payload: { itemId, placement } });
+const filed = (itemId: string, store: string, filing: unknown) =>
+  event({ type: "ItemFiled", store, payload: { itemId, filing } });
 const inAisle = (aisleId: string) => ({ _tag: "Aisle", aisleId });
 const toBuy = (itemId: string) => event({ type: "ItemMarkedToBuy", payload: { itemId } });
 

@@ -2,7 +2,6 @@ export { type ListItem, listForStore, type Section, type StoreList } from "./lis
 export { Clock, type Cursor, EventStore, SyncTransport } from "./ports";
 export {
   type Aisle,
-  type Filing,
   fold,
   type Item,
   type ItemStatus,

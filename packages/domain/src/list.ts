@@ -24,7 +24,7 @@ export function listForStore(state: State, storeId: string): StoreList {
     .filter((item) => item.status !== "notToBuy")
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));
   const toBuy = listed.filter((item) => item.status === "toBuy");
-  const filingOf = (item: Item) => item.placements[storeId];
+  const filingOf = (item: Item) => item.filings[storeId];
   const aisles = state.stores[storeId]?.aisles ?? [];
 
   const sections: ReadonlyArray<Section> = [

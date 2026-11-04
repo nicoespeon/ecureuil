@@ -5,12 +5,12 @@ export const Actor = Schema.Literals(["owner", "guest"]);
 export type Actor = Schema.Schema.Type<typeof Actor>;
 
 // Where an item sits in one store. Absent = unfiled ("Non classé").
-export const Placement = Schema.Union([
+export const Filing = Schema.Union([
   Schema.TaggedStruct("Aisle", { aisleId: Schema.String }),
   Schema.TaggedStruct("NotSoldHere", {}),
   Schema.TaggedStruct("Unfiled", {}),
 ]);
-export type Placement = Schema.Schema.Type<typeof Placement>;
+export type Filing = Schema.Schema.Type<typeof Filing>;
 
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 
@@ -59,7 +59,7 @@ export const Event = Schema.Union([
   householdEvent("ItemRenamed", { itemId: Schema.String, name }),
   householdEvent("ItemRemoved", { itemId: Schema.String }),
   householdEvent("ItemQuantitySet", { itemId: Schema.String, quantity: Quantity }),
-  storeEvent("ItemFiled", { itemId: Schema.String, placement: Placement }),
+  storeEvent("ItemFiled", { itemId: Schema.String, filing: Filing }),
   householdEvent("ItemMarkedToBuy", { itemId: Schema.String }),
   householdEvent("ItemMarkedNotToBuy", { itemId: Schema.String }),
   householdEvent("ItemChecked", { itemId: Schema.String }),
