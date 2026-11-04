@@ -39,6 +39,7 @@ Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
 - `git commit` runs `pnpm check` through lefthook, so the same env must be exported before committing.
 - **`git push` must be its own command** (network/SSH; the sandbox denies it when bundled). Prefer `git -C <repo>` over a bundled `cd … || exit 1`.
 - pnpm 12 refuses to install when a dependency's build script is not allowed: add it to `allowBuilds` in `pnpm-workspace.yaml`.
+- pnpm 12 also refuses packages published less than a day ago, and the local cache hides it: a same-day version passes `pnpm add -E` locally but breaks `pnpm install --frozen-lockfile` in CI until the next day. Don't bypass it with `minimumReleaseAgeExclude`; wait or take the previous version (details in [`docs/research/ci-cd.md`](docs/research/ci-cd.md)).
 - Effect is 4.1.2, not 3.x: check the API in [`docs/research/effect-4-schema.md`](docs/research/effect-4-schema.md) or `node_modules/effect` before writing Effect code from memory.
 - Biome also formats Markdown (e.g. a blank line before a fenced block inside a list): run `pnpm check:fix` after editing docs.
 - Run long commands in the foreground, one per call.
