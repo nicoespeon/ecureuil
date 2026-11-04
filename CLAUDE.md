@@ -59,6 +59,7 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 
 - Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`…), small. **No `Co-Authored-By`.**
 - Effect stays in `packages/domain` and `packages/wire`. React components consume plain state and plain functions.
+- Tagged values come from their Effect constructor (`Data.taggedEnum`, `Schema.TaggedUnion` `.cases.X.make`), never a `{ _tag: … }` literal; [`biome-plugins/no-tag-literal.grit`](biome-plugins/no-tag-literal.grit) enforces it in `pnpm check`, tests excepted.
 - Dependencies pinned to exact versions (`pnpm add -E`).
 - Accessibility is not negotiable; motion honours `prefers-reduced-motion`.
 - A comment on a declaration (type, property, function, constant) is JSDoc (`/** … */`); `//` is for a line inside a body.
