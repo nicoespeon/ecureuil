@@ -134,8 +134,9 @@ function apply(state: State, event: Event): State {
     }
     case "ItemFiled": {
       const { filing } = event.payload;
-      const aisles = state.stores[event.store]?.aisles ?? [];
-      if (filing._tag === "Aisle" && !aisles.some((aisle) => aisle.id === filing.aisleId)) {
+      const store = state.stores[event.store];
+      if (!store) return state;
+      if (filing._tag === "Aisle" && !store.aisles.some((aisle) => aisle.id === filing.aisleId)) {
         return state;
       }
       return updateItem(state, event.payload.itemId, (item) =>
@@ -145,9 +146,7 @@ function apply(state: State, event: Event): State {
       );
     }
     case "ItemMarkedToBuy":
-      return updateItem(state, event.payload.itemId, (item) =>
-        item.status === "notToBuy" ? { ...item, status: "toBuy" } : item,
-      );
+      return updateItem(state, event.payload.itemId, list);
     case "ItemMarkedNotToBuy":
       return updateItem(state, event.payload.itemId, (item) => ({ ...item, status: "notToBuy" }));
     case "ItemChecked":
@@ -182,10 +181,10 @@ function apply(state: State, event: Event): State {
           });
     case "RequestAccepted": {
       const { requestId, itemId } = event.payload;
+      // Accepting toward an unknown item would settle the request for nothing: stay pending.
+      if (!state.items[itemId]) return state;
       return arbitrate(state, requestId, { _tag: "Accepted", itemId }, (arbitrated) =>
-        updateItem(arbitrated, itemId, (item) =>
-          item.status === "notToBuy" ? { ...item, status: "toBuy" } : item,
-        ),
+        updateItem(arbitrated, itemId, list),
       );
     }
     case "RequestDeclined":
@@ -211,7 +210,9 @@ function updateStore(state: State, storeId: string, update: (store: Store) => St
 
 // Aisles created concurrently on another device keep their place after the given order.
 function reorder(aisles: ReadonlyArray<Aisle>, aisleIds: ReadonlyArray<string>) {
-  const mentioned = aisleIds.flatMap((id) => aisles.filter((aisle) => aisle.id === id));
+  const mentioned = [...new Set(aisleIds)].flatMap((id) =>
+    aisles.filter((aisle) => aisle.id === id),
+  );
   const unmentioned = aisles.filter((aisle) => !aisleIds.includes(aisle.id));
   return [...mentioned, ...unmentioned];
 }
@@ -226,7 +227,13 @@ function updateItem(state: State, itemId: string, update: (item: Item) => Item):
 }
 
 function updateItems(state: State, update: (item: Item) => Item): State {
-  return Object.values(state.items).reduce((acc, item) => withItem(acc, update(item)), state);
+  const items = Object.values(state.items).map((item) => [item.id, update(item)] as const);
+  return { ...state, items: Object.fromEntries(items) };
+}
+
+// Puts an item on the list; already listed or in the cart, it stays where it is.
+function list(item: Item): Item {
+  return item.status === "notToBuy" ? { ...item, status: "toBuy" } : item;
 }
 
 function unfile(item: Item, storeId: string): Item {

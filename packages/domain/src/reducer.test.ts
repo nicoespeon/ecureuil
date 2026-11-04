@@ -368,3 +368,35 @@ describe("conflicts: the journal replays by timestamp, then by event id", () => 
     });
   });
 });
+
+describe("review fixes", () => {
+  it("reordering with a repeated id keeps each aisle once", () => {
+    const aisles = [aisle("fruits", "Fruits"), aisle("bakery", "Boulangerie")];
+    const reordered = event({
+      type: "AislesReordered",
+      store: "costco",
+      payload: { aisleIds: ["bakery", "bakery", "fruits"] },
+    });
+
+    const state = fold([costco, ...aisles, reordered]);
+
+    expect(state.stores.costco?.aisles.map((a) => a.id)).toEqual(["bakery", "fruits"]);
+  });
+
+  it("accepting a request for an item that does not exist leaves it pending", () => {
+    expect(fold([requested, accepted()]).requests.r1?.status).toEqual({ _tag: "Pending" });
+  });
+
+  it("ignores filing in a store that does not exist", () => {
+    const state = fold([milk, filed("milk", "ghost", { _tag: "NotSoldHere" })]);
+
+    expect(state.items.milk?.filings).toEqual({});
+  });
+
+  it("a second creation of the same item is ignored", () => {
+    const again = event({ type: "ItemCreated", payload: { itemId: "milk", name: "Lait entier" } });
+    const quantity = event({ type: "ItemQuantitySet", payload: { itemId: "milk", quantity: 4 } });
+
+    expect(fold([milk, quantity, again]).items.milk).toMatchObject({ name: "Lait", quantity: 4 });
+  });
+});
