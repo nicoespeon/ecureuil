@@ -1,22 +1,40 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { useRef, useState } from "react";
+import type { Liste, Magasin } from "@ecureuil/domain";
+import type { Actor } from "@ecureuil/wire";
+import { useRef, useState, useSyncExternalStore } from "react";
+import { Accueil } from "./acces/Accueil";
+import type { AccesStore } from "./acces/acces";
+import { CollerLeLien } from "./acces/CollerLeLien";
+import { Reglages } from "./acces/Reglages";
 import type { Journal } from "./journal/journal";
-import { useFoyer } from "./journal/useFoyer";
+import { type Foyer, useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
-export function App({ journal }: { journal: Journal }) {
-  const foyer = useFoyer(journal);
-  const [announcement, setAnnouncement] = useState("");
-  const panelRef = useRef<HTMLDivElement>(null);
+export function App({
+  journal,
+  role,
+  acces,
+}: {
+  journal: Journal;
+  /** Every event written here carries it: the API refuses any other actor. */
+  role: Actor;
+  acces: AccesStore;
+}) {
+  const foyer = useFoyer(journal, role);
+  const [reglagesOpen, setReglagesOpen] = useState(false);
   const { magasins, magasinActif, liste } = foyer;
 
-  if (!magasinActif || !liste) return <SansMagasin />;
+  if (!magasinActif || !liste) return <SansMagasin acces={acces} />;
 
   return (
     <Tabs.Root
       value={magasinActif.id}
-      onValueChange={(value) => typeof value === "string" && foyer.selectMagasin(value)}
+      onValueChange={(value) => {
+        if (typeof value !== "string") return;
+        foyer.selectMagasin(value);
+        setReglagesOpen(false);
+      }}
       className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
     >
       <header
@@ -35,11 +53,27 @@ export function App({ journal }: { journal: Journal }) {
             </Tabs.Tab>
           ))}
         </Tabs.List>
+        <ReglagesToggle open={reglagesOpen} toggle={() => setReglagesOpen((open) => !open)} />
       </header>
-      <Tabs.Panel ref={panelRef} value={magasinActif.id} className="outline-none">
+      {reglagesOpen ? (
+        <Reglages acces={acces} />
+      ) : (
+        <MagasinPanel foyer={foyer} magasin={magasinActif} liste={liste} />
+      )}
+    </Tabs.Root>
+  );
+}
+
+function MagasinPanel({ foyer, magasin, liste }: { foyer: Foyer; magasin: Magasin; liste: Liste }) {
+  const [announcement, setAnnouncement] = useState("");
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <>
+      <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
         <ListeView
           liste={liste}
-          magasinName={magasinActif.name}
+          magasinName={magasin.name}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -59,20 +93,36 @@ export function App({ journal }: { journal: Journal }) {
       <p role="status" className="sr-only">
         {announcement}
       </p>
-    </Tabs.Root>
+    </>
+  );
+}
+
+/** Until the app has a navigation, the réglages open in place of the list. */
+function ReglagesToggle({ open, toggle }: { open: boolean; toggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={open}
+      onClick={toggle}
+      className="ml-auto h-11 rounded-md px-3 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:outline-blue-700 aria-pressed:bg-neutral-200 aria-pressed:text-neutral-950"
+    >
+      Réglages
+    </button>
   );
 }
 
 /** A new device, or one whose first sync has not brought a magasin yet. */
-function SansMagasin() {
+function SansMagasin({ acces }: { acces: AccesStore }) {
+  const state = useSyncExternalStore(acces.subscribe, acces.get);
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 bg-white px-6 text-neutral-950">
-      <h1 className="text-3xl font-semibold">Écureuil</h1>
+    <Accueil title="Écureuil">
       <p className="text-lg">Cet appareil n'a encore aucun magasin.</p>
       <p className="text-lg text-neutral-700">
-        Ouvrez votre lien d'accès sur cet appareil, en le collant dans la barre d'adresse : la liste
-        du foyer arrive avec la synchronisation.
+        Ouvrez votre lien d'accès sur cet appareil, ou collez-le ici : la liste du foyer arrive avec
+        la synchronisation.
       </p>
-    </main>
+      {state._tag === "SansLien" && <CollerLeLien openLien={acces.openLien} />}
+    </Accueil>
   );
 }

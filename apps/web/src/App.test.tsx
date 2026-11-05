@@ -1,9 +1,11 @@
 import { seed } from "@ecureuil/domain";
+import type { Actor } from "@ecureuil/wire";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
-import { inMemoryJournal } from "./journal/journal";
+import { accesStore } from "./acces/acces";
+import { inMemoryJournal, type Journal } from "./journal/journal";
 
 describe("la liste d'un magasin", () => {
   it("affiche les rayons de Costco dans son ordre, « Non classé » en dernier", () => {
@@ -302,21 +304,57 @@ describe("terminer les courses", () => {
 
 describe("un appareil sans magasin", () => {
   it("affiche Écureuil et explique comment synchroniser la liste du foyer", () => {
-    render(<App journal={inMemoryJournal([])} />);
+    renderApp({ journal: inMemoryJournal([]) });
 
     expect(screen.getByRole("heading", { level: 1, name: "Écureuil" })).toBeVisible();
     expect(screen.getByText(/lien d'accès/)).toBeVisible();
   });
 
+  it("sans lien, propose de coller le lien d'accès", () => {
+    renderApp({ journal: inMemoryJournal([]) });
+
+    expect(screen.getByRole("textbox", { name: "Lien d'accès" })).toBeVisible();
+  });
+
   it("montre la liste dès que la synchronisation apporte un magasin", () => {
     const journal = inMemoryJournal([]);
-    render(<App journal={journal} />);
+    renderApp({ journal });
 
     act(() => {
       for (const event of seed) void journal.append(event);
     });
 
     expect(screen.getByRole("tab", { name: "Costco" })).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("l'appareil", () => {
+  it("écrit les gestes au nom de son rôle", async () => {
+    const journal = inMemoryJournal(seed);
+    const { user } = renderApp({ journal, role: "invite" });
+
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    expect(journal.all().at(-1)).toMatchObject({ type: "ItemChecked", actor: "invite" });
+  });
+
+  it("ouvre ses réglages depuis le header", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Réglages" }));
+
+    expect(screen.getByRole("heading", { name: "Réglages" })).toBeVisible();
+    expect(screen.queryByRole("checkbox", { name: "Lait" })).toBeNull();
+  });
+
+  it("referme ses réglages et retrouve la liste", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Réglages" }));
+
+    await user.click(screen.getByRole("button", { name: "Réglages" }));
+
+    expect(screen.queryByRole("heading", { name: "Réglages" })).toBeNull();
+    expect(screen.getByRole("checkbox", { name: "Lait" })).toBeVisible();
   });
 });
 
@@ -332,9 +370,16 @@ async function finishSortie(user: User) {
   await user.click(screen.getByRole("button", { name: "Terminer" }));
 }
 
-function renderApp() {
+function renderApp({
+  journal = inMemoryJournal(seed),
+  role = "proprietaire",
+}: {
+  journal?: Journal;
+  role?: Actor;
+} = {}) {
   const user = userEvent.setup();
-  const { unmount } = render(<App journal={inMemoryJournal(seed)} />);
+  const acces = accesStore({ apiUrl: undefined, secret: null, reload: () => {} });
+  const { unmount } = render(<App journal={journal} role={role} acces={acces} />);
   return { user, unmount };
 }
 
