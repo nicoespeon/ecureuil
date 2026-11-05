@@ -57,6 +57,7 @@ The ubiquitous language is French, deliberately hybrid with English technical vo
 - Events are a French noun with an English verb: `MagasinCreated`, `ItemRayonSet`, `SortieFinished`, `DemandeRefused`.
 - Roles are domain terms too: `proprietaire` / `invite`. Technical vocabulary stays English: `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
 - Code comments in English. ADRs, PR bodies and the glossary in French.
+- Test titles (`describe`, `it`, `it.each`, Playwright `test`) in French, keeping domain identifiers and English technical vocabulary as is; the test code and its comments stay English.
 - Commit subjects and PR titles follow the conventional commit format; French is fine, especially for domain terms, and PR titles become the squash commit.
 - Never introduce or rename a domain term without asking Nicolas, through `/domain-modeling`.
 

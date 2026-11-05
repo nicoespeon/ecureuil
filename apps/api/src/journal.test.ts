@@ -23,7 +23,7 @@ beforeEach(async () => {
   ]);
 });
 
-it("pulls back what was pushed, with a cursor", async () => {
+it("un pull renvoie ce qu'un push a envoyé, avec un cursor", async () => {
   const events = [itemCreated("e1"), itemCreated("e2")];
 
   const pushed = await push({ events });
@@ -32,7 +32,7 @@ it("pulls back what was pushed, with a cursor", async () => {
   expect(await pullJournal()).toEqual({ events, cursor: expect.any(String) });
 });
 
-it("ignores events it already has, so a replayed push creates nothing", async () => {
+it("ignore les événements déjà reçus : un push rejoué ne crée rien", async () => {
   const event = itemCreated("e1");
   await push({ events: [event] });
 
@@ -42,7 +42,7 @@ it("ignores events it already has, so a replayed push creates nothing", async ()
   expect((await pullJournal()).events).toEqual([event]);
 });
 
-it("pulls only what came after the cursor", async () => {
+it("un pull ne renvoie que ce qui suit le cursor", async () => {
   await push({ events: [itemCreated("e1")] });
   const { cursor } = await pullJournal();
   const newer = itemCreated("e2");
@@ -51,18 +51,18 @@ it("pulls only what came after the cursor", async () => {
   expect(await pullJournal(cursor)).toEqual({ events: [newer], cursor: expect.any(String) });
 });
 
-it("keeps the cursor when nothing is new", async () => {
+it("garde le cursor quand rien n'est nouveau", async () => {
   await push({ events: [itemCreated("e1")] });
   const { cursor } = await pullJournal();
 
   expect(await pullJournal(cursor)).toEqual({ events: [], cursor });
 });
 
-it("starts an empty journal at cursor 0", async () => {
+it("un journal vide commence au cursor 0", async () => {
   expect(await pullJournal()).toEqual({ events: [], cursor: "0" });
 });
 
-it("lets the invite push its own events", async () => {
+it("accepte le push de l'invite pour ses propres événements", async () => {
   const event = itemCreated("e1", "invite");
 
   const pushed = await push({ events: [event] }, secrets.invite);
@@ -71,7 +71,7 @@ it("lets the invite push its own events", async () => {
   expect((await pullJournal()).events).toEqual([event]);
 });
 
-it("refuses the whole push when an event's actor is not the link's role", async () => {
+it("refuse tout le push quand l'actor d'un événement n'est pas le rôle du lien", async () => {
   const pushed = await push(
     { events: [itemCreated("e1", "invite"), itemCreated("e2", "proprietaire")] },
     secrets.invite,
@@ -82,27 +82,27 @@ it("refuses the whole push when an event's actor is not the link's role", async 
 });
 
 it.each([
-  ["a push with an unknown secret", () => push({ events: [] }, "pas-un-secret")],
-  ["a pull with an unknown secret", () => pull(undefined, "pas-un-secret")],
-  ["a pull without the header", () => app.request(journalPath, {}, env)],
-])("answers 401 to %s", async (_, send) => {
+  ["un push avec un secret inconnu", () => push({ events: [] }, "pas-un-secret")],
+  ["un pull avec un secret inconnu", () => pull(undefined, "pas-un-secret")],
+  ["un pull sans le header", () => app.request(journalPath, {}, env)],
+])("répond 401 à %s", async (_, send) => {
   expect((await send()).status).toBe(401);
 });
 
-it("still recognizes a secret when another lien row is malformed", async () => {
+it("reconnaît encore un secret quand une autre ligne de la table lien est mal formée", async () => {
   await env.DB.prepare("UPDATE lien SET secret_hash = 'abc' WHERE role = 'proprietaire'").run();
 
   expect((await pull(undefined, secrets.invite)).status).toBe(200);
 });
 
-it("answers 400 with the schema error to an invalid push", async () => {
+it("répond 400 avec l'erreur de schéma à un push invalide", async () => {
   const pushed = await push({ events: [{ id: "e1" }] });
 
   expect(pushed.status).toBe(400);
   expect(await pushed.json()).toEqual({ error: expect.stringContaining('at ["events"][0]') });
 });
 
-it("answers 400 to a body that is not JSON", async () => {
+it("répond 400 à un body qui n'est pas du JSON", async () => {
   const pushed = await app.request(
     journalPath,
     { method: "POST", headers: authorization(secrets.proprietaire), body: "{" },
@@ -113,7 +113,7 @@ it("answers 400 to a body that is not JSON", async () => {
 });
 
 it.each(["pas-un-curseur", "007", "99999999999999999999"])(
-  "answers 400 to the cursor %s, which it never hands out",
+  "répond 400 au cursor %s, qu'il ne donne jamais",
   async (cursor) => {
     expect((await pull(cursor)).status).toBe(400);
   },

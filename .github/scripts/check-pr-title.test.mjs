@@ -35,7 +35,7 @@ const invalidTitles = [
 ];
 
 for (const title of validTitles) {
-  test(`accepts ${JSON.stringify(title)}`, () => {
+  test(`accepte ${JSON.stringify(title)}`, () => {
     const result = checkTitle(title);
 
     assert.equal(result.status, 0, result.stderr);
@@ -43,7 +43,7 @@ for (const title of validTitles) {
 }
 
 for (const title of invalidTitles) {
-  test(`rejects ${JSON.stringify(title)}`, () => {
+  test(`rejette ${JSON.stringify(title)}`, () => {
     const result = checkTitle(title);
 
     assert.equal(result.status, 1, `expected a rejection, got: ${result.stdout}`);
@@ -51,7 +51,7 @@ for (const title of invalidTitles) {
   });
 }
 
-test("rejects a missing title", () => {
+test("rejette un titre manquant", () => {
   const result = spawnSync(process.execPath, [script], { encoding: "utf8" });
 
   assert.equal(result.status, 1);

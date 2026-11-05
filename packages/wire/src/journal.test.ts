@@ -15,13 +15,13 @@ const event = {
 describe("push", () => {
   const decode = Schema.decodeUnknownSync(PushRequest);
 
-  it("decodes a request carrying journal events", () => {
+  it("décode une requête qui porte des événements du journal", () => {
     const raw = { events: [event] };
 
     expect(decode(raw)).toEqual(raw);
   });
 
-  it("rejects a request where one event is invalid", () => {
+  it("rejette une requête dont un événement est invalide", () => {
     const invalid = { ...event, type: "Teleported" };
 
     expect(() => decode({ events: [event, invalid] })).toThrow();
@@ -32,25 +32,25 @@ describe("pull", () => {
   const decodeQuery = Schema.decodeUnknownSync(PullQuery);
   const decodeResponse = Schema.decodeUnknownSync(PullResponse);
 
-  it("accepts a query without a cursor, to read the journal from the start", () => {
+  it("accepte une query sans cursor, pour lire le journal depuis le début", () => {
     expect(decodeQuery({})).toEqual({});
   });
 
-  it("decodes a query that resumes after a cursor", () => {
+  it("décode une query qui reprend après un cursor", () => {
     expect(decodeQuery({ since: "42" })).toEqual({ since: "42" });
   });
 
-  it("rejects an empty cursor in the query", () => {
+  it("rejette un cursor vide dans la query", () => {
     expect(() => decodeQuery({ since: "" })).toThrow();
   });
 
-  it("decodes a response with the new events and the next cursor", () => {
+  it("décode une réponse avec les nouveaux événements et le cursor suivant", () => {
     const raw = { events: [event], cursor: "43" };
 
     expect(decodeResponse(raw)).toEqual(raw);
   });
 
-  it("rejects a response with an empty cursor", () => {
+  it("rejette une réponse au cursor vide", () => {
     expect(() => decodeResponse({ events: [], cursor: "" })).toThrow();
   });
 });
