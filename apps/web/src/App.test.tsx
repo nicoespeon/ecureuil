@@ -156,6 +156,83 @@ describe("retirer de la liste", () => {
   });
 });
 
+describe("terminer les courses", () => {
+  it("est désactivé quand le panier est vide", () => {
+    renderApp();
+
+    expect(screen.getByRole("button", { name: "Terminer les courses" })).toBeDisabled();
+  });
+
+  it("compte le panier et ce qui reste à acheter avant de terminer", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+
+    await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
+
+    expect(screen.getByRole("alertdialog")).toHaveTextContent(
+      "2 items dans le panier, 8 restent à acheter",
+    );
+  });
+
+  it("accorde un panier d'un seul item au singulier", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
+
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("1 item dans le panier");
+  });
+
+  it("vide le panier", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+
+    await finishSortie(user);
+
+    expect(screen.queryByRole("region", { name: "Dans le panier" })).toBeNull();
+  });
+
+  it("laisse les autres items à acheter", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+
+    await finishSortie(user);
+
+    expect(itemNames()).toEqual([
+      "Champignons",
+      "Croissants",
+      "Fromage râpé",
+      "Nutella",
+      "Pretzel Crisps",
+      "Pyjama polaire Gabriel",
+      "Shampooing",
+      "Yaourts",
+    ]);
+  });
+
+  it("« Annuler » garde le panier", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+    await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
+
+    await user.click(screen.getByRole("button", { name: "Annuler" }));
+
+    expect(section("Dans le panier").getAllByRole("checkbox")).toHaveLength(2);
+  });
+});
+
+type User = ReturnType<typeof userEvent.setup>;
+
+async function checkLaitAndBabybel(user: User) {
+  await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+  await user.click(screen.getByRole("checkbox", { name: "Babybel" }));
+}
+
+async function finishSortie(user: User) {
+  await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
+  await user.click(screen.getByRole("button", { name: "Terminer" }));
+}
+
 function renderApp() {
   const user = userEvent.setup();
   const { unmount } = render(<App journal={inMemoryJournal(seed)} />);

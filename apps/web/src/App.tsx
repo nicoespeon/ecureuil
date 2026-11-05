@@ -3,17 +3,19 @@ import { useState } from "react";
 import type { Journal } from "./journal/journal";
 import { useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
+import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
 export function App({ journal }: { journal: Journal }) {
-  const { magasins, magasinActif, liste, selectMagasin, ...writes } = useFoyer(journal);
+  const foyer = useFoyer(journal);
   const [announcement, setAnnouncement] = useState("");
+  const { magasins, magasinActif, liste } = foyer;
 
   if (!magasinActif || !liste) return null;
 
   return (
     <Tabs.Root
       value={magasinActif.id}
-      onValueChange={(value) => typeof value === "string" && selectMagasin(value)}
+      onValueChange={(value) => typeof value === "string" && foyer.selectMagasin(value)}
       className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
     >
       <header className="sticky top-0 z-20 flex h-14 items-center border-b border-neutral-300 bg-white px-2">
@@ -34,9 +36,16 @@ export function App({ journal }: { journal: Journal }) {
         <ListeView
           liste={liste}
           magasinName={magasinActif.name}
-          actions={{ ...writes, announce: setAnnouncement }}
+          actions={{
+            check: foyer.check,
+            uncheck: foyer.uncheck,
+            setQuantity: foyer.setQuantity,
+            removeFromList: foyer.removeFromList,
+            announce: setAnnouncement,
+          }}
         />
       </Tabs.Panel>
+      <TerminerLesCourses liste={liste} finishSortie={foyer.finishSortie} />
       <p role="status" className="sr-only">
         {announcement}
       </p>

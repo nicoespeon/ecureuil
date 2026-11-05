@@ -39,5 +39,6 @@ export function useFoyer(journal: Journal) {
     setQuantity: (itemId: string, quantity: number) =>
       append("ItemQuantitySet", { itemId, quantity }),
     removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
+    finishSortie: () => append("SortieFinished", {}),
   };
 }
