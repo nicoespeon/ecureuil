@@ -12,8 +12,8 @@ const envelope = {
   magasin: "costco",
 };
 
-describe("Event wire schema", () => {
-  it("decodes a magasin-scoped event with its envelope", () => {
+describe("le schéma wire Event", () => {
+  it("décode un événement de magasin avec son enveloppe", () => {
     const raw = {
       ...envelope,
       type: "RayonCreated",
@@ -23,7 +23,7 @@ describe("Event wire schema", () => {
     expect(decode(raw)).toEqual(raw);
   });
 
-  it("decodes a foyer event with no magasin context", () => {
+  it("décode un événement de foyer sans magasin", () => {
     const raw = {
       ...envelope,
       magasin: null,
@@ -35,35 +35,35 @@ describe("Event wire schema", () => {
     expect(decode(raw)).toEqual(raw);
   });
 
-  it("rejects an event that does not say which device wrote it", () => {
+  it("rejette un événement qui ne dit pas quel device l'a écrit", () => {
     const { device: _device, ...withoutDevice } = envelope;
 
     expect(() => decode({ ...withoutDevice, type: "SortieFinished", payload: {} })).toThrow();
   });
 
-  it("rejects an unknown event type", () => {
+  it("rejette un type d'événement inconnu", () => {
     expect(() => decode({ ...envelope, type: "Teleported", payload: {} })).toThrow();
   });
 
-  it("rejects a magasin-scoped event without a magasin", () => {
+  it("rejette un événement de magasin sans magasin", () => {
     expect(() =>
       decode({ ...envelope, magasin: null, type: "SortieFinished", payload: {} }),
     ).toThrow();
   });
 
-  it.each(["id", "device", "magasin"])("rejects an empty %s", (field) => {
+  it.each(["id", "device", "magasin"])("rejette un %s vide", (field) => {
     expect(() =>
       decode({ ...envelope, [field]: "", type: "SortieFinished", payload: {} }),
     ).toThrow();
   });
 
-  it("rejects an empty entity id in a payload", () => {
+  it("rejette un id d'entité vide dans un payload", () => {
     expect(() =>
       decode({ ...envelope, type: "RayonCreated", payload: { rayonId: "", name: "Fruits" } }),
     ).toThrow();
   });
 
-  it.each([0, -1, 1.5])("rejects quantity %s: must be a positive integer", (quantity) => {
+  it.each([0, -1, 1.5])("rejette la quantité %s : il faut un entier positif", (quantity) => {
     expect(() =>
       decode({
         ...envelope,

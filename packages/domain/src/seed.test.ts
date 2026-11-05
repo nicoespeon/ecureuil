@@ -5,8 +5,8 @@ import { seed } from "./seed";
 
 const state = fold(seed);
 
-describe("the dev seed", () => {
-  it("has Costco and Maxi with their rayons in walking order", () => {
+describe("le seed de dev", () => {
+  it("a Costco et Maxi avec leurs rayons dans l'ordre de parcours", () => {
     expect(state.magasins).toEqual({
       "magasin-costco": {
         id: "magasin-costco",
@@ -37,7 +37,7 @@ describe("the dev seed", () => {
     });
   });
 
-  it("has about twenty items, including the ones on the Cookidoo list", () => {
+  it("a une vingtaine d'items, dont ceux de la liste Cookidoo", () => {
     const names = Object.values(state.items).map((item) => item.name);
 
     expect(names).toHaveLength(20);
@@ -55,17 +55,17 @@ describe("the dev seed", () => {
     );
   });
 
-  it("buys three Lait", () => {
+  it("achète trois Lait", () => {
     expect(state.items["item-lait"]).toMatchObject({ name: "Lait", quantity: 3 });
   });
 
-  it("does not sell the pyjama at Maxi", () => {
+  it("ne vend pas le pyjama chez Maxi", () => {
     expect(state.items["item-pyjama-polaire-gabriel"]?.rayonParMagasin).toMatchObject({
       "magasin-maxi": { _tag: "PasVenduIci" },
     });
   });
 
-  it("walks Costco in rayon order, with a Non classé section last", () => {
+  it("parcourt Costco dans l'ordre des rayons, avec une section Non classé en dernier", () => {
     const sections = listForMagasin(state, "magasin-costco").sections.map((section) =>
       section._tag === "Rayon" ? section.rayonId : section._tag,
     );
@@ -81,13 +81,13 @@ describe("the dev seed", () => {
     ]);
   });
 
-  it("puts half the catalogue on the list", () => {
+  it("met la moitié du catalogue sur la liste", () => {
     const toBuy = Object.values(state.items).filter((item) => item.status === "toBuy");
 
     expect(toBuy).toHaveLength(10);
   });
 
-  it("has one demande from the invite waiting for validation", () => {
+  it("a une demande de l'invite en attente de validation", () => {
     expect(Object.values(state.demandes)).toMatchObject([
       { id: "demande-chocolat-chaud", name: "Chocolat chaud", status: { _tag: "Pending" } },
     ]);
