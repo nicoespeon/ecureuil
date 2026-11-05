@@ -1,5 +1,5 @@
 import { seed } from "@ecureuil/domain";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -90,6 +90,72 @@ describe("le panier", () => {
   });
 });
 
+describe("la quantité", () => {
+  it("affiche ×3 à côté de Lait", () => {
+    renderApp();
+
+    expect(row("Lait")).toHaveTextContent("Lait×3");
+  });
+
+  it("n'affiche pas de multiplicateur pour un seul Babybel", () => {
+    renderApp();
+
+    expect(row("Babybel")).not.toHaveTextContent("×");
+  });
+
+  it("« + » augmente la quantité de Babybel", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Augmenter la quantité de Babybel" }));
+
+    expect(screen.getByRole("group", { name: "Quantité de Babybel" })).toHaveTextContent("2");
+  });
+
+  it("« − » est désactivé à 1", () => {
+    renderApp();
+
+    expect(screen.getByRole("button", { name: "Diminuer la quantité de Babybel" })).toBeDisabled();
+  });
+
+  it("« + » est désactivé à 10", async () => {
+    const { user } = renderApp();
+    const increase = screen.getByRole("button", { name: "Augmenter la quantité de Babybel" });
+
+    for (let quantity = 1; quantity < 10; quantity++) await user.click(increase);
+
+    expect(increase).toBeDisabled();
+  });
+});
+
+describe("retirer de la liste", () => {
+  it("un premier tap sur la poubelle demande confirmation", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Touchez encore pour retirer Babybel");
+  });
+
+  it("un second tap retire Babybel de la liste", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
+
+    expect(screen.queryByRole("checkbox", { name: "Babybel" })).toBeNull();
+  });
+
+  it("la confirmation retombe après 3 secondes", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await act(() => vi.advanceTimersByTimeAsync(3000));
+
+    expect(screen.getByRole("button", { name: "Retirer Babybel de la liste" })).toBeVisible();
+  });
+});
+
 function renderApp() {
   const user = userEvent.setup();
   const { unmount } = render(<App journal={inMemoryJournal(seed)} />);
@@ -110,4 +176,8 @@ function itemNames() {
 
 function section(name: string) {
   return within(screen.getByRole("region", { name }));
+}
+
+function row(itemName: string) {
+  return screen.getByRole("checkbox", { name: itemName }).closest("li");
 }

@@ -1,12 +1,9 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Liste, ListItem, Section } from "@ecureuil/domain";
 import { type ReactNode, useId } from "react";
-import { animateMove, moveTransitionName } from "./animateMove";
+import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 
-type Actions = {
-  readonly check: (itemId: string) => void;
-  readonly uncheck: (itemId: string) => void;
-};
+type Actions = ToBuyActions & { readonly uncheck: (itemId: string) => void };
 
 export function ListeView({
   liste,
@@ -21,16 +18,20 @@ export function ListeView({
     <div className="pb-24">
       {liste.sections.map((section) => (
         <ListeSection key={sectionKey(section)} title={sectionTitle(section)}>
-          <ItemRows items={section.items} onToggle={actions.check} />
+          <ToBuyRows items={section.items} actions={actions} />
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (
         <ListeSection title="Dans le panier">
-          <ItemRows items={liste.panier} checked onToggle={actions.uncheck} />
+          <ul>
+            {liste.panier.map((item) => (
+              <PanierRow key={item.id} item={item} uncheck={actions.uncheck} />
+            ))}
+          </ul>
         </ListeSection>
       )}
       {liste.pasVenduIci.length > 0 && (
-        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} onToggle={actions.check} />
+        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} actions={actions} />
       )}
     </div>
   );
@@ -62,11 +63,11 @@ function ListeSection({ title, children }: { title: string; children: ReactNode 
 function PasVenduIci({
   magasinName,
   items,
-  onToggle,
+  actions,
 }: {
   magasinName: string;
   items: ReadonlyArray<ListItem>;
-  onToggle: (itemId: string) => void;
+  actions: ToBuyActions;
 }) {
   return (
     <Collapsible.Root render={<section />}>
@@ -76,38 +77,17 @@ function PasVenduIci({
         </Collapsible.Trigger>
       </h2>
       <Collapsible.Panel>
-        <ItemRows items={items} onToggle={onToggle} />
+        <ToBuyRows items={items} actions={actions} />
       </Collapsible.Panel>
     </Collapsible.Root>
   );
 }
 
-function ItemRows({
-  items,
-  checked = false,
-  onToggle,
-}: {
-  items: ReadonlyArray<ListItem>;
-  checked?: boolean;
-  onToggle: (itemId: string) => void;
-}) {
+function ToBuyRows({ items, actions }: { items: ReadonlyArray<ListItem>; actions: ToBuyActions }) {
   return (
     <ul>
       {items.map((item) => (
-        <li
-          key={item.id}
-          className="flex min-h-12 items-center gap-2 px-2"
-          style={{ viewTransitionName: moveTransitionName(item.id) }}
-        >
-          <input
-            type="checkbox"
-            aria-label={item.name}
-            checked={checked}
-            onChange={() => animateMove(() => onToggle(item.id))}
-            className="size-6"
-          />
-          <span className="truncate">{item.name}</span>
-        </li>
+        <ToBuyRow key={item.id} item={item} actions={actions} />
       ))}
     </ul>
   );

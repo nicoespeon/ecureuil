@@ -1,10 +1,12 @@
 import { Tabs } from "@base-ui/react/tabs";
+import { useState } from "react";
 import type { Journal } from "./journal/journal";
 import { useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
 
 export function App({ journal }: { journal: Journal }) {
-  const { magasins, magasinActif, liste, selectMagasin, ...actions } = useFoyer(journal);
+  const { magasins, magasinActif, liste, selectMagasin, ...writes } = useFoyer(journal);
+  const [announcement, setAnnouncement] = useState("");
 
   if (!magasinActif || !liste) return null;
 
@@ -29,8 +31,15 @@ export function App({ journal }: { journal: Journal }) {
         </Tabs.List>
       </header>
       <Tabs.Panel value={magasinActif.id} className="outline-none">
-        <ListeView liste={liste} magasinName={magasinActif.name} actions={actions} />
+        <ListeView
+          liste={liste}
+          magasinName={magasinActif.name}
+          actions={{ ...writes, announce: setAnnouncement }}
+        />
       </Tabs.Panel>
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
     </Tabs.Root>
   );
 }

@@ -36,5 +36,8 @@ export function useFoyer(journal: Journal) {
     },
     check: (itemId: string) => append("ItemChecked", { itemId }),
     uncheck: (itemId: string) => append("ItemUnchecked", { itemId }),
+    setQuantity: (itemId: string, quantity: number) =>
+      append("ItemQuantitySet", { itemId, quantity }),
+    removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
   };
 }
