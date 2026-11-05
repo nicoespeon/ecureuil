@@ -4,6 +4,11 @@ dist/
 .turbo/
 *.tsbuildinfo
 
+# Playwright
+test-results/
+playwright-report/
+qa-output/
+
 # Cloudflare
 .wrangler/
 .dev.vars

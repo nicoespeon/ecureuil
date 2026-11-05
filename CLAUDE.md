@@ -21,6 +21,7 @@ pnpm check                 # biome + CI script tests + typecheck + vitest, the o
 pnpm build                 # builds apps/web (CI runs it after check)
 pnpm check:fix             # biome auto-fix
 pnpm --filter web dev      # http://localhost:5173
+pnpm qa:capture            # screenshots + video of the seed in qa-output/ (QA_OUT=before for the before)
 pnpm --filter api dev      # http://localhost:8787/health (wrangler, local D1)
 pnpm --filter api db:migrate   # apply apps/api/migrations to the local D1 (--remote for production)
 pnpm --filter api liens        # create (or replace) the two secret links (--remote for production)
@@ -82,10 +83,10 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 ### Pull requests
 
 - Continuous integration: every task ends in a PR to `main`; merge = deploy. The PR is the QA gate, not `main`.
-- `.github/workflows/ci.yml` runs `pnpm check` and `pnpm build`, then deploys `apps/web` to Cloudflare Pages (preview per PR branch, production on `main`) and `apps/api` to Workers on `main` only, after applying the D1 migrations, smoke-tested on `/health`. No API preview: it would share the production D1. Facts and sources: [`docs/research/ci-cd.md`](docs/research/ci-cd.md).
+- `.github/workflows/ci.yml` runs `pnpm check`, `pnpm build` and the Playwright smoke (`pnpm --filter web smoke`), then deploys `apps/web` to Cloudflare Pages (preview per PR branch, production on `main`) and `apps/api` to Workers on `main` only, after applying the D1 migrations, smoke-tested on `/health`. No API preview: it would share the production D1. Facts and sources: [`docs/research/ci-cd.md`](docs/research/ci-cd.md).
 - The PR title becomes the squash commit, so `.github/workflows/pr-title.yml` checks it is `type(scope)?: subject` (≤ 100 characters); test a title locally with `node .github/scripts/check-pr-title.mjs "feat: …"`.
 - Renovate runs self-hosted daily (`.github/workflows/renovate.yml`, `renovate.json`): pinned versions, at most 2 new PRs a day, non-major updates grouped and automerged once CI is green, majors left open for Nicolas, lockfile maintenance on Mondays.
-- The session that did the work does the QA itself before opening the PR and puts the evidence in the PR body: before/after screenshots for any UI change, a short video (webm) for any interaction change, captured with `pnpm qa:capture` (Playwright over the dev seed; added by task 12 — until then, Playwright or the built-in browser by hand).
+- The session that did the work does the QA itself before opening the PR and puts the evidence in the PR body: before/after screenshots for any UI change, a short video (webm) for any interaction change, captured with `pnpm qa:capture`: Playwright over the dev seed on a mobile viewport writes `costco.png`, `maxi.png`, `panier.png`, `terminer.png` and `courses.webm` to `qa-output/after/` (git-ignored). For the before, run `QA_OUT=before pnpm qa:capture` on `main` (e.g. a `git worktree` of it) into `qa-output/before/`. First run on a machine: `pnpm --filter web exec playwright install chromium`. Extend `apps/web/playwright/qa-capture.pw.ts` when the change shows a new state.
 - PR title and body: the repo skill [`/pr-ecureuil`](.claude/skills/pr-ecureuil/SKILL.md) (not named `pr-description`: a personal skill hides a project skill of the same name). Review happens per comment on GitHub: address each one as it comes, fix or reply.
-- Attach the files with `gh pr create --attach './after.png#Alt text'` (also `gh pr edit N --attach`); references like `![alt](./after.png)` in the body are rewritten to the uploaded asset. Up to 50 files per command.
+- Attach the files with `gh pr create --attach './qa-output/after/panier.png#Alt text'` (also `gh pr edit N --attach`); references like `![alt](./qa-output/after/panier.png)` in the body are rewritten to the uploaded asset. Up to 50 files per command.
 - Keep PRs small, one Notion task each; link the Notion task in the body.

@@ -12,7 +12,8 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "check": "biome check . && node --test '.github/scripts/*.test.mjs' && turbo run typecheck test",
-    "check:fix": "biome check --write ."
+    "check:fix": "biome check --write .",
+    "qa:capture": "pnpm --filter web qa:capture"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.5",
