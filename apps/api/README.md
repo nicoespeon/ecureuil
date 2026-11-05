@@ -10,17 +10,29 @@ Depuis la racine du repo :
 pnpm --filter api db:migrate   # applique migrations/ à la D1 locale (.wrangler/state)
 pnpm --filter api liens        # crée les deux liens et les affiche
 pnpm --filter api dev          # http://localhost:8787
+LIEN_SECRET=<secret-proprietaire> pnpm --filter api seed   # pousse le seed vers l'API locale
 ```
 
 `liens` remplace les liens existants : les anciens secrets cessent de marcher. `--app-url <url>` change l'adresse de l'app dans les liens affichés (par défaut `http://localhost:5173`).
 
 ## En production
 
-La CI applique les migrations à la D1 de production avant chaque déploiement sur `main`. Les liens se créent à la main, une fois, après le premier déploiement (la table `lien` doit exister) :
+Amorcer le foyer, une fois, dans cet ordre :
 
-```sh
-pnpm --filter api liens --remote --app-url https://<app>
-```
+1. Migrations : la CI les applique à la D1 de production avant chaque déploiement sur `main`.
+2. Liens, après le premier déploiement (la table `lien` doit exister) :
+
+   ```sh
+   pnpm --filter api liens --remote --app-url https://<app>
+   ```
+
+3. Seed : pousse les magasins et items du foyer (le `seed` de `@ecureuil/domain`) dans le journal, avec le secret du lien propriétaire :
+
+   ```sh
+   API_URL=https://<api> LIEN_SECRET=<secret-proprietaire> pnpm --filter api seed --remote
+   ```
+
+`seed` lit `API_URL` et `LIEN_SECRET` dans l'environnement, jamais en argument, et ne les affiche pas. Sans `--remote`, il vise `http://localhost:8787`. Il n'envoie que les événements du propriétaire : la demande de l'invite du seed est ignorée (l'API refuserait tout le push), une vraie viendra par le lien invite. Le relancer ne change rien, l'API ignore les ids déjà reçus. Il s'arrête avec un code non nul sur un 401 (secret inconnu), un 403 (secret de l'invite), un 400 ou une erreur réseau.
 
 ## Push et pull
 
