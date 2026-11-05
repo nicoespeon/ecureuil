@@ -227,10 +227,10 @@ describe("retirer de la liste", () => {
 });
 
 describe("terminer les courses", () => {
-  it("est désactivé quand le panier est vide", () => {
+  it("est caché quand le panier est vide", () => {
     renderApp();
 
-    expect(screen.getByRole("button", { name: "Terminer les courses" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Terminer les courses" })).toBeNull();
   });
 
   it("compte le panier et ce qui reste à acheter avant de terminer", async () => {

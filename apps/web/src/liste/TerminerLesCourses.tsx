@@ -9,7 +9,7 @@ export function TerminerLesCourses({
 }: {
   liste: Liste;
   finishSortie: () => void;
-  /** The trigger is disabled once the panier is empty, so focus goes here instead. */
+  /** The trigger disappears once the panier is empty, so focus goes here instead. */
   focusAfterFinish: RefObject<HTMLElement | null>;
 }) {
   const inPanier = liste.panier.length;
@@ -19,19 +19,18 @@ export function TerminerLesCourses({
 
   return (
     <AlertDialog.Root>
-      <div
-        style={{ viewTransitionName: "terminer-les-courses" }}
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)]"
-      >
-        <div className="mx-auto max-w-xl p-3">
-          <AlertDialog.Trigger
-            disabled={inPanier === 0}
-            className={`${buttonClassName} w-full bg-neutral-900 text-white disabled:bg-neutral-300 disabled:text-neutral-700`}
-          >
-            Terminer les courses
-          </AlertDialog.Trigger>
+      {inPanier > 0 && (
+        <div
+          style={{ viewTransitionName: "terminer-les-courses" }}
+          className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)]"
+        >
+          <div className="mx-auto max-w-xl p-3">
+            <AlertDialog.Trigger className={`${buttonClassName} w-full bg-neutral-900 text-white`}>
+              Terminer les courses
+            </AlertDialog.Trigger>
+          </div>
         </div>
-      </div>
+      )}
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
         <AlertDialog.Popup
