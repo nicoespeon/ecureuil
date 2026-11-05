@@ -30,3 +30,13 @@ Puis ouvrir le lien du propriétaire affiché par `liens`. Le secret arrive dans
 Seul le lien du propriétaire peut pousser pour l'instant : l'app écrit ses événements au nom du propriétaire, et l'API refuse un push dont l'`actor` n'est pas le rôle du lien.
 
 En production, la CI construit l'app avec la variable de dépôt GitHub `API_URL` (l'origine du Worker) en `VITE_API_URL`.
+
+## PWA
+
+`vite-plugin-pwa` génère le manifest et un service worker qui met l'app en cache : après un premier chargement, elle démarre sans réseau. Les appels à l'API, sur une autre origine, ne passent jamais par le cache. Une nouvelle version s'installe en silence et tourne au lancement suivant. Pas de service worker sous `pnpm --filter web dev` ; le smoke Playwright et `pnpm qa:capture` tournent sur un build de dev servi par `vite preview`, service worker compris. Détails et sources : [`docs/research/vite-plugin-pwa.md`](../../docs/research/vite-plugin-pwa.md).
+
+L'icône part de `public/favicon.svg`. Pour la remplacer, changer ce fichier puis régénérer les PNG et `favicon.ico` (réglages dans `pwa-assets.config.ts`) :
+
+```sh
+pnpm --filter web icons
+```
