@@ -6,7 +6,7 @@ Offline-first grocery list for one household, with a catalogue of items with a r
 
 pnpm workspace + Turborepo (`apps/*`, `packages/*`), Biome, lefthook.
 
-- `apps/web` — Vite + React + TypeScript strict + Tailwind PWA. Mobile-first, also used on the Mac for configuration. Never imports Effect.
+- `apps/web` — Vite + React + TypeScript strict + Tailwind PWA. Mobile-first, also used on the Mac for configuration. React components never see Effect; the adapters of the ports (IndexedDB, HTTP) and the sync loop may use it, outside components.
 - `apps/api` — Hono on Cloudflare Workers, D1 for the journal (`wrangler.jsonc`). `/health` for smoke checks.
 - `packages/domain` — `@ecureuil/domain`: events, reducer, and the `EventStore` / `SyncTransport` / `Clock` ports as Effect services. 100 % pure, no I/O.
 - `packages/wire` — `@ecureuil/wire`: the Effect Schema contract shared by web and API.
@@ -64,7 +64,7 @@ The ubiquitous language is French, deliberately hybrid with English technical vo
 The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named exports, co-located types, exact dependency versions). Project-specific:
 
 - Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`…), small. **No `Co-Authored-By`.**
-- Effect stays in `packages/domain` and `packages/wire`. React components consume plain state and plain functions.
+- Effect lives in `packages/domain`, `packages/wire` and the adapters of `apps/web`, never in a React component ([ADR 3](docs/adr/0003-hebergement-cloudflare-effect-confine-au-coeur.md)). React components consume plain state and plain functions.
 - Tagged values come from their Effect constructor (`Data.taggedEnum`, `Schema.TaggedUnion` `.cases.X.make`), never a `{ _tag: … }` literal; [`biome-plugins/no-tag-literal.grit`](biome-plugins/no-tag-literal.grit) enforces it in `pnpm check`, tests excepted.
 - Dependencies pinned to exact versions (`pnpm add -E`).
 - Accessibility is not negotiable; motion honours `prefers-reduced-motion`.
