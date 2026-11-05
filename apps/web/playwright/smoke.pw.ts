@@ -17,9 +17,10 @@ test("réordonner un rayon au clavier change l'ordre de la liste", async ({ page
   await page.getByRole("button", { name: "Configuration" }).click();
 
   await page.getByRole("button", { name: "Déplacer Hygiène" }).focus();
-  // dnd-kit measures the rayons once one is picked up: each key waits for the previous move.
   await page.keyboard.press("Space");
   await expect(page.getByText("Hygiène saisi, position 2 sur 8.")).toBeAttached();
+  // dnd-kit announces the pick-up, then listens for arrow keys one task later: let that task run.
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve)));
   await page.keyboard.press("ArrowDown");
   await expect(page.getByText("Hygiène en position 3 sur 8.")).toBeAttached();
   await page.keyboard.press("Space");
