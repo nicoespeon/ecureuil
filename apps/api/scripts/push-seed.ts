@@ -23,8 +23,10 @@ export async function pushSeed({
       method: "POST",
       headers: { [authorizationHeader]: `Bearer ${secret}` },
       body: encodePush({ events: batch }),
+      // A followed redirect would replay the POST as a GET and answer 200 without writing.
+      redirect: "manual",
     });
-    if (!response.ok) {
+    if (response.status !== 204) {
       const hint = hints[response.status] ?? "";
       throw new Error(`POST ${journalPath} : ${response.status} ${await response.text()}${hint}`);
     }

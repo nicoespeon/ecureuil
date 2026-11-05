@@ -19,7 +19,7 @@ try {
 /** fetch only says "fetch failed"; the network reason (ECONNREFUSED, ENOTFOUND…) is in its cause. */
 function describe(error: unknown) {
   if (!(error instanceof Error)) return String(error);
-  if (!(error.cause instanceof Error)) return error.message;
+  if (!(error instanceof TypeError && error.cause instanceof Error)) return error.message;
   const reason = "code" in error.cause ? String(error.cause.code) : error.cause.message;
   return `Pas de réponse de ${apiUrl} : ${reason}`;
 }
