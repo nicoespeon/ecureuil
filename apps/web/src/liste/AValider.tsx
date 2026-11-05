@@ -21,15 +21,15 @@ export function AValider({
   const { listRef, focusNeighborOf } = useFocusAfterVerdict(focusAfterLast);
   if (demandes.length === 0) return null;
 
-  const decide = (demande: Demande, verdict: "accept" | "refuse") => {
+  const accept = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
-    if (verdict === "accept") {
-      actions.acceptDemande(demande);
-      actions.announce(`${demande.name} ajouté à la liste`);
-    } else {
-      actions.refuseDemande(demande);
-      actions.announce(`${demande.name} refusé`);
-    }
+    actions.acceptDemande(demande);
+    actions.announce(`${demande.name} ajouté à la liste`);
+  };
+  const refuse = (demande: Demande) => {
+    focusNeighborOf(demandes, demande);
+    actions.refuseDemande(demande);
+    actions.announce(`${demande.name} refusé`);
   };
 
   return (
@@ -44,14 +44,14 @@ export function AValider({
             <button
               type="button"
               data-demande-id={demande.id}
-              onClick={() => decide(demande, "accept")}
+              onClick={() => accept(demande)}
               className={`${buttonClassName} bg-neutral-900 text-white`}
             >
               Accepter<span className="sr-only"> {demande.name}</span>
             </button>
             <button
               type="button"
-              onClick={() => decide(demande, "refuse")}
+              onClick={() => refuse(demande)}
               className={`${buttonClassName} border border-neutral-400 text-neutral-900 hover:bg-neutral-100`}
             >
               Refuser<span className="sr-only"> {demande.name}</span>

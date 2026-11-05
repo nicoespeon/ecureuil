@@ -57,10 +57,13 @@ export function useFoyer(journal: Journal, actor: Actor) {
     removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
     finishSortie: () => append("SortieFinished", {}),
     askFor: (name: string) => append("DemandeCreated", { demandeId: crypto.randomUUID(), name }),
-    /** Lists the catalogue item of the same name, or a new one, "Non classé" everywhere. */
+    /**
+     * Lists the catalogue item of the same name, or a new one, "Non classé" everywhere. The new
+     * item takes the demande's id: two devices accepting before a sync create the same item once.
+     */
     acceptDemande: (demande: Demande) => {
       const existing = itemNamed(state, demande.name);
-      const itemId = existing?.id ?? crypto.randomUUID();
+      const itemId = existing?.id ?? demande.id;
       if (!existing) append("ItemCreated", { itemId, name: demande.name });
       append("DemandeAccepted", { demandeId: demande.id, itemId });
     },

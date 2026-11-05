@@ -1,9 +1,9 @@
-import { seed } from "@ecureuil/domain";
-import { screen, within } from "@testing-library/react";
+import { fold, seed } from "@ecureuil/domain";
+import { cleanup, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderApp } from "../config/renderApp";
 import { appendEvent } from "../journal/appendEvent";
-import { inMemoryJournal } from "../journal/journal";
+import { inMemoryJournal, type Journal } from "../journal/journal";
 
 describe("la section « À valider »", () => {
   it("ouvre la liste avec les demandes de l'invité", () => {
@@ -32,6 +32,15 @@ describe("la section « À valider »", () => {
       type: "DemandeAccepted",
       payload: { itemId: "item-beurre" },
     });
+  });
+
+  it("accepter sur deux appareils avant la sync ne crée qu'un seul Chocolat chaud", async () => {
+    const phone = await acceptChocolatChaudOn(inMemoryJournal(seed));
+    const mac = await acceptChocolatChaudOn(inMemoryJournal(seed));
+
+    const catalogue = Object.values(fold([...phone.all(), ...mac.all()]).items);
+
+    expect(catalogue.filter((item) => item.name === "Chocolat chaud")).toHaveLength(1);
   });
 
   it("refuser retire la demande sans toucher la liste", async () => {
@@ -72,6 +81,13 @@ describe("la section « À valider »", () => {
     expect(screen.getByRole("tabpanel")).toHaveFocus();
   });
 });
+
+async function acceptChocolatChaudOn(device: Journal) {
+  const { user } = renderApp({ journal: device });
+  await user.click(screen.getByRole("button", { name: "Accepter Chocolat chaud" }));
+  cleanup();
+  return device;
+}
 
 /** The seed, where the invite has asked for one more thing after the Chocolat chaud. */
 function withDemande(name: string) {
