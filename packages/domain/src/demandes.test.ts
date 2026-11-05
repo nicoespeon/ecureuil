@@ -1,0 +1,67 @@
+import { Event } from "@ecureuil/wire";
+import { Schema } from "effect";
+import { describe, expect, it } from "vitest";
+import { itemNamed, latestDemandes, pendingDemandes } from "./demandes";
+import { fold } from "./reducer";
+
+const decode = Schema.decodeUnknownSync(Event);
+
+let sequence = 0;
+
+function event(type: string, payload: unknown) {
+  sequence += 1;
+  return decode({
+    id: `e${sequence}`,
+    at: sequence,
+    actor: "invite",
+    device: "iphone",
+    magasin: null,
+    type,
+    payload,
+  });
+}
+
+const demande = (demandeId: string, name: string) => event("DemandeCreated", { demandeId, name });
+const item = (itemId: string, name: string) => event("ItemCreated", { itemId, name });
+
+describe("les demandes en attente", () => {
+  it("rend les demandes en attente, la plus ancienne d'abord", () => {
+    const state = fold([
+      demande("d1", "Chips"),
+      demande("d2", "Café"),
+      demande("d3", "Thé"),
+      item("chips", "Chips"),
+      event("DemandeAccepted", { demandeId: "d1", itemId: "chips" }),
+    ]);
+
+    expect(pendingDemandes(state).map(({ name }) => name)).toEqual(["Café", "Thé"]);
+  });
+});
+
+describe("les dernières demandes", () => {
+  it("rend les plus récentes d'abord, quel que soit leur statut, dans la limite demandée", () => {
+    const state = fold([
+      demande("d1", "Chips"),
+      demande("d2", "Café"),
+      event("DemandeRefused", { demandeId: "d2" }),
+      demande("d3", "Thé"),
+    ]);
+
+    expect(latestDemandes(state, 2)).toMatchObject([
+      { name: "Thé", status: { _tag: "Pending" } },
+      { name: "Café", status: { _tag: "Refused" } },
+    ]);
+  });
+});
+
+describe("l'item d'une demande", () => {
+  const state = fold([item("pates", "Pâtes"), item("lait", "Lait")]);
+
+  it.each(["Pâtes", "pates", "  PÂTES "])("« %s » retrouve l'item Pâtes", (name) => {
+    expect(itemNamed(state, name)).toMatchObject({ id: "pates", name: "Pâtes" });
+  });
+
+  it("ne retrouve rien pour un nom absent du catalogue", () => {
+    expect(itemNamed(state, "Pâté")).toBeUndefined();
+  });
+});

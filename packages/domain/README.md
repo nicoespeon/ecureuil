@@ -76,7 +76,13 @@ type ListItem = { id; name; quantity };
 - `panier` : les items `inCart`, quel que soit leur rayon.
 - Dans chaque groupe, les items sont triés par nom (`localeCompare` en `fr`).
 
-Changer de magasin retrie les mêmes items, sans en changer le contenu. Les demandes en attente n'en font pas partie : filtrer `state.demandes` sur `status._tag === "Pending"`.
+Changer de magasin retrie les mêmes items, sans en changer le contenu. Les demandes en attente n'en font pas partie.
+
+## Les demandes
+
+- `pendingDemandes(state)` : les demandes `Pending`, la plus ancienne d'abord (la section « À valider »).
+- `latestDemandes(state, count)` : les `count` dernières demandes, la plus récente d'abord, quel que soit leur statut (ce que l'invité voit).
+- `itemNamed(state, name)` : l'item du catalogue qui porte ce nom, sans tenir compte des espaces autour, de la casse ni des accents (« pates » trouve « Pâtes »). Accepter une demande réutilise cet item plutôt que d'en créer un second.
 
 ## Règles du domaine
 
