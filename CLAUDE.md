@@ -17,7 +17,7 @@ Both packages are source-only (consumers bundle `src/index.ts`, no build step).
 
 ```sh
 pnpm install
-pnpm check                 # biome + CI script tests + typecheck + vitest, the one gate (pre-commit and CI)
+pnpm check                 # biome (0 warning) + suppression scan + node tests + typecheck + vitest, the one gate (pre-commit and CI)
 pnpm build                 # builds apps/web (CI runs it after check)
 pnpm check:fix             # biome auto-fix
 pnpm --filter web dev      # http://localhost:5173
@@ -48,6 +48,15 @@ Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
 - Effect is 4.1.2, not 3.x: check the API in [`docs/research/effect-4-schema.md`](docs/research/effect-4-schema.md) or `node_modules/effect` before writing Effect code from memory.
 - Biome also formats Markdown (e.g. a blank line before a fenced block inside a list): run `pnpm check:fix` after editing docs.
 - Run long commands in the foreground, one per call.
+
+## Harness
+
+Strict Biome (`biome.json`, plus the GritQL rules in `biome-plugins/`) and two hooks in `.claude/settings.json` keep the repo at zero warnings:
+
+- After each `Edit` / `Write`, `.claude/hooks/lint-edit.mjs` lints the file and hands back every finding with its guide. Fix them before moving on: `pnpm check` fails on any warning. It also reports, as advice only, a clone this branch wrote.
+- Before each `Edit` / `Write`, `.claude/hooks/no-inline-suppression.mjs` denies an edit that adds `biome-ignore`, `@ts-expect-error`, `@ts-ignore`, `@ts-nocheck` or `eslint-disable`; `pnpm check` runs the same scan on every file.
+
+A finding is fixed in the code, guided by `.claude/hooks/guides/<smell>.md` (or the Biome doc it links). When a rule is wrong, change it in `biome.json` in a dedicated PR. Hook tests: `node --test '.claude/hooks/*.test.mjs'`.
 
 ## Language
 
