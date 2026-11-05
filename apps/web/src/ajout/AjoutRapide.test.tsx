@@ -75,8 +75,8 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), "lait");
 
-    expect(within(resultat("Lait")).queryByRole("button")).toBeNull();
-    expect(resultat("Lait")).toHaveTextContent("Sur la liste");
+    expect(within(resultRow("Lait")).queryByRole("button")).toBeNull();
+    expect(resultRow("Lait")).toHaveTextContent("Sur la liste");
   });
 
   it("un item pas vendu dans ce magasin le dit", async () => {
@@ -86,7 +86,7 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), "pyjama");
 
-    expect(resultat("Pyjama polaire Gabriel")).toHaveTextContent("Pas chez Maxi");
+    expect(resultRow("Pyjama polaire Gabriel")).toHaveTextContent("Pas chez Maxi");
   });
 
   it("« Créer « Laitue » » l'ajoute à la liste, dans « Non classé »", async () => {
@@ -117,6 +117,30 @@ describe("l'ajout rapide", () => {
     expect(screen.getByRole("checkbox", { name: "Laitue" })).toBeVisible();
   });
 
+  it("Entrée sur le nom d'un item déjà sur la liste le dit, sans rien ajouter", async () => {
+    const { user, journal } = await openAjout();
+    const before = journal.all().length;
+
+    await user.type(searchbox(), "lait{Enter}");
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(
+      "Déjà sur la liste : Lait",
+    );
+    expect(journal.all()).toHaveLength(before);
+  });
+
+  it.each([
+    ["pom", "1 item trouvé"],
+    ["lai", "2 items trouvés"],
+    ["kiwi", "Aucun item trouvé"],
+  ])("taper « %s » annonce « %s »", async (query, announcement) => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), query);
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(announcement);
+  });
+
   it("n'est pas proposé à l'invité", () => {
     renderApp({ role: "invite" });
 
@@ -142,7 +166,7 @@ function searchbox() {
 }
 
 /** A row of the search results, whether it can be added or not. */
-function resultat(name: string) {
+function resultRow(name: string) {
   const row = within(screen.getByRole("list", { name: "Résultats" }))
     .getAllByRole("listitem")
     .find((item) => item.textContent?.startsWith(name));

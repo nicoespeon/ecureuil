@@ -80,6 +80,7 @@ describe("la recherche dans le catalogue", () => {
   it("ne propose pas de créer un item qui existe déjà, aux accents et à la casse près", () => {
     expect(searchItems(catalogue, "creme")).toMatchObject({
       items: [{ name: "Crème" }],
+      exactMatch: { name: "Crème" },
       nameToCreate: null,
     });
   });

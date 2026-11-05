@@ -43,9 +43,55 @@ function AjoutPanel({
   foyer: AjoutFoyer;
   searchRef: RefObject<HTMLInputElement | null>;
 }) {
+  const ajout = useAjout(foyer, searchRef);
+  const magasin = foyer.magasinActif;
+
+  return (
+    <>
+      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-neutral-300 px-4">
+        <Dialog.Title className="flex-1 text-lg font-semibold">Ajouter à la liste</Dialog.Title>
+        <Dialog.Close className={closeClassName}>Fermer</Dialog.Close>
+      </div>
+      <form
+        className="p-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          ajout.addOnEnter();
+        }}
+      >
+        <input
+          ref={searchRef}
+          type="search"
+          aria-label="Item à ajouter"
+          placeholder="Chercher ou créer un item"
+          autoComplete="off"
+          enterKeyHint="done"
+          value={ajout.query}
+          onChange={(event) => ajout.search(event.currentTarget.value)}
+          className="h-12 w-full rounded-md border border-neutral-400 bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
+        />
+      </form>
+      {ajout.query.trim() === "" ? (
+        <Frequents
+          items={frequentItems(foyer.state, magasin.id)}
+          magasin={magasin}
+          add={ajout.add}
+        />
+      ) : (
+        <Results {...ajout.result} magasin={magasin} add={ajout.add} create={ajout.create} />
+      )}
+      <p role="status" className="sr-only">
+        {ajout.announcement}
+      </p>
+    </>
+  );
+}
+
+/** What the panel's gestures do: write to the journal, then say so and get ready for the next. */
+function useAjout(foyer: AjoutFoyer, searchRef: RefObject<HTMLInputElement | null>) {
   const [query, setQuery] = useState("");
   const { announcement, announce } = useAnnouncer();
-  const { items, nameToCreate } = searchItems(foyer.state, query);
+  const result = searchItems(foyer.state, query);
 
   // The tapped row disappears: the focus goes back to the field, ready for the next item.
   const added = (name: string) => {
@@ -61,63 +107,68 @@ function AjoutPanel({
     foyer.createItem(name);
     added(name);
   };
-  const addFirst = () => {
-    const first = items.find((item) => item.status === "notToBuy");
-    if (first) add(first);
-    else if (nameToCreate !== null) create(nameToCreate);
-  };
 
+  return {
+    query,
+    result,
+    announcement,
+    add,
+    create,
+    search: (next: string) => {
+      setQuery(next);
+      if (next.trim() !== "") announce(itemsFound(searchItems(foyer.state, next).items.length));
+    },
+    // The exact name wins: Enter on « lait » never adds Laitue when Lait is already on the list.
+    addOnEnter: () => {
+      const { items, exactMatch, nameToCreate } = result;
+      const choice = exactMatch ?? items.find((item) => item.status === "notToBuy");
+      if (choice?.status === "notToBuy") add(choice);
+      else if (choice) announce(`Déjà sur la liste : ${choice.name}`);
+      else if (nameToCreate !== null) create(nameToCreate);
+    },
+  };
+}
+
+function Results({
+  items,
+  nameToCreate,
+  magasin,
+  add,
+  create,
+}: {
+  items: ReadonlyArray<Item>;
+  nameToCreate: string | null;
+  magasin: Magasin;
+  add: (item: Item) => void;
+  create: (name: string) => void;
+}) {
   return (
-    <>
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-neutral-300 px-4">
-        <Dialog.Title className="flex-1 text-lg font-semibold">Ajouter à la liste</Dialog.Title>
-        <Dialog.Close className={closeClassName}>Fermer</Dialog.Close>
-      </div>
-      <form
-        className="p-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          addFirst();
-        }}
-      >
-        <input
-          ref={searchRef}
-          type="search"
-          aria-label="Item à ajouter"
-          placeholder="Chercher ou créer un item"
-          autoComplete="off"
-          enterKeyHint="done"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-          className="h-12 w-full rounded-md border border-neutral-400 bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
-        />
-      </form>
-      {query.trim() === "" ? (
-        <Frequents items={frequentItems(foyer.state, foyer.magasinActif.id)} add={add} />
-      ) : (
-        <ul aria-label="Résultats">
-          {items.map((item) => (
-            <li key={item.id}>
-              <ItemOption item={item} magasin={foyer.magasinActif} add={add} />
-            </li>
-          ))}
-          {nameToCreate !== null && (
-            <li>
-              <AddButton onClick={() => create(nameToCreate)}>
-                <span className="min-w-0 flex-1 truncate">Créer « {nameToCreate} »</span>
-              </AddButton>
-            </li>
-          )}
-        </ul>
+    <ul aria-label="Résultats">
+      {items.map((item) => (
+        <li key={item.id}>
+          <ItemOption item={item} magasin={magasin} add={add} />
+        </li>
+      ))}
+      {nameToCreate !== null && (
+        <li>
+          <AddButton onClick={() => create(nameToCreate)}>
+            <span className="min-w-0 flex-1 truncate">Créer « {nameToCreate} »</span>
+          </AddButton>
+        </li>
       )}
-      <p role="status" className="sr-only">
-        {announcement}
-      </p>
-    </>
+    </ul>
   );
 }
 
-function Frequents({ items, add }: { items: ReadonlyArray<Item>; add: (item: Item) => void }) {
+function Frequents({
+  items,
+  magasin,
+  add,
+}: {
+  items: ReadonlyArray<Item>;
+  magasin: Magasin;
+  add: (item: Item) => void;
+}) {
   const headingId = useId();
   if (items.length === 0) return null;
 
@@ -129,9 +180,7 @@ function Frequents({ items, add }: { items: ReadonlyArray<Item>; add: (item: Ite
       <ul>
         {items.map((item) => (
           <li key={item.id}>
-            <AddButton onClick={() => add(item)}>
-              <span className="min-w-0 flex-1 truncate">{item.name}</span>
-            </AddButton>
+            <ItemOption item={item} magasin={magasin} add={add} />
           </li>
         ))}
       </ul>
@@ -184,6 +233,13 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
       </span>
     </button>
   );
+}
+
+const plural = new Intl.PluralRules("fr");
+
+function itemsFound(count: number) {
+  if (count === 0) return "Aucun item trouvé";
+  return plural.select(count) === "one" ? `${count} item trouvé` : `${count} items trouvés`;
 }
 
 const buttonClassName =

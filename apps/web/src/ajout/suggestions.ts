@@ -32,17 +32,22 @@ export function frequentItems(state: State, magasinId: string) {
 export function searchItems(state: State, query: string) {
   const name = query.trim();
   const needle = searchable(name);
-  if (needle === "") return { items: [], nameToCreate: null };
+  if (needle === "") return { items: [], exactMatch: undefined, nameToCreate: null };
 
-  const items = Object.values(state.items)
-    .filter((item) => searchable(item.name).includes(needle))
+  const found = Object.values(state.items)
+    .map((item) => ({ item, key: searchable(item.name) }))
+    .filter(({ key }) => key.includes(needle))
     .sort(
       (a, b) =>
-        Number(searchable(b.name).startsWith(needle)) -
-          Number(searchable(a.name).startsWith(needle)) || byName(a, b),
+        Number(b.key.startsWith(needle)) - Number(a.key.startsWith(needle)) ||
+        byName(a.item, b.item),
     );
-  const exists = items.some((item) => searchable(item.name) === needle);
-  return { items, nameToCreate: exists ? null : name };
+  const exactMatch = found.find(({ key }) => key === needle)?.item;
+  return {
+    items: found.map(({ item }) => item),
+    exactMatch,
+    nameToCreate: exactMatch ? null : name,
+  };
 }
 
 function searchable(text: string) {
