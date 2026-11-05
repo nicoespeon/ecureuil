@@ -13,12 +13,14 @@
     "typecheck": "turbo run typecheck",
     "check": "biome check --error-on-warnings . && node .claude/hooks/no-inline-suppression.mjs --all && node --test '.github/scripts/*.test.mjs' '.claude/hooks/*.test.mjs' && turbo run typecheck test",
     "check:fix": "biome check --write .",
-    "qa:capture": "pnpm --filter web qa:capture"
+    "qa:capture": "pnpm --filter web qa:capture",
+    "qa:qr": "node scripts/qr.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.5",
     "jscpd": "5.4.2",
     "lefthook": "2.2.2",
+    "qrcode": "1.5.4",
     "turbo": "2.11.10",
     "typescript": "7.0.2"
   }

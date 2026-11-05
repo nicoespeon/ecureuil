@@ -33,6 +33,8 @@ Any change a person can see gets evidence, captured by the session itself before
 
 Capture with `pnpm qa:capture` when the root `package.json` has that script (read its `--help` first); otherwise drive Playwright or the built-in browser by hand over the dev seed. Write the files to the session scratchpad, never into the repo.
 
+A UI change also gets a line for Nicolas's phone: the branch preview URL `https://<branch with / as ->.ecureuil.pages.dev` (CI `deploy-web` publishes it on every push) and the command that turns it into a QR code with his lien, `LIEN_SECRET=… pnpm qa:qr <preview url>`. Never put a secret, or a QR code holding one, in the body.
+
 Done when each visible change has its file, or the PR has no visible change.
 
 ### 3. Title
@@ -80,6 +82,8 @@ Tâche Notion : [<task title>](<notion url>).
 ## QA
 
 <Screenshots with one caption each, the video, or the curl session. One paragraph on what you checked by hand: keyboard, accessible names, contrast, reduced motion.>
+
+Sur ton téléphone : `LIEN_SECRET=… pnpm qa:qr https://<branch>.ecureuil.pages.dev`
 
 ## Décisions à relire
 
