@@ -3,12 +3,13 @@ import {
   authorizationHeader,
   journalPath,
   PullQuery,
+  type PullResponse,
   PushRequest,
 } from "@ecureuil/wire";
 import { Result, Schema } from "effect";
 import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
-import { appendEvents, eventsAfter, isWellFormedCursor, startCursor } from "./journal";
+import { appendEvents, eventsAfter, seqOfCursor } from "./journal";
 import { roleOfSecret } from "./lien";
 
 type Bindings = {
@@ -59,10 +60,11 @@ app.get(journalPath, async (c) => {
   const pull = decodePull(c.req.query());
   if (Result.isFailure(pull)) return c.json({ error: pull.failure.message }, 400);
 
-  const since = pull.success.since ?? startCursor;
-  if (!isWellFormedCursor(since)) return c.json({ error: `Unknown cursor: ${since}` }, 400);
+  const { since = "0" } = pull.success;
+  const seq = seqOfCursor(since);
+  if (seq === undefined) return c.json({ error: `Unknown cursor: ${since}` }, 400);
 
-  return c.json(await eventsAfter(c.env.DB, since));
+  return c.json((await eventsAfter(c.env.DB, seq)) satisfies PullResponse);
 });
 
 export default app;

@@ -1,16 +1,12 @@
-import type { Event } from "@ecureuil/wire";
+import { Event } from "@ecureuil/wire";
+import { Schema } from "effect";
 
 /**
- * The cursor of an empty journal: `seq` starts at 1, so every event comes after it.
+ * A cursor is `String(seq)` of the last event a device has seen, `"0"` before the first one.
+ * Anything else was not handed out here: no leading zero, small enough to stay a safe integer.
  */
-export const startCursor = "0";
-
-/**
- * A cursor is the `seq` of the last event a device has seen, written the way
- * `String(seq)` writes it: no leading zero, small enough to stay a safe integer.
- */
-export function isWellFormedCursor(cursor: string) {
-  return /^(0|[1-9]\d{0,14})$/.test(cursor);
+export function seqOfCursor(cursor: string) {
+  return /^(0|[1-9]\d{0,14})$/.test(cursor) ? Number(cursor) : undefined;
 }
 
 /**
@@ -38,28 +34,24 @@ export async function appendEvents(db: D1Database, events: ReadonlyArray<Event>)
   );
 }
 
-export async function eventsAfter(db: D1Database, cursor: string) {
-  const { results: rows } = await db
-    .prepare("SELECT * FROM journal WHERE seq > ? ORDER BY seq")
-    .bind(Number(cursor))
-    .all<JournalRow>();
-  const last = rows.at(-1);
+const decodeJournalEntries = Schema.decodeUnknownSync(
+  Schema.Array(Schema.Struct({ seq: Schema.Int, event: Schema.fromJsonString(Event) })),
+);
+
+export async function eventsAfter(db: D1Database, seq: number) {
+  const { results } = await db
+    .prepare(
+      `SELECT seq, json_object(
+         'id', id, 'at', at, 'actor', actor, 'device', device,
+         'magasin', magasin, 'type', type, 'payload', json(payload)
+       ) AS event
+       FROM journal WHERE seq > ? ORDER BY seq`,
+    )
+    .bind(seq)
+    .all();
+  const entries = decodeJournalEntries(results);
   return {
-    events: rows.map(({ seq: _, payload, ...envelope }) => {
-      const parsed: unknown = JSON.parse(payload);
-      return { ...envelope, payload: parsed };
-    }),
-    cursor: last === undefined ? cursor : String(last.seq),
+    events: entries.map(({ event }) => event),
+    cursor: String(entries.at(-1)?.seq ?? seq),
   };
 }
-
-type JournalRow = {
-  seq: number;
-  id: string;
-  at: number;
-  actor: string;
-  device: string;
-  magasin: string | null;
-  type: string;
-  payload: string;
-};
