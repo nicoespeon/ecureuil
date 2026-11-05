@@ -29,15 +29,16 @@ const GUIDE_BY_RULE = {
   "lint/complexity/noExcessiveLinesPerFunction": "oversized-file",
   "lint/style/noExcessiveLinesPerFile": "oversized-file",
 };
-// Tests repeat their setup on purpose, so each case reads on its own.
+/** Tests repeat their setup on purpose, so each case reads on its own. */
 const TEST_FILES = ["**/*.test.ts", "**/*.test.tsx", "**/*.test.mjs", "**/*.pw.ts"];
+const SCANNED_FOR_CLONES = /\.(?:ts|tsx|js|jsx|mjs|cjs)$/;
 
 const payload = JSON.parse(readFileSync(0, "utf8"));
 const filePath = payload.tool_input?.file_path;
 if (!filePath || !existsSync(filePath)) {
   process.exit(0);
 }
-// The repo the file lives in, not the session's cwd: an agent may have cd'd into a subfolder.
+/** The repo the file lives in, not the session's cwd: an agent may have cd'd into a subfolder. */
 const root = spawnSync("git", ["rev-parse", "--show-toplevel"], {
   cwd: dirname(realpathSync(filePath)),
   encoding: "utf8",
@@ -46,16 +47,19 @@ if (!root || !existsSync(join(root, "biome.json"))) {
   process.exit(0);
 }
 const file = relative(root, realpathSync(filePath));
+if (!existsSync(join(BIN, "biome"))) {
+  emit("The harness hooks need the repo's dependencies: run `pnpm install`.");
+  process.exit(0);
+}
 
 const sections = [biomeSection(), duplicationSection()].filter(Boolean);
 if (sections.length > 0) {
+  emit(sections.join("\n\n"));
+}
+
+function emit(additionalContext) {
   process.stdout.write(
-    JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "PostToolUse",
-        additionalContext: sections.join("\n\n"),
-      },
-    }),
+    JSON.stringify({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext } }),
   );
 }
 
@@ -81,8 +85,9 @@ function biomeSection() {
     : `Biome found ${problems.length} problem(s) in ${file}. \`pnpm check\` fails on any of them. Fix the code, never silence the rule inline:\n${problems.join("\n")}`;
 }
 
+/** Plugin messages carry their own guide; parse errors have no rule page. */
 function pointerFor(category) {
-  if (category === "plugin") {
+  if (!category.startsWith("lint/")) {
     return "";
   }
   const guide = GUIDE_BY_RULE[category];
@@ -98,10 +103,13 @@ function pointerFor(category) {
 
 /** Advisory only: a clone can be the right call, so it never fails `pnpm check`. */
 function duplicationSection() {
-  if (TEST_FILES.some((glob) => matchesGlob(file, glob))) {
+  if (!SCANNED_FOR_CLONES.test(file) || TEST_FILES.some((glob) => matchesGlob(file, glob))) {
     return null;
   }
   const base = mergeBase();
+  if (!base) {
+    return null;
+  }
   const added = addedLines(base);
   const reported = readReported();
   const clones = allClones()
@@ -142,8 +150,10 @@ function allClones() {
   }
 }
 
-// A clone is this change's doing only when it wrote most of one side. Below that,
-// renaming a variable inside a copy that predates the branch would report the copy.
+/**
+ * A clone is this change's doing only when it wrote most of one side. Below that,
+ * renaming a variable inside a copy that predates the branch would report the copy.
+ */
 function wroteMostOf({ start, end }, added) {
   const lines = end - start + 1;
   const written =

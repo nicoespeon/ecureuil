@@ -7,7 +7,7 @@ import { repoWith, runHook } from "./test-support.mjs";
 
 const HOOK = "no-inline-suppression.mjs";
 
-// Built from parts so this file never holds the comments it hunts for.
+/** Built from parts so this file never holds the comments it hunts for. */
 const suppressions = [
   ["//", "biome-ignore lint/style/noNonNullAssertion: always set"],
   ["//", "biome-ignore-all lint: generated"],

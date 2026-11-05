@@ -190,6 +190,11 @@ const acceptable = [
     code: `export function long() {\n${"  console.info(1);\n".repeat(51)}}\n`,
   },
   {
+    case: "a long Playwright test",
+    file: "playwright/capture.pw.ts",
+    code: `export function long() {\n${"  console.info(1);\n".repeat(51)}}\n`,
+  },
+  {
     case: "a default export in a config file",
     file: "vite.config.ts",
     code: "export default { root: '.' };\n",
@@ -205,6 +210,12 @@ const acceptable = [
     code: "# Notes\n\nvalue as string\n",
   },
 ];
+
+test("lint-edit points a parse error at no rule page", () => {
+  const repo = repoWith({ branch: { "src/broken.ts": "export const = 1;\n" } });
+
+  assert.doesNotMatch(runHook(HOOK, repo, { file_path: "src/broken.ts" }), /biomejs\.dev/);
+});
 
 describe("lint-edit stays quiet", () => {
   for (const { case: name, file, code } of acceptable) {
@@ -235,8 +246,8 @@ describe("lint-edit reports a clone the edit wrote", () => {
       branch: { "src/refunds.ts": totalsBy("refunds") },
     });
     const run = sessionIn(repo);
-    run(HOOK, { file_path: "src/refunds.ts" });
 
+    assert.match(run(HOOK, { file_path: "src/refunds.ts" }), /duplicated-code/);
     assert.equal(run(HOOK, { file_path: "src/refunds.ts" }), "");
   });
 

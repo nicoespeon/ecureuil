@@ -56,7 +56,7 @@ Strict Biome (`biome.json`, plus the GritQL rules in `biome-plugins/`) and two h
 - After each `Edit` / `Write`, `.claude/hooks/lint-edit.mjs` lints the file and hands back every finding with its guide. Fix them before moving on: `pnpm check` fails on any warning. It also reports, as advice only, a clone this branch wrote.
 - Before each `Edit` / `Write`, `.claude/hooks/no-inline-suppression.mjs` denies an edit that adds `biome-ignore`, `@ts-expect-error`, `@ts-ignore`, `@ts-nocheck` or `eslint-disable`; `pnpm check` runs the same scan on every file.
 
-A finding is fixed in the code, guided by `.claude/hooks/guides/<smell>.md` (or the Biome doc it links). When a rule is wrong, change it in `biome.json` in a dedicated PR. Hook tests: `node --test '.claude/hooks/*.test.mjs'`.
+A finding is fixed in the code, guided by `.claude/hooks/guides/<smell>.md` (or the Biome doc it links). When a rule is wrong, change it in `biome.json` in a dedicated PR.
 
 ## Language
 

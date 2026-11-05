@@ -94,7 +94,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.pw.ts"],
       "linter": {
         "rules": {
           "style": {
