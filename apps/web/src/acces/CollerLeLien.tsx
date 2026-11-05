@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { buttonClassName } from "./Accueil";
+import { buttonClassName, inputClassName } from "./Accueil";
 
 /** An installed PWA has no address bar: the lien is pasted here instead. */
 export function CollerLeLien({ openLien }: { openLien: (pasted: string) => void }) {
@@ -26,7 +26,7 @@ export function CollerLeLien({ openLien }: { openLien: (pasted: string) => void 
         value={pasted}
         onChange={(event) => setPasted(event.target.value)}
         placeholder="https://…/#…"
-        className="h-12 rounded-md border border-neutral-400 px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        className={inputClassName}
       />
       <button type="submit" className={buttonClassName}>
         Utiliser ce lien

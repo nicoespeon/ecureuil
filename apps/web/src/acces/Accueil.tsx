@@ -12,3 +12,9 @@ export function Accueil({ title, children }: { title: string; children: ReactNod
 
 export const buttonClassName =
   "h-12 rounded-md bg-neutral-900 px-4 text-base font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+
+export const secondaryButtonClassName =
+  "h-12 rounded-md border border-neutral-400 px-4 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:opacity-50";
+
+export const inputClassName =
+  "h-12 rounded-md border border-neutral-400 px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
