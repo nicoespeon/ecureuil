@@ -51,11 +51,13 @@ export function NouveauLienMariane({ newInviteLien }: { newInviteLien: () => Pro
           </AlertDialog.Popup>
         </AlertDialog.Portal>
       </AlertDialog.Root>
+      <p role="status" className="text-sm">
+        {creation.step === "creating" ? "Création du lien…" : ""}
+      </p>
       {creation.step === "created" && <LienCree lien={creation.lien} />}
       {creation.step === "failed" && (
         <p role="alert" className="text-red-800">
-          Le lien n'a pas pu être créé. Vérifiez la connexion et réessayez : l'ancien marche
-          toujours.
+          Le lien n'a pas pu être créé. Vérifiez la connexion et réessayez.
         </p>
       )}
     </div>

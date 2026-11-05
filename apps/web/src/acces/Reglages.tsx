@@ -57,6 +57,7 @@ function NomAppareil() {
       className="flex flex-col gap-2"
       onSubmit={(event) => {
         event.preventDefault();
+        if (name.trim() === "") return;
         rememberDeviceName(name.trim());
         setSaved(true);
       }}
