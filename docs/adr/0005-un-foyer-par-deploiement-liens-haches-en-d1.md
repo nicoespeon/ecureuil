@@ -8,7 +8,7 @@ Accepté. Précise l'[ADR 3](0003-hebergement-cloudflare-effect-confine-au-coeur
 
 ## Contexte
 
-L'app sert un seul foyer de deux personnes, sans comptes : chacune entre par son lien secret (ADR 3). Le serveur doit savoir à quel foyer appartient une requête, reconnaître le lien sans garder le secret en clair, et savoir qui agit. Chaque événement du journal porte déjà son `actor` (ADR 4), écrit par l'appareil : sans contrôle, l'invité pourrait écrire au nom du propriétaire. La tâche « Accès » doit pouvoir régénérer un lien sans redéployer.
+L'app sert un seul foyer de deux personnes, sans comptes : chacune entre par son lien secret (ADR 3). Le serveur est un Worker Cloudflare ; il garde ses données dans [D1](https://developers.cloudflare.com/d1/), la base SQL serverless de Cloudflare, bâtie sur SQLite. Il doit savoir à quel foyer appartient une requête, reconnaître le lien sans garder le secret en clair, et savoir qui agit. Chaque événement du journal porte déjà son `actor` (ADR 4), écrit par l'appareil : sans contrôle, l'invité pourrait écrire au nom du propriétaire. La tâche « Accès » doit pouvoir régénérer un lien sans redéployer.
 
 ## Décision
 
