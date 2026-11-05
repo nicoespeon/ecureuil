@@ -7,9 +7,8 @@
     {
       "binding": "DB",
       "database_name": "ecureuil",
-      // Placeholder until the production database exists (deployment task).
       // Local dev (`wrangler dev`) uses a local SQLite file regardless of this id.
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "739f5ad6-8970-4523-855d-b447547f7ab3"
     }
   ]
 }
