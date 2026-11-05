@@ -1,7 +1,7 @@
 import { seed } from "@ecureuil/domain";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { inMemoryJournal } from "./journal/journal";
 
@@ -50,6 +50,46 @@ describe("la liste d'un magasin", () => {
   });
 });
 
+describe("le panier", () => {
+  it("cocher Lait le met dans le panier", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    expect(section("Dans le panier").getByRole("checkbox", { name: "Lait" })).toBeChecked();
+  });
+
+  it("cocher Lait le retire de son rayon", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    expect(section("Produits laitiers").queryByRole("checkbox", { name: "Lait" })).toBeNull();
+  });
+
+  it("décocher Lait le renvoie dans son rayon", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    await user.click(section("Dans le panier").getByRole("checkbox", { name: "Lait" }));
+
+    expect(section("Produits laitiers").getByRole("checkbox", { name: "Lait" })).not.toBeChecked();
+  });
+
+  it("relit dans l'ordre d'écriture deux gestes de la même milliseconde", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(Date.UTC(2026, 10, 4, 18));
+    vi.spyOn(crypto, "randomUUID")
+      .mockReturnValueOnce("bbbbbbbb-0000-0000-0000-000000000000")
+      .mockReturnValueOnce("aaaaaaaa-0000-0000-0000-000000000000");
+    const { user } = renderApp();
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    await user.click(section("Dans le panier").getByRole("checkbox", { name: "Lait" }));
+
+    expect(section("Produits laitiers").getByRole("checkbox", { name: "Lait" })).not.toBeChecked();
+  });
+});
+
 function renderApp() {
   const user = userEvent.setup();
   const { unmount } = render(<App journal={inMemoryJournal(seed)} />);
@@ -66,4 +106,8 @@ function itemNames() {
     .getAllByRole("checkbox")
     .map((checkbox) => checkbox.getAttribute("aria-label"))
     .sort();
+}
+
+function section(name: string) {
+  return within(screen.getByRole("region", { name }));
 }

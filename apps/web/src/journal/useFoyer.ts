@@ -1,5 +1,6 @@
 import { fold, listForMagasin } from "@ecureuil/domain";
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { appendProprietaireEvent, type EventType, type PayloadOf } from "./appendProprietaireEvent";
 import type { Journal } from "./journal";
 
 const MAGASIN_ACTIF_KEY = "ecureuil.magasinActif";
@@ -19,6 +20,10 @@ export function useFoyer(journal: Journal) {
   const magasinActif =
     (preferredMagasinId === null ? undefined : state.magasins[preferredMagasinId]) ?? magasins[0];
 
+  const append = <T extends EventType>(type: T, payload: PayloadOf<T>) => {
+    if (magasinActif) appendProprietaireEvent(journal, type, magasinActif.id, payload);
+  };
+
   return {
     state,
     magasins,
@@ -29,5 +34,7 @@ export function useFoyer(journal: Journal) {
       localStorage.setItem(MAGASIN_ACTIF_KEY, magasinId);
       setPreferredMagasinId(magasinId);
     },
+    check: (itemId: string) => append("ItemChecked", { itemId }),
+    uncheck: (itemId: string) => append("ItemUnchecked", { itemId }),
   };
 }

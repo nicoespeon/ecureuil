@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+::view-transition-group(*) {
+  animation-duration: 180ms;
+}

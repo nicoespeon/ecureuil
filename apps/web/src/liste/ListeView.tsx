@@ -1,17 +1,36 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Liste, ListItem, Section } from "@ecureuil/domain";
 import { type ReactNode, useId } from "react";
+import { animateMove, moveTransitionName } from "./animateMove";
 
-export function ListeView({ liste, magasinName }: { liste: Liste; magasinName: string }) {
+type Actions = {
+  readonly check: (itemId: string) => void;
+  readonly uncheck: (itemId: string) => void;
+};
+
+export function ListeView({
+  liste,
+  magasinName,
+  actions,
+}: {
+  liste: Liste;
+  magasinName: string;
+  actions: Actions;
+}) {
   return (
     <div className="pb-24">
       {liste.sections.map((section) => (
         <ListeSection key={sectionKey(section)} title={sectionTitle(section)}>
-          <ItemRows items={section.items} />
+          <ItemRows items={section.items} onToggle={actions.check} />
         </ListeSection>
       ))}
+      {liste.panier.length > 0 && (
+        <ListeSection title="Dans le panier">
+          <ItemRows items={liste.panier} checked onToggle={actions.uncheck} />
+        </ListeSection>
+      )}
       {liste.pasVenduIci.length > 0 && (
-        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} />
+        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} onToggle={actions.check} />
       )}
     </div>
   );
@@ -43,9 +62,11 @@ function ListeSection({ title, children }: { title: string; children: ReactNode 
 function PasVenduIci({
   magasinName,
   items,
+  onToggle,
 }: {
   magasinName: string;
   items: ReadonlyArray<ListItem>;
+  onToggle: (itemId: string) => void;
 }) {
   return (
     <Collapsible.Root render={<section />}>
@@ -55,18 +76,36 @@ function PasVenduIci({
         </Collapsible.Trigger>
       </h2>
       <Collapsible.Panel>
-        <ItemRows items={items} />
+        <ItemRows items={items} onToggle={onToggle} />
       </Collapsible.Panel>
     </Collapsible.Root>
   );
 }
 
-function ItemRows({ items }: { items: ReadonlyArray<ListItem> }) {
+function ItemRows({
+  items,
+  checked = false,
+  onToggle,
+}: {
+  items: ReadonlyArray<ListItem>;
+  checked?: boolean;
+  onToggle: (itemId: string) => void;
+}) {
   return (
     <ul>
       {items.map((item) => (
-        <li key={item.id} className="flex min-h-12 items-center gap-2 px-2">
-          <input type="checkbox" aria-label={item.name} readOnly className="size-6" />
+        <li
+          key={item.id}
+          className="flex min-h-12 items-center gap-2 px-2"
+          style={{ viewTransitionName: moveTransitionName(item.id) }}
+        >
+          <input
+            type="checkbox"
+            aria-label={item.name}
+            checked={checked}
+            onChange={() => animateMove(() => onToggle(item.id))}
+            className="size-6"
+          />
           <span className="truncate">{item.name}</span>
         </li>
       ))}

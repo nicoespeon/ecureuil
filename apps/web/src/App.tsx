@@ -4,7 +4,7 @@ import { useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
 
 export function App({ journal }: { journal: Journal }) {
-  const { magasins, magasinActif, liste, selectMagasin } = useFoyer(journal);
+  const { magasins, magasinActif, liste, selectMagasin, ...actions } = useFoyer(journal);
 
   if (!magasinActif || !liste) return null;
 
@@ -29,7 +29,7 @@ export function App({ journal }: { journal: Journal }) {
         </Tabs.List>
       </header>
       <Tabs.Panel value={magasinActif.id} className="outline-none">
-        <ListeView liste={liste} magasinName={magasinActif.name} />
+        <ListeView liste={liste} magasinName={magasinActif.name} actions={actions} />
       </Tabs.Panel>
     </Tabs.Root>
   );
