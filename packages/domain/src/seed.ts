@@ -141,11 +141,8 @@ export const seed: ReadonlyArray<Event> = [
   ...itemPlacement(costco),
   ...itemPlacement(maxi),
   ...onTheList.map((slug) => draft("ItemMarkedToBuy", null, { itemId: itemId(slug) })),
-  draft(
-    "DemandeCreated",
-    null,
-    { demandeId: "demande-chocolat-chaud", name: "Chocolat chaud" },
-    "invite",
+  byInvite(
+    draft("DemandeCreated", null, { demandeId: "demande-chocolat-chaud", name: "Chocolat chaud" }),
   ),
 ].map(toEvent);
 
@@ -190,15 +187,14 @@ function itemId(slug: string) {
   return `item-${slug}`;
 }
 
-type Draft = ReturnType<typeof draft>;
+type Draft = { type: Event["type"]; magasin: string | null; payload: unknown; actor: Actor };
 
-function draft(
-  type: Event["type"],
-  magasin: string | null,
-  payload: unknown,
-  actor: Actor = "proprietaire",
-) {
-  return { type, magasin, payload, actor };
+function draft(type: Draft["type"], magasin: Draft["magasin"], payload: unknown) {
+  return { type, magasin, payload, actor: "proprietaire" } satisfies Draft;
+}
+
+function byInvite(fields: Draft) {
+  return { ...fields, actor: "invite" } satisfies Draft;
 }
 
 /** Decoding through the wire contract keeps the fixture valid as the schema evolves. */

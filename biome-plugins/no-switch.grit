@@ -1,0 +1,5 @@
+language js
+
+JsSwitchStatement() as $switch where {
+  register_diagnostic(span=$switch, message="Don't use `switch`: the compiler can't prove every case is handled. See .claude/hooks/guides/switch.md.")
+}

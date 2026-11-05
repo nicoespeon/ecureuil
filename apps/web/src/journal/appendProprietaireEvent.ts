@@ -16,9 +16,7 @@ export type PayloadOf<T extends EventType> = Extract<Event, { readonly type: T }
  */
 export function appendProprietaireEvent<T extends EventType>(
   journal: Journal,
-  type: T,
-  magasin: string,
-  payload: PayloadOf<T>,
+  { type, magasin, payload }: { type: T; magasin: string; payload: PayloadOf<T> },
 ) {
   journal.append(
     decodeEvent({
