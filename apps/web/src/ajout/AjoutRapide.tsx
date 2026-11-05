@@ -1,17 +1,26 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Item, Magasin } from "@ecureuil/domain";
 import { type ReactNode, type RefObject, useId, useRef, useState } from "react";
+import type { Writer } from "../config/configActions";
+import { useFicheItem } from "../config/FicheItem";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
 import { frequentItems, searchItems } from "./suggestions";
 
-type AjoutFoyer = Pick<Foyer, "state" | "markToBuy" | "createItem"> & {
+type AjoutFoyer = Pick<Foyer, "state" | "magasins" | "markToBuy" | "createItem"> & {
   readonly magasinActif: Magasin;
 };
 
 /** Adds an item to the list in a few keystrokes: a frequent one, a found one, or a new one. */
-export function AjoutRapide({ foyer }: { foyer: AjoutFoyer }) {
+export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writer }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  // A new item needs its rayons: its sheet opens over the panel, then hands the field back.
+  const { openFiche, fiche } = useFicheItem({
+    foyer,
+    writer,
+    focusAfterRemove: searchRef,
+    focusAfterClose: searchRef,
+  });
 
   return (
     <Dialog.Root>
@@ -29,7 +38,8 @@ export function AjoutRapide({ foyer }: { foyer: AjoutFoyer }) {
           initialFocus={searchRef}
           className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-lg sm:shadow-xl"
         >
-          <AjoutPanel foyer={foyer} searchRef={searchRef} />
+          <AjoutPanel foyer={foyer} searchRef={searchRef} openFiche={openFiche} />
+          {fiche}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
@@ -39,11 +49,13 @@ export function AjoutRapide({ foyer }: { foyer: AjoutFoyer }) {
 function AjoutPanel({
   foyer,
   searchRef,
+  openFiche,
 }: {
   foyer: AjoutFoyer;
   searchRef: RefObject<HTMLInputElement | null>;
+  openFiche: (itemId: string) => void;
 }) {
-  const ajout = useAjout(foyer, searchRef);
+  const ajout = useAjout(foyer, { searchRef, openFiche });
   const magasin = foyer.magasinActif;
 
   return (
@@ -88,7 +100,13 @@ function AjoutPanel({
 }
 
 /** What the panel's gestures do: write to the journal, then say so and get ready for the next. */
-function useAjout(foyer: AjoutFoyer, searchRef: RefObject<HTMLInputElement | null>) {
+function useAjout(
+  foyer: AjoutFoyer,
+  {
+    searchRef,
+    openFiche,
+  }: { searchRef: RefObject<HTMLInputElement | null>; openFiche: (itemId: string) => void },
+) {
   const [query, setQuery] = useState("");
   const { announcement, announce } = useAnnouncer();
   const result = searchItems(foyer.state, query);
@@ -104,8 +122,9 @@ function useAjout(foyer: AjoutFoyer, searchRef: RefObject<HTMLInputElement | nul
     added(item.name);
   };
   const create = (name: string) => {
-    foyer.createItem(name);
+    const itemId = foyer.createItem(name);
     added(name);
+    openFiche(itemId);
   };
 
   return {

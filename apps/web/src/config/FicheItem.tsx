@@ -22,10 +22,13 @@ export function useFicheItem({
   foyer,
   writer,
   focusAfterRemove,
+  focusAfterClose,
 }: {
   foyer: FicheFoyer;
   writer: Writer;
   focusAfterRemove: RefObject<HTMLElement | null>;
+  /** Where the focus goes on close, whatever became of the item, when the opener is not a row. */
+  focusAfterClose?: RefObject<HTMLElement | null>;
 }) {
   const [itemId, setItemId] = useState<string | null>(null);
   const lastItemId = useRef<string | null>(null);
@@ -42,7 +45,11 @@ export function useFicheItem({
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
           <Dialog.Popup
-            finalFocus={() => ficheTrigger(lastItemId.current) ?? focusAfterRemove.current}
+            finalFocus={() =>
+              focusAfterClose?.current ??
+              ficheTrigger(lastItemId.current) ??
+              focusAfterRemove.current
+            }
             className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
           >
             {item && <FicheContent item={item} magasins={foyer.magasins} actions={actions} />}

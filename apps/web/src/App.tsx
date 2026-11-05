@@ -125,7 +125,7 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         />
       </Tabs.Panel>
       <BottomBar>
-        {writer.actor === "proprietaire" && <AjoutRapide foyer={foyer} />}
+        {writer.actor === "proprietaire" && <AjoutRapide foyer={foyer} writer={writer} />}
         <TerminerLesCourses
           liste={liste}
           finishSortie={foyer.finishSortie}

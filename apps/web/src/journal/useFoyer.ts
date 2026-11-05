@@ -46,11 +46,12 @@ export function useFoyer(journal: Journal, actor: Actor) {
       append("ItemQuantitySet", { itemId, quantity }),
     removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
     markToBuy: (itemId: string) => append("ItemMarkedToBuy", { itemId }),
-    /** A new item is NonClasse in every magasin until it is sorted. */
+    /** A new item is NonClasse in every magasin until it is sorted. Returns its id. */
     createItem: (name: string) => {
       const itemId = crypto.randomUUID();
       append("ItemCreated", { itemId, name });
       append("ItemMarkedToBuy", { itemId });
+      return itemId;
     },
     finishSortie: () => append("SortieFinished", {}),
   };

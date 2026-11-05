@@ -89,32 +89,55 @@ describe("l'ajout rapide", () => {
     expect(resultRow("Pyjama polaire Gabriel")).toHaveTextContent("Pas chez Maxi");
   });
 
-  it("« Créer « Laitue » » l'ajoute à la liste, dans « Non classé »", async () => {
+  it("« Créer « Laitue » » ouvre sa fiche, l'item déjà à acheter", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "Laitue");
     await user.click(screen.getByRole("button", { name: "Créer « Laitue »" }));
-    await user.click(screen.getByRole("button", { name: "Fermer" }));
+
+    expect(
+      within(screen.getByRole("dialog", { name: "Laitue" })).getByRole("checkbox", {
+        name: "À acheter",
+      }),
+    ).toBeChecked();
+  });
+
+  it("fermer la fiche de l'item créé ramène au champ, vide, avec le focus", async () => {
+    const { user } = await openAjout();
+    await user.type(searchbox(), "Laitue{Enter}");
+
+    await closeDialog(user, "Laitue");
+
+    expect(searchbox()).toHaveValue("");
+    expect(searchbox()).toHaveFocus();
+  });
+
+  it("l'item créé arrive dans « Non classé »", async () => {
+    const { user } = await openAjout();
+    await user.type(searchbox(), "Laitue{Enter}");
+
+    await closeDialog(user, "Laitue");
+    await closeDialog(user, "Ajouter à la liste");
 
     expect(listSection("Non classé").getByRole("checkbox", { name: "Laitue" })).toBeVisible();
+  });
+
+  it("un item existant choisi dans les résultats n'ouvre pas de fiche", async () => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), "pom");
+    await user.click(screen.getByRole("button", { name: "Pommes" }));
+
+    expect(screen.queryByRole("dialog", { name: "Pommes" })).toBeNull();
   });
 
   it("Entrée ajoute le premier résultat", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "pomm{Enter}");
-    await user.click(screen.getByRole("button", { name: "Fermer" }));
+    await closeDialog(user, "Ajouter à la liste");
 
     expect(screen.getByRole("checkbox", { name: "Pommes" })).toBeVisible();
-  });
-
-  it("Entrée crée l'item quand aucun n'est à ajouter", async () => {
-    const { user } = await openAjout();
-
-    await user.type(searchbox(), "Laitue{Enter}");
-    await user.click(screen.getByRole("button", { name: "Fermer" }));
-
-    expect(screen.getByRole("checkbox", { name: "Laitue" })).toBeVisible();
   });
 
   it("Entrée sur le nom d'un item déjà sur la liste le dit, sans rien ajouter", async () => {
@@ -159,6 +182,12 @@ async function openAjout() {
 async function finishSortie(user: User) {
   await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
   await user.click(screen.getByRole("button", { name: "Terminer" }));
+}
+
+async function closeDialog(user: User, name: string) {
+  await user.click(
+    within(screen.getByRole("dialog", { name })).getByRole("button", { name: "Fermer" }),
+  );
 }
 
 function searchbox() {
