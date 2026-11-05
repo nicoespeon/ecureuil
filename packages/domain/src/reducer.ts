@@ -199,19 +199,16 @@ const applyEvent = Match.type<Event>().pipe(
           }),
     DemandeAccepted: (event) => (state: State) => {
       const { demandeId, itemId } = event.payload;
+      const demande = pendingDemande(state, demandeId);
       // Accepting toward an unknown item would settle the demande for nothing: stay pending.
-      if (!state.items[itemId]) return state;
-      return arbitrate(state, demandeId, DemandeStatus.Accepted({ itemId }), (arbitrated) =>
-        updateItem(arbitrated, itemId, list),
-      );
+      if (!demande || !state.items[itemId]) return state;
+      const accepted = { ...demande, status: DemandeStatus.Accepted({ itemId }) };
+      return updateItem(withDemande(state, accepted), itemId, list);
     },
-    DemandeRefused: (event) => (state: State) =>
-      arbitrate(
-        state,
-        event.payload.demandeId,
-        DemandeStatus.Refused(),
-        (arbitrated) => arbitrated,
-      ),
+    DemandeRefused: (event) => (state: State) => {
+      const demande = pendingDemande(state, event.payload.demandeId);
+      return demande ? withDemande(state, { ...demande, status: DemandeStatus.Refused() }) : state;
+    },
   }),
 );
 
@@ -272,14 +269,7 @@ function withDemande(state: State, demande: Demande): State {
 /**
  * First arbitration wins: a demande that is no longer pending ignores later verdicts.
  */
-function arbitrate(
-  state: State,
-  demandeId: string,
-  verdict: DemandeStatus,
-  then: (state: State) => State,
-): State {
+function pendingDemande(state: State, demandeId: string) {
   const demande = state.demandes[demandeId];
-  return demande?.status._tag === "Pending"
-    ? then(withDemande(state, { ...demande, status: verdict }))
-    : state;
+  return demande?.status._tag === "Pending" ? demande : undefined;
 }
