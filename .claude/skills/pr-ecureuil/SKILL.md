@@ -37,7 +37,7 @@ Done when each visible change has its file, or the PR has no visible change.
 
 ### 3. Title
 
-`type(scope)?: sujet`, at most 100 characters, imperative or nominal, no trailing period. It becomes the squash commit on `main`, so it names the change, not the task. Scope is the package when there is one: `web`, `api`, `domain`, `wire`. French domain nouns are welcome.
+`type(scope)?: sujet`, at most 100 characters, imperative or nominal, no trailing period. It becomes the squash commit on `main`, so it names the change, not the task. Scope is the package when there is one: `web`, `api`, `domain`, `wire`. French domain nouns are welcome. Name what the reader gets, in plain words: « mode hors ligne et synchronisation du journal », not « journal IndexedDB et sync push/pull hors ligne avec l'API ».
 
 ```sh
 node .github/scripts/check-pr-title.mjs "feat(web): liste par magasin, panier et fin des courses"
@@ -104,12 +104,13 @@ Done when every package from step 1 has its bullet and every reference is a pinn
 
 ### 6. Edit
 
-Two passes, in order:
+Three passes, in order:
 
 1. **Cut.** Re-read with one job: fewer words, no fact lost. Keep it to what the change is and why. Each section answers one question; a paragraph runs three sentences at most. The diff, CI and Notion already cover the commit history, the test list, lint and type checks, and what the task left for later, so the body describes the change as one piece.
-2. **`/stop-slop`** on the result.
+2. **Plain words.** Everyday French or the standard technical term, never a coined one: a word the reader would not use themselves, or a common word bent to a new meaning, costs them a translation. « un tour de synchronisation » → « une synchronisation » ; « geste » → « action » ; « tirage » → « pull » ; « gagne la comptabilité du push » → « retient quels événements restent à envoyer » ; « au retour au premier plan » → « au retour sur l'onglet ». Glossary terms are the exception: they are the vocabulary, link them.
+3. **`/stop-slop`** on the result.
 
-Done when both passes ran on the final text.
+Done when all three passes ran on the final text, title included.
 
 ### 7. Open
 
