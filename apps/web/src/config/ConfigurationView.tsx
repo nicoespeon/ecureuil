@@ -1,11 +1,13 @@
 import { Tabs } from "@base-ui/react/tabs";
 import type { Magasin, State } from "@ecureuil/domain";
-import { useState } from "react";
 import type { Journal } from "../journal/journal";
 import { configActions } from "./configActions";
+import { useFicheItem } from "./FicheItem";
+import { ItemsView } from "./ItemsView";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
 import { Reglages } from "./Reglages";
+import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
 
 type Foyer = {
@@ -25,13 +27,9 @@ export function ConfigurationView({
   onClose: () => void;
 }) {
   const titleRef = useFocusOnMount<HTMLHeadingElement>();
-  const [announcement, setAnnouncement] = useState("");
-  const actions = {
-    ...configActions(journal),
-    announce: (message: string) =>
-      // A live region only speaks when its text changes: repeat with a nbsp.
-      setAnnouncement((previous) => (previous === message ? `${message} ` : message)),
-  };
+  const { announcement, announce } = useAnnouncer();
+  const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: titleRef });
+  const actions = { ...configActions(journal, foyer.magasinActif.id), announce, openFiche };
 
   return (
     <div className="mx-auto min-h-dvh max-w-5xl bg-white text-neutral-950">
@@ -59,11 +57,16 @@ export function ConfigurationView({
             <RayonsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
           </MagasinTabs>
         </Tabs.Panel>
-        <Tabs.Panel value="items" className={panelClassName} />
+        <Tabs.Panel value="items" className={panelClassName}>
+          <MagasinTabs {...foyer}>
+            <ItemsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
+          </MagasinTabs>
+        </Tabs.Panel>
         <Tabs.Panel value="reglages" className={panelClassName}>
           <Reglages />
         </Tabs.Panel>
       </Tabs.Root>
+      {fiche}
       <p role="status" className="sr-only">
         {announcement}
       </p>

@@ -1,9 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Rayon } from "@ecureuil/domain";
-import type { FocusEvent, KeyboardEvent } from "react";
 import { ConfirmButton } from "./ConfirmButton";
-import { fieldClassName } from "./classNames";
+import { NameInput } from "./NameInput";
 
 export function RayonRow({
   rayon,
@@ -42,16 +41,7 @@ export function RayonRow({
         <GripIcon />
         <span className="sr-only">Déplacer {rayon.name}</span>
       </button>
-      <input
-        // A new name from another device replaces whatever was typed here.
-        key={rayon.name}
-        defaultValue={rayon.name}
-        aria-label={`Renommer ${rayon.name}`}
-        autoComplete="off"
-        onBlur={(event) => commitName(event, { rayon, rename: actions.rename })}
-        onKeyDown={blurOnEnter}
-        className={fieldClassName}
-      />
+      <NameInput name={rayon.name} rename={actions.rename} aria-label={`Renommer ${rayon.name}`} />
       <ConfirmButton
         subject={rayon.name}
         warning={{ announce: actions.announce, message: removalWarning(rayon.name, itemCount) }}
@@ -59,19 +49,6 @@ export function RayonRow({
       />
     </li>
   );
-}
-
-function commitName(
-  event: FocusEvent<HTMLInputElement>,
-  { rayon, rename }: { rayon: Rayon; rename: (name: string) => void },
-) {
-  const name = event.currentTarget.value.trim();
-  if (name === "") event.currentTarget.value = rayon.name;
-  else if (name !== rayon.name) rename(name);
-}
-
-function blurOnEnter(event: KeyboardEvent<HTMLInputElement>) {
-  if (event.key === "Enter") event.currentTarget.blur();
 }
 
 function removalWarning(name: string, itemCount: number) {

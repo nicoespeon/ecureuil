@@ -1,6 +1,8 @@
 import { Tabs } from "@base-ui/react/tabs";
+import type { Liste, Magasin } from "@ecureuil/domain";
 import { useRef, useState } from "react";
 import { ConfigurationView } from "./config/ConfigurationView";
+import { useFicheItem } from "./config/FicheItem";
 import { useFocusOnMount } from "./config/useFocusOnMount";
 import type { Journal } from "./journal/journal";
 import { useFoyer } from "./journal/useFoyer";
@@ -9,10 +11,8 @@ import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
 export function App({ journal }: { journal: Journal }) {
   const foyer = useFoyer(journal);
-  const [announcement, setAnnouncement] = useState("");
   const [ecran, setEcran] = useState<"liste" | "configuration" | "retourDeConfiguration">("liste");
-  const panelRef = useRef<HTMLDivElement>(null);
-  const { magasins, magasinActif, liste } = foyer;
+  const { magasinActif, liste } = foyer;
 
   if (!magasinActif || !liste) return <SansMagasin />;
   if (ecran === "configuration")
@@ -23,6 +23,32 @@ export function App({ journal }: { journal: Journal }) {
         onClose={() => setEcran("retourDeConfiguration")}
       />
     );
+
+  return (
+    <ListeScreen
+      foyer={{ ...foyer, magasinActif, liste }}
+      journal={journal}
+      configuration={{
+        focusOnMount: ecran === "retourDeConfiguration",
+        open: () => setEcran("configuration"),
+      }}
+    />
+  );
+}
+
+function ListeScreen({
+  foyer,
+  journal,
+  configuration,
+}: {
+  foyer: ReturnType<typeof useFoyer> & { magasinActif: Magasin; liste: Liste };
+  journal: Journal;
+  configuration: { focusOnMount: boolean; open: () => void };
+}) {
+  const [announcement, setAnnouncement] = useState("");
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: panelRef });
+  const { magasins, magasinActif, liste } = foyer;
 
   return (
     <Tabs.Root
@@ -47,8 +73,8 @@ export function App({ journal }: { journal: Journal }) {
           ))}
         </Tabs.List>
         <ConfigurationButton
-          focusOnMount={ecran === "retourDeConfiguration"}
-          onClick={() => setEcran("configuration")}
+          focusOnMount={configuration.focusOnMount}
+          onClick={configuration.open}
         />
       </header>
       <Tabs.Panel ref={panelRef} value={magasinActif.id} className="outline-none">
@@ -60,6 +86,7 @@ export function App({ journal }: { journal: Journal }) {
             uncheck: foyer.uncheck,
             setQuantity: foyer.setQuantity,
             removeFromList: foyer.removeFromList,
+            openFiche,
             announce: (message) =>
               // A live region only speaks when its text changes: repeat with a nbsp.
               setAnnouncement((previous) => (previous === message ? `${message}\u00a0` : message)),
@@ -71,6 +98,7 @@ export function App({ journal }: { journal: Journal }) {
         finishSortie={foyer.finishSortie}
         focusAfterFinish={panelRef}
       />
+      {fiche}
       <p role="status" className="sr-only">
         {announcement}
       </p>

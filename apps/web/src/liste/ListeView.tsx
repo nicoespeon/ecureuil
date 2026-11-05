@@ -8,7 +8,10 @@ import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 type Actions = Pick<
   ReturnType<typeof useFoyer>,
   "check" | "uncheck" | "setQuantity" | "removeFromList"
-> & { readonly announce: (message: string) => void };
+> & {
+  readonly announce: (message: string) => void;
+  readonly openFiche: (itemId: string) => void;
+};
 
 export function ListeView({
   liste,
@@ -23,6 +26,7 @@ export function ListeView({
   const rowActions = {
     setQuantity: actions.setQuantity,
     announce: actions.announce,
+    openFiche: actions.openFiche,
     check: (item: ListItem) => {
       focusNeighborOf(item.id);
       actions.check(item.id);
@@ -55,7 +59,7 @@ export function ListeView({
         <ListeSection id="panier" title="Dans le panier">
           <ul>
             {liste.panier.map((item) => (
-              <PanierRow key={item.id} item={item} uncheck={rowActions.uncheck} />
+              <PanierRow key={item.id} item={item} actions={rowActions} />
             ))}
           </ul>
         </ListeSection>
