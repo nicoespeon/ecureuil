@@ -143,7 +143,7 @@ function RemoveButton({ item, actions }: { item: ListItem; actions: ToBuyActions
   );
 }
 
-function TrashIcon() {
+export function TrashIcon() {
   return (
     <svg
       aria-hidden="true"

@@ -16,7 +16,13 @@ export function App({ journal }: { journal: Journal }) {
 
   if (!magasinActif || !liste) return <SansMagasin />;
   if (ecran === "configuration")
-    return <ConfigurationView onClose={() => setEcran("retourDeConfiguration")} />;
+    return (
+      <ConfigurationView
+        foyer={{ ...foyer, magasinActif }}
+        journal={journal}
+        onClose={() => setEcran("retourDeConfiguration")}
+      />
+    );
 
   return (
     <Tabs.Root
