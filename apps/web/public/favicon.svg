@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Écureuil</title>
+  <rect width="512" height="512" fill="#fef3c7"/>
+  <path d="M164 236c0 92 50 158 92 178 42-20 92-86 92-178z" fill="#b45309"/>
+  <path d="M128 252c0-66 58-106 128-106s128 40 128 106z" fill="#78350f"/>
+  <path d="M246 150c0-24 10-42 30-54l12 14c-14 10-22 24-22 40z" fill="#78350f"/>
+</svg>
