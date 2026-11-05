@@ -16,8 +16,9 @@ pnpm --filter api dev          # http://localhost:8787
 
 ## En production
 
+La CI applique les migrations à la D1 de production avant chaque déploiement sur `main`. Les liens se créent à la main, une fois, après le premier déploiement (la table `lien` doit exister) :
+
 ```sh
-pnpm --filter api db:migrate --remote
 pnpm --filter api liens --remote --app-url https://<app>
 ```
 

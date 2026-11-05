@@ -84,8 +84,8 @@ Vérifié le 2026-11-04 contre **`@cloudflare/vitest-plugin` 1.5.1**, vitest 5.1
 
 - **Dossier par défaut `./migrations`**, table `d1_migrations`, qu'on change avec `migrations_dir` et `migrations_table` sur le binding. `wrangler d1 migrations create <db> <message>` crée `NNNN_<message>.sql` (numéro sur 4 chiffres, max + 1, espaces remplacés par `_`).
   Source : `wrangler-dist/cli.js` (`DEFAULT_MIGRATION_PATH`, `getNextMigrationNumber`, `pad(…, 4)`), [doc Migrations D1](https://developers.cloudflare.com/d1/reference/migrations/).
-- **`wrangler d1 migrations apply <db>` et `wrangler d1 execute <db> --command "…" | --file x.sql`** visent la base **locale** par défaut ; `--remote` pour la base déployée. `migrations apply` demande une confirmation.
-  Source : `isLocal(args, defaultValue = true)` dans `wrangler-dist/cli.js`, `wrangler d1 … --help` (4.157.0), [commandes D1](https://developers.cloudflare.com/workers/wrangler/commands/d1/).
+- **`wrangler d1 migrations apply <db>` et `wrangler d1 execute <db> --command "…" | --file x.sql`** visent la base **locale** par défaut ; `--remote` pour la base déployée. `migrations apply` demande une confirmation, sauf hors terminal interactif ou en CI (`ci-info`) : elle répond alors « yes » toute seule.
+  Source : `isLocal(args, defaultValue = true)`, `confirm2` (`fallbackValue = true`) et `isNonInteractiveOrCI()` dans `wrangler-dist/cli.js`, `wrangler d1 … --help` (4.157.0), [commandes D1](https://developers.cloudflare.com/workers/wrangler/commands/d1/).
 
 ## nodejs_compat
 
