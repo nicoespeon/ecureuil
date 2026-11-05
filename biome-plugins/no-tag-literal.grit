@@ -6,5 +6,5 @@ or {
 } as $m where {
   $n <: r"[\"']?_tag[\"']?",
   $filename <: not r".*\.test\.tsx?$",
-  register_diagnostic(span=$m, message="Don't write `_tag` in an object literal: build tagged values with their Effect constructor, `Data.taggedEnum` or `Schema.TaggedUnion` `.cases.X.make(...)`.")
+  register_diagnostic(span=$m, message="Don't write `_tag` in an object literal: build tagged values with their Effect constructor, `Data.taggedEnum` or `Schema.TaggedUnion` `.cases.X.make(...)`. See .claude/hooks/guides/tag-literal.md.")
 }

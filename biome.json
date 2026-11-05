@@ -8,7 +8,12 @@
   "files": {
     "ignoreUnknown": false
   },
-  "plugins": ["./biome-plugins/no-tag-literal.grit"],
+  "plugins": [
+    "./biome-plugins/no-tag-literal.grit",
+    "./biome-plugins/no-switch.grit",
+    "./biome-plugins/no-type-assertion.grit",
+    "./biome-plugins/no-owned-mock.grit"
+  ],
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -18,7 +23,66 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "style": {
+        "noNonNullAssertion": "warn",
+        "noNestedTernary": "warn",
+        "useConsistentTypeDefinitions": {
+          "level": "warn",
+          "options": {
+            "style": "type"
+          }
+        },
+        "noDefaultExport": "warn",
+        "noParameterAssign": "warn",
+        "useImportType": "warn",
+        "useExportType": "warn",
+        "noExcessiveLinesPerFile": {
+          "level": "warn",
+          "options": {
+            "maxLines": 300
+          }
+        }
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 10
+          }
+        },
+        "noExcessiveLinesPerFunction": {
+          "level": "warn",
+          "options": {
+            "maxLines": 50
+          }
+        },
+        "useMaxParams": {
+          "level": "warn",
+          "options": {
+            "max": 3
+          }
+        },
+        "noForEach": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noTsIgnore": "warn",
+        "noEvolvingTypes": "warn",
+        "noFocusedTests": "warn",
+        "noSkippedTests": "warn"
+      },
+      "nursery": {
+        "noExcessiveNestedBlocks": {
+          "level": "warn",
+          "options": {
+            "max": 3
+          }
+        },
+        "noFloatingPromises": "warn",
+        "noMisusedPromises": "warn",
+        "noUselessTypeAssertion": "warn"
+      }
     }
   },
   "javascript": {
@@ -28,6 +92,47 @@
       "trailingCommas": "all"
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noExcessiveLinesPerFile": {
+              "level": "warn",
+              "options": {
+                "maxLines": 500
+              }
+            }
+          },
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off",
+            "useMaxParams": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.config.ts", "apps/api/src/index.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.d.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "enabled": true,
     "actions": {

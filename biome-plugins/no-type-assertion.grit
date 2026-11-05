@@ -1,0 +1,8 @@
+language js
+
+or {
+  TsAsExpression() as $cast where { $cast <: not r"(?s).*\bas\s+const" },
+  TsTypeAssertionExpression() as $cast
+} where {
+  register_diagnostic(span=$cast, message="Don't assert a type: it silences the compiler instead of proving the type. See .claude/hooks/guides/type-assertion.md.")
+}
