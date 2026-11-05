@@ -1,5 +1,7 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { useRef, useState } from "react";
+import { ConfigurationView } from "./config/ConfigurationView";
+import { useFocusOnMount } from "./config/useFocusOnMount";
 import type { Journal } from "./journal/journal";
 import { useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
@@ -8,10 +10,13 @@ import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 export function App({ journal }: { journal: Journal }) {
   const foyer = useFoyer(journal);
   const [announcement, setAnnouncement] = useState("");
+  const [ecran, setEcran] = useState<"liste" | "configuration" | "retourDeConfiguration">("liste");
   const panelRef = useRef<HTMLDivElement>(null);
   const { magasins, magasinActif, liste } = foyer;
 
   if (!magasinActif || !liste) return <SansMagasin />;
+  if (ecran === "configuration")
+    return <ConfigurationView onClose={() => setEcran("retourDeConfiguration")} />;
 
   return (
     <Tabs.Root
@@ -35,6 +40,10 @@ export function App({ journal }: { journal: Journal }) {
             </Tabs.Tab>
           ))}
         </Tabs.List>
+        <ConfigurationButton
+          focusOnMount={ecran === "retourDeConfiguration"}
+          onClick={() => setEcran("configuration")}
+        />
       </header>
       <Tabs.Panel ref={panelRef} value={magasinActif.id} className="outline-none">
         <ListeView
@@ -60,6 +69,46 @@ export function App({ journal }: { journal: Journal }) {
         {announcement}
       </p>
     </Tabs.Root>
+  );
+}
+
+function ConfigurationButton({
+  focusOnMount,
+  onClick,
+}: {
+  focusOnMount: boolean;
+  onClick: () => void;
+}) {
+  const ref = useFocusOnMount<HTMLButtonElement>(focusOnMount);
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+    >
+      <GearIcon />
+      <span className="sr-only">Configuration</span>
+    </button>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   );
 }
 
