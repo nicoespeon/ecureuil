@@ -2,10 +2,11 @@ import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
 import type { Liste, Magasin } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
 import type { AccesStore } from "./acces/acces";
 import { CollerLeLien } from "./acces/CollerLeLien";
+import { AjoutRapide } from "./ajout/AjoutRapide";
 import { ConfigurationView } from "./config/ConfigurationView";
 import type { Writer } from "./config/configActions";
 import { useFicheItem } from "./config/FicheItem";
@@ -123,16 +124,31 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
           }}
         />
       </Tabs.Panel>
-      <TerminerLesCourses
-        liste={liste}
-        finishSortie={foyer.finishSortie}
-        focusAfterFinish={panelRef}
-      />
+      <BottomBar>
+        {writer.actor === "proprietaire" && <AjoutRapide foyer={foyer} />}
+        <TerminerLesCourses
+          liste={liste}
+          finishSortie={foyer.finishSortie}
+          focusAfterFinish={panelRef}
+        />
+      </BottomBar>
       {fiche}
       <p role="status" className="sr-only">
         {announcement}
       </p>
     </>
+  );
+}
+
+/** Within thumb reach. Hidden when it holds nothing: a trigger alone renders, never a dialog. */
+function BottomBar({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{ viewTransitionName: "bottom-bar" }}
+      className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-xl gap-3 border-t border-neutral-300 bg-white p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] empty:hidden"
+    >
+      {children}
+    </div>
   );
 }
 
