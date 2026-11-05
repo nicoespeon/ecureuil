@@ -1,5 +1,6 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
+import { pendingDemandes } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
@@ -13,6 +14,7 @@ import { useFocusOnMount } from "./config/useFocusOnMount";
 import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
+import { AValider } from "./liste/AValider";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
@@ -114,6 +116,15 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
   return (
     <>
       <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
+        <AValider
+          demandes={pendingDemandes(foyer.state)}
+          actions={{
+            acceptDemande: foyer.acceptDemande,
+            refuseDemande: foyer.refuseDemande,
+            announce,
+          }}
+          focusAfterLast={panelRef}
+        />
         <ListeView
           liste={liste}
           magasinName={magasin.name}

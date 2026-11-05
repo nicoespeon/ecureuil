@@ -12,6 +12,7 @@ describe("la liste d'un magasin", () => {
     renderApp();
 
     expect(sectionTitles()).toEqual([
+      "À valider (1)",
       "Vêtements",
       "Hygiène",
       "Épicerie",
@@ -30,6 +31,7 @@ describe("la liste d'un magasin", () => {
     await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
 
     expect(sectionTitles()).toEqual([
+      "À valider (1)",
       "Fruits et légumes",
       "Boulangerie",
       "Épicerie",
