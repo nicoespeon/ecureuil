@@ -1,5 +1,6 @@
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
+import type { Actor } from "@ecureuil/wire";
 import { devices, expect, type Page, test } from "@playwright/test";
 
 const narrowPhone = { width: 375, height: 812 };
@@ -123,6 +124,67 @@ test("vidéo : réordonner un rayon au doigt", async ({ page }) => {
   await expectHygieneMovedDown(page);
   await saveVideo(page, "rayons-doigt");
 });
+
+test.describe("captures des demandes à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone, serviceWorkers: "block" });
+
+  test("invité, puis « À valider », puis le verdict vu par l'invité", async ({ page }) => {
+    await walkDemandes(page, (name) => screenshot(page, name));
+  });
+});
+
+test.describe("vidéo des demandes", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("vidéo : demander, accepter et refuser", async ({ page }) => {
+    await walkDemandes(page, () => pause(page));
+    await saveVideo(page, "demandes");
+  });
+});
+
+/** The invite asks for two things, the proprietaire accepts one and refuses the other. */
+async function walkDemandes(page: Page, capture: (name: string) => Promise<unknown>) {
+  await page.route("**/lien", (route) => route.fulfill({ json: { role: "invite" } }));
+  await page.route("**/journal**", (route) => route.abort());
+  await page.goto("/");
+  await enterAs(page, "invite");
+  for (const name of ["Café", "Thé"]) {
+    await page.getByRole("textbox", { name: "Nom" }).fill(name);
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("region", { name: "Mes demandes" })).toContainText(name);
+  }
+  await capture("invite-demandes");
+
+  await enterAs(page, "proprietaire");
+  await expect(page.getByRole("region", { name: "À valider (3)" })).toBeVisible();
+  await capture("a-valider");
+  await page.getByRole("button", { name: "Accepter Café" }).click();
+  await expect(page.getByRole("region", { name: "À valider (2)" })).toBeVisible();
+  await pause(page);
+  await page.getByRole("button", { name: "Refuser Thé" }).click();
+  await expect(page.getByRole("region", { name: "À valider (1)" })).toBeVisible();
+  await capture("a-valider-apres");
+
+  await enterAs(page, "invite");
+  await expect(page.getByRole("region", { name: "Mes demandes" })).toContainText("pas cette fois");
+  await capture("invite-verdicts");
+}
+
+/**
+ * Without a lien the device is the proprietaire's. With one, the role comes from `GET /lien`,
+ * answered by `walkDemandes`; the journal routes fail, as offline.
+ */
+async function enterAs(page: Page, role: Actor) {
+  await page.evaluate(
+    (lien) =>
+      lien === null
+        ? localStorage.removeItem("ecureuil.lien")
+        : localStorage.setItem("ecureuil.lien", lien),
+    role === "invite" ? "secret-qa-invite" : null,
+  );
+  await page.reload();
+  await expect(page.getByRole("tab", { name: "Costco" })).toBeVisible();
+}
 
 async function captureConfiguration(page: Page, suffix: string) {
   await openRayons(page);
