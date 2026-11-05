@@ -1,11 +1,9 @@
 import { Event } from "@ecureuil/wire";
 import { Schema } from "effect";
+import { thisDevice } from "./device";
 import type { Journal } from "./journal";
 
 const decodeEvent = Schema.decodeUnknownSync(Event);
-
-/** Until devices join the foyer (sync task), every event comes from the same device. */
-const PROVISIONAL_DEVICE = "web";
 
 export type EventType = Event["type"];
 export type PayloadOf<T extends EventType> = Extract<Event, { readonly type: T }>["payload"];
@@ -25,7 +23,7 @@ export function appendProprietaireEvent<T extends EventType>(
       id: crypto.randomUUID(),
       at: nextAt(journal.all()),
       actor: "proprietaire",
-      device: PROVISIONAL_DEVICE,
+      device: thisDevice(),
       magasin,
       type,
       payload,
