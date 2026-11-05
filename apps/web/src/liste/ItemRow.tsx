@@ -11,11 +11,17 @@ export type ToBuyActions = {
   readonly setQuantity: (itemId: string, quantity: number) => void;
   readonly removeFromList: (item: ListItem) => void;
   readonly announce: (message: string) => void;
+  readonly openFiche: (itemId: string) => void;
 };
 
 export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActions }) {
   return (
-    <Row item={item} checked={false} onToggle={() => actions.check(item)}>
+    <Row
+      item={item}
+      checked={false}
+      onToggle={() => actions.check(item)}
+      openFiche={actions.openFiche}
+    >
       <Stepper item={item} setQuantity={actions.setQuantity} />
       <RemoveButton item={item} actions={actions} />
     </Row>
@@ -24,23 +30,27 @@ export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActi
 
 export function PanierRow({
   item,
-  uncheck,
+  actions,
 }: {
   item: ListItem;
-  uncheck: (item: ListItem) => void;
+  actions: { uncheck: (item: ListItem) => void; openFiche: (itemId: string) => void };
 }) {
-  return <Row item={item} checked onToggle={() => uncheck(item)} />;
+  return (
+    <Row item={item} checked onToggle={() => actions.uncheck(item)} openFiche={actions.openFiche} />
+  );
 }
 
 function Row({
   item,
   checked,
   onToggle,
+  openFiche,
   children,
 }: {
   item: ListItem;
   checked: boolean;
   onToggle: () => void;
+  openFiche: (itemId: string) => void;
   children?: ReactNode;
 }) {
   return (
@@ -48,7 +58,7 @@ function Row({
       className="flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2"
       style={{ viewTransitionName: moveTransitionName(item.id) }}
     >
-      {/* Only the box checks: the rest of the row is kept for the item sheet. */}
+      {/* Only the box checks: the name opens the item sheet. */}
       <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
         <input
           type="checkbox"
@@ -59,9 +69,19 @@ function Row({
           className="size-6 cursor-pointer accent-neutral-900"
         />
       </label>
-      <span className="min-w-0 flex-1 truncate">
-        {item.name}
-        {item.quantity > 1 && <span className="ml-1 text-neutral-700">×{item.quantity}</span>}
+      <span className="flex min-w-0 flex-1 items-center">
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          data-fiche-item-id={item.id}
+          onClick={() => openFiche(item.id)}
+          className="min-h-11 min-w-0 truncate rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
+        >
+          {item.name}
+        </button>
+        {item.quantity > 1 && (
+          <span className="ml-1 shrink-0 text-neutral-700">×{item.quantity}</span>
+        )}
       </span>
       {children}
     </li>
@@ -71,7 +91,7 @@ function Row({
 const iconButtonClassName =
   "grid size-11 shrink-0 place-items-center rounded-md text-lg text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:text-neutral-400 disabled:hover:bg-transparent";
 
-function Stepper({
+export function Stepper({
   item,
   setQuantity,
 }: {
@@ -143,7 +163,7 @@ function RemoveButton({ item, actions }: { item: ListItem; actions: ToBuyActions
   );
 }
 
-function TrashIcon() {
+export function TrashIcon() {
   return (
     <svg
       aria-hidden="true"

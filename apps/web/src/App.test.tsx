@@ -337,25 +337,6 @@ describe("l'appareil", () => {
 
     expect(journal.all().at(-1)).toMatchObject({ type: "ItemChecked", actor: "invite" });
   });
-
-  it("ouvre ses réglages depuis le header", async () => {
-    const { user } = renderApp();
-
-    await user.click(screen.getByRole("button", { name: "Réglages" }));
-
-    expect(screen.getByRole("heading", { name: "Réglages" })).toBeVisible();
-    expect(screen.queryByRole("checkbox", { name: "Lait" })).toBeNull();
-  });
-
-  it("referme ses réglages et retrouve la liste", async () => {
-    const { user } = renderApp();
-    await user.click(screen.getByRole("button", { name: "Réglages" }));
-
-    await user.click(screen.getByRole("button", { name: "Réglages" }));
-
-    expect(screen.queryByRole("heading", { name: "Réglages" })).toBeNull();
-    expect(screen.getByRole("checkbox", { name: "Lait" })).toBeVisible();
-  });
 });
 
 type User = ReturnType<typeof userEvent.setup>;

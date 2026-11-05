@@ -38,3 +38,13 @@ Le dossier `src/acces/` dit qui utilise l'appareil.
 Le lien de Mariane se range dans le 1Password partagé du foyer : c'est là qu'elle le retrouve pour l'ouvrir sur un nouvel appareil.
 
 En production, la CI construit l'app avec la variable de dépôt GitHub `API_URL` (l'origine du Worker) en `VITE_API_URL`.
+
+## PWA
+
+`vite-plugin-pwa` génère le manifest et un service worker qui met l'app en cache : après un premier chargement, elle démarre sans réseau. Les appels à l'API, sur une autre origine, ne passent jamais par le cache. Une nouvelle version s'installe en silence et tourne au lancement suivant. Pas de service worker sous `pnpm --filter web dev` ; le smoke Playwright et `pnpm qa:capture` tournent sur un build de dev servi par `vite preview`, service worker compris. Détails et sources : [`docs/research/vite-plugin-pwa.md`](../../docs/research/vite-plugin-pwa.md).
+
+L'icône part de `public/favicon.svg`. Pour la remplacer, changer ce fichier puis régénérer les PNG et `favicon.ico` (réglages dans `pwa-assets.config.ts`) :
+
+```sh
+pnpm --filter web icons
+```
