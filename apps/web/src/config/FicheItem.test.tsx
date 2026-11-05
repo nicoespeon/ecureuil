@@ -78,6 +78,29 @@ describe("la fiche d'un item", () => {
     expect(section("Épicerie").getByRole("checkbox", { name: "Croissants" })).toBeVisible();
   });
 
+  it("fermer la fiche rend le focus au nom de l'item, même rangé ailleurs", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Croissants" }));
+
+    await user.selectOptions(
+      fiche("Croissants").getByRole("combobox", { name: "Rayon chez Costco" }),
+      "Épicerie",
+    );
+    await user.click(screen.getByRole("button", { name: "Fermer" }));
+
+    expect(section("Épicerie").getByRole("button", { name: "Croissants" })).toHaveFocus();
+  });
+
+  it("fermer la fiche d'un item retiré de la liste ne perd pas le focus", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Lait" }));
+
+    await user.click(fiche("Lait").getByRole("checkbox", { name: "À acheter" }));
+    await user.click(screen.getByRole("button", { name: "Fermer" }));
+
+    expect(screen.getByRole("tabpanel", { name: "Costco" })).toHaveFocus();
+  });
+
   it("supprimer l'item, confirmé, le retire du catalogue et ferme la fiche", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Lait" }));

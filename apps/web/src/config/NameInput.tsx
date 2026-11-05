@@ -1,8 +1,8 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, useEffect, useRef } from "react";
 import { fieldClassName } from "./classNames";
 
 /**
- * A name saved when the field is left or on Enter, only if it changed. An empty name puts the
+ * A name saved on Enter or when the field is left, only if it changed. An empty name puts the
  * current one back: the journal refuses empty names.
  */
 export function NameInput({
@@ -13,20 +13,28 @@ export function NameInput({
   ComponentProps<"input">,
   "id" | "aria-label"
 >) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // A new name from another device replaces the field, unless someone is typing in it.
+    if (ref.current && ref.current !== document.activeElement) ref.current.value = name;
+  }, [name]);
+
+  const commit = (field: HTMLInputElement) => {
+    const typed = field.value.trim();
+    if (typed === "") field.value = name;
+    else if (typed !== name) rename(typed);
+  };
+
   return (
     <input
       {...props}
-      // A new name from another device replaces whatever was typed here.
-      key={name}
+      ref={ref}
       defaultValue={name}
       autoComplete="off"
-      onBlur={(event) => {
-        const typed = event.currentTarget.value.trim();
-        if (typed === "") event.currentTarget.value = name;
-        else if (typed !== name) rename(typed);
-      }}
+      onBlur={(event) => commit(event.currentTarget)}
       onKeyDown={(event) => {
-        if (event.key === "Enter") event.currentTarget.blur();
+        if (event.key === "Enter") commit(event.currentTarget);
       }}
       className={fieldClassName}
     />

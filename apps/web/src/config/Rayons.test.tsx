@@ -47,6 +47,25 @@ describe("les rayons d'un magasin", () => {
     expect(sectionTitles()).toContain("Grignotines");
   });
 
+  it("Entrée enregistre le nom et laisse le focus dans le champ", async () => {
+    const { user } = await openRayons();
+
+    const field = screen.getByRole("textbox", { name: "Renommer Collations" });
+    await user.clear(field);
+    await user.type(field, "Grignotines{Enter}");
+
+    expect(screen.getByRole("textbox", { name: "Renommer Grignotines" })).toHaveFocus();
+  });
+
+  it("après une suppression, le focus passe au rayon suivant", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
+    await user.click(screen.getByRole("button", { name: /Confirmer/ }));
+
+    expect(screen.getByRole("button", { name: "Déplacer Surgelés" })).toHaveFocus();
+  });
+
   it("un nom vide garde l'ancien nom", async () => {
     const { user } = await openRayons();
 

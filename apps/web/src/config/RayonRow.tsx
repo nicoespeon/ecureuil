@@ -34,6 +34,7 @@ export function RayonRow({
       <button
         ref={sortable.setActivatorNodeRef}
         type="button"
+        data-rayon-id={rayon.id}
         {...sortable.attributes}
         {...sortable.listeners}
         className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-md text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 active:cursor-grabbing"

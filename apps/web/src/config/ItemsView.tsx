@@ -39,6 +39,8 @@ export function ItemsView({
           <li key={item.id} className="flex items-center gap-2 border-b border-neutral-200 py-1">
             <button
               type="button"
+              aria-haspopup="dialog"
+              data-fiche-item-id={item.id}
               onClick={() => actions.openFiche(item.id)}
               className="min-h-11 min-w-0 flex-1 rounded-md px-1 text-left text-base break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-700"
             >

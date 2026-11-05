@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Magasin, State } from "@ecureuil/domain";
-import { type FormEvent, useId } from "react";
+import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
 import { fieldClassName, submitClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
 import { RayonRow } from "./RayonRow";
@@ -42,6 +42,7 @@ export function RayonsView({
   );
 
   const announcements = useRayonAnnouncements(rayons);
+  const { containerRef, focusNeighborOf } = useFocusNeighborOfRemovedRayon(rayonIds);
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     const from = rayonIds.indexOf(String(active.id));
@@ -50,7 +51,7 @@ export function RayonsView({
   };
 
   return (
-    <div className="p-4">
+    <div ref={containerRef} className="p-4">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -66,7 +67,10 @@ export function RayonsView({
                 itemCount={itemCountIn(items, { magasinId: magasin.id, rayonId: rayon.id })}
                 actions={{
                   rename: (name) => actions.renameRayon(magasin.id, { rayonId: rayon.id, name }),
-                  remove: () => actions.removeRayon(magasin.id, rayon.id),
+                  remove: () => {
+                    focusNeighborOf(rayon.id);
+                    actions.removeRayon(magasin.id, rayon.id);
+                  },
                   announce: actions.announce,
                 }}
               />
@@ -77,6 +81,34 @@ export function RayonsView({
       <NouveauRayon create={(name) => actions.createRayon(magasin.id, name)} />
     </div>
   );
+}
+
+/**
+ * The removed rayon's button had the focus: it goes to the next rayon's handle, the previous
+ * one, or the « Nouveau rayon » field when no rayon is left.
+ */
+function useFocusNeighborOfRemovedRayon(rayonIds: ReadonlyArray<string>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const neighborId = useRef<string | null | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    if (neighborId.current === undefined) return;
+    const container = containerRef.current;
+    const neighbor =
+      neighborId.current === null
+        ? container?.querySelector("form input")
+        : container?.querySelector(`[data-rayon-id="${CSS.escape(neighborId.current)}"]`);
+    neighborId.current = undefined;
+    if (neighbor instanceof HTMLElement) neighbor.focus();
+  });
+
+  return {
+    containerRef,
+    focusNeighborOf: (rayonId: string) => {
+      const index = rayonIds.indexOf(rayonId);
+      neighborId.current = rayonIds[index + 1] ?? rayonIds[index - 1] ?? null;
+    },
+  };
 }
 
 function itemCountIn(

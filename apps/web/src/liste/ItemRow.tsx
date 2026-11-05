@@ -73,6 +73,7 @@ function Row({
         <button
           type="button"
           aria-haspopup="dialog"
+          data-fiche-item-id={item.id}
           onClick={() => openFiche(item.id)}
           className="min-h-11 min-w-0 truncate rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
         >

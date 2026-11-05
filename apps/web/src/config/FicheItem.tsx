@@ -1,6 +1,6 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Item, Magasin, State } from "@ecureuil/domain";
-import { type RefObject, useId, useState } from "react";
+import { type RefObject, useId, useRef, useState } from "react";
 import type { Journal } from "../journal/journal";
 import { Stepper } from "../liste/ItemRow";
 import { ConfirmButton } from "./ConfirmButton";
@@ -16,8 +16,8 @@ type Foyer = {
 };
 
 /**
- * The item sheet, opened from the list or from the configuration. The trigger row disappears
- * when the item is removed: the focus then goes to `focusAfterRemove`.
+ * The item sheet, opened from the list or from the configuration. Closed, it gives the focus back
+ * to the item's name wherever the item now sits, or to `focusAfterRemove` once its row is gone.
  */
 export function useFicheItem({
   foyer,
@@ -29,17 +29,21 @@ export function useFicheItem({
   focusAfterRemove: RefObject<HTMLElement | null>;
 }) {
   const [itemId, setItemId] = useState<string | null>(null);
+  const lastItemId = useRef<string | null>(null);
   const item = itemId === null ? undefined : foyer.state.items[itemId];
   const actions = configActions(journal, foyer.magasinActif.id);
 
   return {
-    openFiche: (id: string) => setItemId(id),
+    openFiche: (id: string) => {
+      lastItemId.current = id;
+      setItemId(id);
+    },
     fiche: (
       <Dialog.Root open={item !== undefined} onOpenChange={(open) => open || setItemId(null)}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
           <Dialog.Popup
-            finalFocus={() => (item === undefined ? focusAfterRemove.current : true)}
+            finalFocus={() => ficheTrigger(lastItemId.current) ?? focusAfterRemove.current}
             className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
           >
             {item && <FicheContent item={item} magasins={foyer.magasins} actions={actions} />}
@@ -48,6 +52,13 @@ export function useFicheItem({
       </Dialog.Root>
     ),
   };
+}
+
+/** The buttons that open an item's sheet carry `data-fiche-item-id`. */
+function ficheTrigger(itemId: string | null) {
+  if (itemId === null) return null;
+  const trigger = document.querySelector(`[data-fiche-item-id="${CSS.escape(itemId)}"]`);
+  return trigger instanceof HTMLElement ? trigger : null;
 }
 
 function FicheContent({
