@@ -38,6 +38,11 @@ const authorized = [
   cors(),
   bearerAuth<ApiEnv>({
     headerName: authorizationHeader,
+    noAuthenticationHeader: { message: { error: "Lien d'accès manquant" } },
+    invalidAuthenticationHeader: {
+      message: { error: "En-tête Authorization invalide : « Bearer <secret> » attendu" },
+    },
+    invalidToken: { message: { error: "Lien d'accès inconnu ou remplacé" } },
     verifyToken: async (secret, c) => {
       const role = await roleOfSecret(c.env.DB, secret);
       if (role === undefined) return false;
@@ -63,11 +68,12 @@ const decodePush = Schema.decodeUnknownResult(Schema.fromJsonString(PushRequest)
 
 app.post(journalPath, async (c) => {
   const push = decodePush(await c.req.text());
-  if (Result.isFailure(push)) return c.json({ error: push.failure.message }, 400);
+  if (Result.isFailure(push))
+    return c.json({ error: `Requête invalide : ${push.failure.message}` }, 400);
 
   const { events } = push.success;
   if (events.some(({ actor }) => actor !== c.get("role"))) {
-    return c.json({ error: "Every event's actor must be the role of the lien" }, 403);
+    return c.json({ error: "Chaque événement doit avoir pour actor le rôle du lien" }, 403);
   }
 
   await appendEvents(c.env.DB, events);
@@ -78,11 +84,12 @@ const decodePull = Schema.decodeUnknownResult(PullQuery);
 
 app.get(journalPath, async (c) => {
   const pull = decodePull(c.req.query());
-  if (Result.isFailure(pull)) return c.json({ error: pull.failure.message }, 400);
+  if (Result.isFailure(pull))
+    return c.json({ error: `Requête invalide : ${pull.failure.message}` }, 400);
 
   const { since = "0" } = pull.success;
   const seq = seqOfCursor(since);
-  if (seq === undefined) return c.json({ error: `Unknown cursor: ${since}` }, 400);
+  if (seq === undefined) return c.json({ error: `Curseur inconnu : ${since}` }, 400);
 
   return c.json((await eventsAfter(c.env.DB, seq)) satisfies PullResponse);
 });
