@@ -56,7 +56,7 @@ const journal = [
   event({ type: "ItemChecked", magasin: "costco", payload: { itemId: "eggs" } }),
 ];
 
-it("walks the magasin: rayons in order, non classé last, pas vendu ici and panier apart", () => {
+it("parcourt le magasin : rayons dans l'ordre, non classé en dernier, pas vendu ici et panier à part", () => {
   expect(listForMagasin(fold(journal), "costco")).toEqual({
     sections: [
       {
@@ -81,7 +81,7 @@ it("walks the magasin: rayons in order, non classé last, pas vendu ici and pani
   });
 });
 
-it("re-sorts the same list for another magasin without changing its content", () => {
+it("retrie la même liste pour un autre magasin sans en changer le contenu", () => {
   expect(listForMagasin(fold(journal), "maxi")).toEqual({
     sections: [
       {
