@@ -4,7 +4,7 @@ Date : 2026-11-04
 
 ## Statut
 
-Accepté. Étendu par l'[ADR 4](0004-enveloppe-du-journal-et-ordre-de-relecture.md), qui fixe l'enveloppe des événements et l'ordre de relecture derrière les règles de conflit.
+Accepté. Étendu par l'[ADR 4](0004-enveloppe-du-journal-et-ordre-de-relecture.md), qui fixe l'enveloppe des événements et l'ordre de relecture derrière les règles de conflit, et par l'[ADR 6](0006-boucle-de-sync-dans-le-domaine.md), qui donne aux ports la comptabilité du push.
 
 ## Contexte
 
