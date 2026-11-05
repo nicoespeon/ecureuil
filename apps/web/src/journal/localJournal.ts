@@ -1,7 +1,7 @@
 import { EventStore } from "@ecureuil/domain";
 import { Cursor, Event } from "@ecureuil/wire";
 import { Effect, Schema } from "effect";
-import type { Journal } from "./journal";
+import { inMemoryJournal, type Journal } from "./journal";
 
 const EVENTS = "events";
 const META = "meta";
@@ -13,7 +13,7 @@ const decodeCursor = Schema.decodeUnknownSync(Schema.UndefinedOr(Cursor));
 
 /**
  * The journal of this device in IndexedDB, seen two ways: a synchronous `Journal` for React,
- * kept in memory and refreshed on every write, and the `EventStore` the sync loop works on.
+ * an in-memory copy refreshed on every write, and the `EventStore` the sync loop works on.
  * The `seed` is kept as already pushed: it never reaches the server.
  */
 export async function openLocalJournal(
@@ -21,15 +21,11 @@ export async function openLocalJournal(
   { seed = [] }: { readonly seed?: ReadonlyArray<Event> } = {},
 ) {
   const db = await openDatabase(name);
-  let events = (await readEntries(db)).map(({ event }) => event);
-  const listeners = new Set<() => void>();
+  const cache = inMemoryJournal(await readEvents(db));
 
   const append = async (appended: ReadonlyArray<Event>) => {
-    events = [...events, ...appended];
-    notify();
-    await transaction(db, (tx) => {
-      for (const event of appended) tx.objectStore(EVENTS).put({ event, pushed: false });
-    });
+    for (const event of appended) await cache.append(event);
+    await writeEvents(db, appended, { pushed: false });
   };
 
   /**
@@ -37,55 +33,58 @@ export async function openLocalJournal(
    * shared by the tabs of this device: reload what another tab may have written meanwhile.
    */
   const keepAsPushed = async (kept: ReadonlyArray<Event>, cursor?: Cursor) => {
-    await transaction(db, (tx) => {
-      for (const event of kept) tx.objectStore(EVENTS).put({ event, pushed: true });
-      if (cursor !== undefined) tx.objectStore(META).put(cursor, CURSOR_KEY);
-    });
-    const stored = (await readEntries(db)).map(({ event }) => event);
-    const known = new Set(events.map(({ id }) => id));
-    const added = stored.filter(({ id }) => !known.has(id));
-    if (added.length === 0) return;
-    events = [...events, ...added];
-    notify();
+    await writeEvents(db, kept, { pushed: true, cursor });
+    const stored = await readEvents(db);
+    const known = new Set(cache.all().map(({ id }) => id));
+    for (const event of stored.filter(({ id }) => !known.has(id))) await cache.append(event);
   };
-
-  function notify() {
-    for (const listener of listeners) listener();
-  }
 
   await keepAsPushed(seed);
 
-  const journal: Journal = {
-    all: () => events,
-    append: (event) => append([event]),
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-  };
-
+  const journal: Journal = { ...cache, append: (event) => append([event]) };
   const store = EventStore.of({
     append: (appended) => Effect.promise(() => append(appended)),
-    all: Effect.sync(() => events),
-    unpushed: Effect.promise(async () =>
-      (await readEntries(db)).filter(({ pushed }) => !pushed).map(({ event }) => event),
-    ),
+    all: Effect.sync(cache.all),
+    unpushed: Effect.promise(() => readUnpushed(db)),
     markPushed: (ids) =>
       Effect.promise(() => {
         const pushed = new Set(ids);
-        return transaction(db, (tx) => {
-          for (const event of events.filter(({ id }) => pushed.has(id)))
-            tx.objectStore(EVENTS).put({ event, pushed: true });
-        });
+        return writeEvents(
+          db,
+          cache.all().filter(({ id }) => pushed.has(id)),
+          { pushed: true },
+        );
       }),
-    cursor: Effect.promise(async () => {
-      const tx = db.transaction(META);
-      return decodeCursor(await request(tx.objectStore(META).get(CURSOR_KEY))) ?? null;
-    }),
+    cursor: Effect.promise(() => readCursor(db)),
     receive: ({ events: pulled, cursor }) => Effect.promise(() => keepAsPushed(pulled, cursor)),
   });
 
   return { journal, store };
+}
+
+/** One transaction, so the cursor never moves without the events it covers. */
+function writeEvents(
+  db: IDBDatabase,
+  events: ReadonlyArray<Event>,
+  { pushed, cursor }: { readonly pushed: boolean; readonly cursor?: Cursor | undefined },
+) {
+  return transaction(db, (tx) => {
+    for (const event of events) tx.objectStore(EVENTS).put({ event, pushed });
+    if (cursor !== undefined) tx.objectStore(META).put(cursor, CURSOR_KEY);
+  });
+}
+
+async function readEvents(db: IDBDatabase) {
+  return (await readEntries(db)).map(({ event }) => event);
+}
+
+async function readUnpushed(db: IDBDatabase) {
+  return (await readEntries(db)).filter(({ pushed }) => !pushed).map(({ event }) => event);
+}
+
+async function readCursor(db: IDBDatabase) {
+  const tx = db.transaction(META);
+  return decodeCursor(await request(tx.objectStore(META).get(CURSOR_KEY))) ?? null;
 }
 
 function openDatabase(name: string) {

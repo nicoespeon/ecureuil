@@ -16,17 +16,20 @@ export function appendProprietaireEvent<T extends EventType>(
   journal: Journal,
   { type, magasin, payload }: { type: T; magasin: string; payload: PayloadOf<T> },
 ) {
-  journal.append(
-    decodeEvent({
-      id: crypto.randomUUID(),
-      at: nextAt(journal.all()),
-      actor: "proprietaire",
-      device: thisDevice(),
-      magasin,
-      type,
-      payload,
-    }),
-  );
+  journal
+    .append(
+      decodeEvent({
+        id: crypto.randomUUID(),
+        at: nextAt(journal.all()),
+        actor: "proprietaire",
+        device: thisDevice(),
+        magasin,
+        type,
+        payload,
+      }),
+    )
+    // No UI reports storage failures yet: the gesture shows, but a reload would lose it.
+    .catch((error: unknown) => console.error("The gesture was not saved on this device", error));
 }
 
 /**
