@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare Pages project (ADR 3). `wrangler pages deploy` reads the name and the output dir.
+  "name": "ecureuil",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-01"
+}

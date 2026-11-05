@@ -1,0 +1,21 @@
+# The repo is squash-only: the PR title becomes the commit on `main`.
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+      # The runner's preinstalled Node is enough for a dependency-free script.
+      - run: node .github/scripts/check-pr-title.mjs "$PR_TITLE"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}

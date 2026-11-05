@@ -1,0 +1,26 @@
+# Self-hosted Renovate; the hosted Mend app is not used. Config lives in renovate.json.
+name: Renovate
+
+on:
+  schedule:
+    # Daily 09:00 UTC, early morning in Montreal. prHourlyLimit (2) caps new PRs per run.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      # Renovate has no major tag: pin the full version, Renovate bumps it.
+      - uses: renovatebot/github-action@v46.3.12
+        with:
+          # Classic PAT with `public_repo` and `workflow` scopes (see docs/research/ci-cd.md).
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}

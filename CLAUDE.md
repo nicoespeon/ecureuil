@@ -17,7 +17,8 @@ Both packages are source-only (consumers bundle `src/index.ts`, no build step).
 
 ```sh
 pnpm install
-pnpm check                 # biome + typecheck + vitest, the one gate (also runs on pre-commit)
+pnpm check                 # biome + CI script tests + typecheck + vitest, the one gate (pre-commit and CI)
+pnpm build                 # builds apps/web (CI runs it after check)
 pnpm check:fix             # biome auto-fix
 pnpm --filter web dev      # http://localhost:5173
 pnpm --filter api dev      # http://localhost:8787/health (wrangler, local D1)
@@ -38,6 +39,7 @@ Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
 - `git commit` runs `pnpm check` through lefthook, so the same env must be exported before committing.
 - **`git push` must be its own command** (network/SSH; the sandbox denies it when bundled). Prefer `git -C <repo>` over a bundled `cd … || exit 1`.
 - pnpm 12 refuses to install when a dependency's build script is not allowed: add it to `allowBuilds` in `pnpm-workspace.yaml`.
+- pnpm 12 also refuses packages published less than a day ago, and the local cache hides it: a same-day version passes `pnpm add -E` locally but breaks `pnpm install --frozen-lockfile` in CI until the next day. Don't bypass it with `minimumReleaseAgeExclude`; wait or take the previous version (details in [`docs/research/ci-cd.md`](docs/research/ci-cd.md)).
 - Effect is 4.1.2, not 3.x: check the API in [`docs/research/effect-4-schema.md`](docs/research/effect-4-schema.md) or `node_modules/effect` before writing Effect code from memory.
 - Biome also formats Markdown (e.g. a blank line before a fenced block inside a list): run `pnpm check:fix` after editing docs.
 - Run long commands in the foreground, one per call.
@@ -75,7 +77,10 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 
 ### Pull requests
 
-- Continuous integration: every task ends in a PR to `main`; merge = deploy (Cloudflare preview URL per PR, `main` deploys to production once task 12 is done). The PR is the QA gate, not `main`.
+- Continuous integration: every task ends in a PR to `main`; merge = deploy. The PR is the QA gate, not `main`.
+- `.github/workflows/ci.yml` runs `pnpm check` and `pnpm build`, then deploys `apps/web` to Cloudflare Pages (preview per PR branch, production on `main`) and `apps/api` to Workers on `main` only, smoke-tested on `/health`. No API preview: it would share the production D1. Facts and sources: [`docs/research/ci-cd.md`](docs/research/ci-cd.md).
+- The PR title becomes the squash commit, so `.github/workflows/pr-title.yml` checks it is `type(scope)?: subject` (≤ 100 characters); test a title locally with `node .github/scripts/check-pr-title.mjs "feat: …"`.
+- Renovate runs self-hosted daily (`.github/workflows/renovate.yml`, `renovate.json`): pinned versions, at most 2 new PRs a day, non-major updates grouped and automerged once CI is green, majors left open for Nicolas, lockfile maintenance on Mondays.
 - The session that did the work does the QA itself before opening the PR and puts the evidence in the PR body: before/after screenshots for any UI change, a short video (webm) for any interaction change, captured with `pnpm qa:capture` (Playwright over the dev seed; added by task 12 — until then, Playwright or the built-in browser by hand).
 - PR body, written for a developer/architect who wants to see what changes in the code's structure, not the code itself: short paragraphs that go to the point, formatting where it helps, what changes and why, never what was not done; an architecture diagram (Mermaid) only when it serves the point; every reference (ADR, glossary term, Notion task) is a link to its source on the branch; run `/stop-slop` on the body before posting. Review happens per comment on GitHub: address each one as it comes, fix or reply.
 - Attach the files with `gh pr create --attach './after.png#Alt text'` (also `gh pr edit N --attach`); references like `![alt](./after.png)` in the body are rewritten to the uploaded asset. Up to 50 files per command.
