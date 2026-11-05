@@ -31,7 +31,7 @@ Puis ouvrir un lien affiché par `liens`. Le secret arrive dans le fragment de l
 
 Le dossier `src/acces/` dit qui utilise l'appareil.
 
-- **Rôle** : au démarrage, l'app demande son rôle à l'API (`GET /lien`) et le garde (`ecureuil.role`). Tant qu'elle ne le connaît pas, elle n'ouvre pas la liste (« Connexion au foyer… », puis « Réessayer » hors ligne) : un événement écrit avec le mauvais rôle serait refusé par l'API à chaque envoi. Une fois appris, le rôle ouvre l'app même hors ligne. Chaque événement porte ce rôle en `actor`. Sans API ou sans lien, l'appareil fonctionne seul, en propriétaire.
+- **Rôle** : au démarrage, l'app demande son rôle à l'API (`GET /lien`) et le garde (`ecureuil.role`). Tant qu'elle ne le connaît pas, elle n'ouvre pas la liste (« Connexion en cours… », puis « Réessayer » hors ligne) : un événement écrit avec le mauvais rôle serait refusé par l'API à chaque envoi. Une fois appris, le rôle ouvre l'app même hors ligne. Chaque événement porte ce rôle en `actor`. Sans API ou sans lien, l'appareil fonctionne seul, en propriétaire.
 - **Lien refusé** : si l'API répond 401 (lien remplacé), l'app affiche « Ce lien ne marche plus » et le champ pour coller le nouveau. Ouvrir ou coller un autre lien oublie le rôle appris et redémarre l'app.
 - **Réglages** (bouton dans le header) : le nom de l'appareil (`ecureuil.deviceName`, il reste sur l'appareil) et le rôle. Pour le propriétaire, « Nouveau lien pour Mariane » remplace le lien de l'invité après confirmation (`POST /lien/invite`) : le nouveau lien s'affiche une seule fois avec un bouton « Copier », et l'ancien ne marche plus.
 

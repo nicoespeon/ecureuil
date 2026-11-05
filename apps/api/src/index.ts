@@ -52,7 +52,7 @@ app.get(lienPath, (c) => c.json({ role: c.get("role") } satisfies LienResponse))
 
 app.post(inviteLienPath, async (c) => {
   if (c.get("role") !== "proprietaire") {
-    return c.json({ error: "Only the proprietaire gives the invite a new lien" }, 403);
+    return c.json({ error: "Seul le propriétaire peut créer un nouveau lien pour l'invité" }, 403);
   }
   const secret = newSecret();
   await replaceLien(c.env.DB, "invite", secret);

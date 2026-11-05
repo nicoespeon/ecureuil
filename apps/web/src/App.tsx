@@ -119,8 +119,8 @@ function SansMagasin({ acces }: { acces: AccesStore }) {
     <Accueil title="Écureuil">
       <p className="text-lg">Cet appareil n'a encore aucun magasin.</p>
       <p className="text-lg text-neutral-700">
-        Ouvrez votre lien d'accès sur cet appareil, ou collez-le ici : la liste du foyer arrive avec
-        la synchronisation.
+        Ouvrez votre lien d'accès sur cet appareil, ou collez-le ici : votre liste arrive avec la
+        synchronisation.
       </p>
       {state._tag === "SansLien" && <CollerLeLien openLien={acces.openLien} />}
     </Accueil>

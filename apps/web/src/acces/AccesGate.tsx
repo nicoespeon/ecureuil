@@ -30,8 +30,8 @@ export function AccesGate({
     <Accueil title="Écureuil">
       <p role="status" className="text-lg">
         {state._tag === "Verification"
-          ? "Connexion au foyer…"
-          : "Impossible de joindre le foyer. Vérifiez la connexion."}
+          ? "Connexion en cours…"
+          : "Connexion impossible. Vérifiez le réseau."}
       </p>
       {state._tag === "HorsLigne" && (
         <button type="button" onClick={() => void acces.verify()} className={buttonClassName}>

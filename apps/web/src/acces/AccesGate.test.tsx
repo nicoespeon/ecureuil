@@ -29,14 +29,14 @@ describe("l'accès au foyer", () => {
 
     renderGate({ secret: secrets.invite });
 
-    expect(screen.getByText("Connexion au foyer…")).toBeVisible();
+    expect(screen.getByText("Connexion en cours…")).toBeVisible();
     expect(screen.queryByText(/Entré en/)).toBeNull();
   });
 
   it("hors ligne au premier lancement, explique et réessaie", async () => {
     vi.stubGlobal("fetch", () => Promise.reject(new TypeError("Failed to fetch")));
     const { user } = renderGate({ secret: secrets.invite });
-    await screen.findByText(/Impossible de joindre le foyer/);
+    await screen.findByText(/Connexion impossible/);
 
     vi.stubGlobal("fetch", fakeLienApi(secrets));
     await user.click(screen.getByRole("button", { name: "Réessayer" }));
