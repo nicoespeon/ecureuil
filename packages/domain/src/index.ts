@@ -1,5 +1,5 @@
 export { type Liste, type ListItem, listForMagasin, type Section } from "./list";
-export { Clock, type Cursor, EventStore, SyncTransport } from "./ports";
+export { Clock, type Cursor, EventStore, SyncTransport, TransportError } from "./ports";
 export {
   type Demande,
   type DemandeStatus,
@@ -13,3 +13,4 @@ export {
   type State,
 } from "./reducer";
 export { seed } from "./seed";
+export { sync } from "./sync";
