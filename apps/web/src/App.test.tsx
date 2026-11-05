@@ -1,7 +1,69 @@
-import { renderToString } from "react-dom/server";
-import { expect, it } from "vitest";
+import { seed } from "@ecureuil/domain";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
 import { App } from "./App";
+import { inMemoryJournal } from "./journal/journal";
 
-it("renders the app name", () => {
-  expect(renderToString(<App />)).toContain("Écureuil");
+describe("la liste d'un magasin", () => {
+  it("affiche les rayons de Costco dans son ordre, « Non classé » en dernier", () => {
+    renderApp();
+
+    expect(sectionTitles()).toEqual([
+      "Vêtements",
+      "Hygiène",
+      "Épicerie",
+      "Collations",
+      "Fruits et légumes",
+      "Produits laitiers",
+      "Non classé",
+    ]);
+  });
+
+  it("passer à Maxi change les groupes, pas les items", async () => {
+    const { user } = renderApp();
+    const itemsAtCostco = itemNames();
+
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+    await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
+
+    expect(sectionTitles()).toEqual([
+      "Fruits et légumes",
+      "Boulangerie",
+      "Épicerie",
+      "Santé et beauté",
+      "Produits laitiers",
+      "Non classé",
+      "Pas chez Maxi (1)",
+    ]);
+    expect(itemNames()).toEqual(itemsAtCostco);
+  });
+
+  it("garde le magasin choisi après un remontage", async () => {
+    const { user, unmount } = renderApp();
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+
+    unmount();
+    renderApp();
+
+    expect(screen.getByRole("tab", { name: "Maxi" })).toHaveAttribute("aria-selected", "true");
+  });
 });
+
+function renderApp() {
+  const user = userEvent.setup();
+  const { unmount } = render(<App journal={inMemoryJournal(seed)} />);
+  return { user, unmount };
+}
+
+function sectionTitles() {
+  return screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+}
+
+/** Every item on the list, sorted so a different grouping compares equal. */
+function itemNames() {
+  return screen
+    .getAllByRole("checkbox")
+    .map((checkbox) => checkbox.getAttribute("aria-label"))
+    .sort();
+}
