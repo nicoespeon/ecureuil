@@ -119,6 +119,31 @@ it.each(["pas-un-curseur", "007", "99999999999999999999"])(
   },
 );
 
+it("lets the app, served from another origin, push with its secret", async () => {
+  const preflight = await app.request(journalPath, {
+    method: "OPTIONS",
+    headers: {
+      Origin: "https://ecureuil.pages.dev",
+      "Access-Control-Request-Method": "POST",
+      "Access-Control-Request-Headers": "authorization, content-type",
+    },
+  });
+
+  expect(preflight.status).toBe(204);
+  expect(Object.fromEntries(preflight.headers)).toMatchObject({
+    "access-control-allow-origin": "*",
+    "access-control-allow-headers": expect.stringMatching(/authorization/i),
+  });
+});
+
+it("lets the app read the pull from another origin", async () => {
+  const pulled = await app.request(journalPath, {
+    headers: { Origin: "https://ecureuil.pages.dev", ...authorization(secrets.proprietaire) },
+  });
+
+  expect(pulled.headers.get("Access-Control-Allow-Origin")).toBe("*");
+});
+
 function itemCreated(id: string, actor = "proprietaire") {
   return Schema.decodeUnknownSync(Event)({
     id,

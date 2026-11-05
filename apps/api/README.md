@@ -39,6 +39,7 @@ curl "http://localhost:8787/journal?since=1" -H "Authorization: Bearer <secret-i
 
 - Le rôle vient du secret : un push dont un événement porte un autre `actor` est refusé en bloc (403), rien n'est écrit.
 - Le curseur est le `seq` du dernier événement vu. Un journal vide rend `"0"`. Le `seq` ne sert qu'à la sync ; l'ordre de relecture reste `(at, id)` côté domaine ([ADR 4](../../docs/adr/0004-enveloppe-du-journal-et-ordre-de-relecture.md)).
+- La route accepte toutes les origines (CORS `*`) : l'app est servie par Pages, sur une autre origine, et l'accès repose sur le secret, jamais sur un cookie.
 - `401` sans secret reconnu, `400` pour un corps ou un curseur invalide (avec le message du schéma).
 
 ## Tests
