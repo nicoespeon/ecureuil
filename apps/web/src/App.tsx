@@ -11,7 +11,7 @@ export function App({ journal }: { journal: Journal }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const { magasins, magasinActif, liste } = foyer;
 
-  if (!magasinActif || !liste) return null;
+  if (!magasinActif || !liste) return <SansMagasin />;
 
   return (
     <Tabs.Root
@@ -60,5 +60,19 @@ export function App({ journal }: { journal: Journal }) {
         {announcement}
       </p>
     </Tabs.Root>
+  );
+}
+
+/** A new device, or one whose first sync has not brought a magasin yet. */
+function SansMagasin() {
+  return (
+    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 bg-white px-6 text-neutral-950">
+      <h1 className="text-3xl font-semibold">Écureuil</h1>
+      <p className="text-lg">Cet appareil n'a encore aucun magasin.</p>
+      <p className="text-lg text-neutral-700">
+        Ouvrez votre lien d'accès sur cet appareil, en le collant dans la barre d'adresse : la liste
+        du foyer arrive avec la synchronisation.
+      </p>
+    </main>
   );
 }

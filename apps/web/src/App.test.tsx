@@ -300,6 +300,26 @@ describe("terminer les courses", () => {
   });
 });
 
+describe("un appareil sans magasin", () => {
+  it("affiche Écureuil et explique comment synchroniser la liste du foyer", () => {
+    render(<App journal={inMemoryJournal([])} />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Écureuil" })).toBeVisible();
+    expect(screen.getByText(/lien d'accès/)).toBeVisible();
+  });
+
+  it("montre la liste dès que la synchronisation apporte un magasin", () => {
+    const journal = inMemoryJournal([]);
+    render(<App journal={journal} />);
+
+    act(() => {
+      for (const event of seed) void journal.append(event);
+    });
+
+    expect(screen.getByRole("tab", { name: "Costco" })).toHaveAttribute("aria-selected", "true");
+  });
+});
+
 type User = ReturnType<typeof userEvent.setup>;
 
 async function checkLaitAndBabybel(user: User) {

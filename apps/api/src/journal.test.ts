@@ -136,7 +136,7 @@ it("laisse l'app, servie depuis une autre origine, pousser avec son secret", asy
   });
 });
 
-it("laisse l'app lire le tirage depuis une autre origine", async () => {
+it("laisse l'app lire le pull depuis une autre origine", async () => {
   const pulled = await app.request(journalPath, {
     headers: { Origin: "https://ecureuil.pages.dev", ...authorization(secrets.proprietaire) },
   });
