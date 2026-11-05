@@ -34,6 +34,16 @@ describe("la navigation vers la configuration", () => {
     const sections = within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab");
     expect(sections.map((tab) => tab.textContent)).toEqual(["Rayons", "Items", "Réglages"]);
   });
+
+  it("sur un écran large, la barre latérale des sections se parcourt avec les flèches haut et bas", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    await user.click(screen.getByRole("tab", { name: "Rayons" }));
+    await user.keyboard("{ArrowDown}");
+
+    expect(screen.getByRole("tab", { name: "Items" })).toHaveFocus();
+  });
 });
 
 function renderApp() {

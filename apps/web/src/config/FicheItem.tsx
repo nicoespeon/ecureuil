@@ -118,6 +118,7 @@ function FicheContent({
             subject={item.name}
             warning={{ announce, message: `Supprimer ${item.name} ?` }}
             onConfirm={() => actions.removeItem(item.id)}
+            withLabel
           />
         </div>
       </div>

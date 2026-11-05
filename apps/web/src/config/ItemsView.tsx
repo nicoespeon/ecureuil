@@ -36,18 +36,15 @@ export function ItemsView({
       </div>
       <ul aria-label="Items" className="mt-2 max-w-2xl">
         {shown.map((item) => (
-          <li
-            key={item.id}
-            className="flex items-center gap-2 border-b border-neutral-200 py-1 max-sm:flex-col max-sm:items-stretch"
-          >
+          <li key={item.id} className="flex items-center gap-2 border-b border-neutral-200 py-1">
             <button
               type="button"
               onClick={() => actions.openFiche(item.id)}
-              className="min-h-11 min-w-0 flex-1 truncate rounded-md px-2 text-left text-base underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-700"
+              className="min-h-11 min-w-0 flex-1 rounded-md px-1 text-left text-base break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-700"
             >
               {item.name}
             </button>
-            <div className="sm:w-64 sm:shrink-0">
+            <div className="w-[48%] max-w-64 shrink-0">
               <RayonSelect
                 item={item}
                 magasin={magasin}

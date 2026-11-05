@@ -11,10 +11,12 @@ export function ConfirmButton({
   subject,
   warning,
   onConfirm,
+  withLabel = false,
 }: {
   subject: string;
   warning: { announce: (message: string) => void; message: string };
   onConfirm: () => void;
+  withLabel?: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
 
@@ -32,7 +34,7 @@ export function ConfirmButton({
         setConfirming(true);
         warning.announce(warning.message);
       }}
-      className={confirming ? confirmClassName : iconButtonClassName}
+      className={idleOrConfirmClassName({ confirming, withLabel })}
     >
       {confirming ? (
         <>
@@ -41,12 +43,27 @@ export function ConfirmButton({
       ) : (
         <>
           <TrashIcon />
-          <span className="sr-only">Supprimer {subject}</span>
+          <span className={withLabel ? undefined : "sr-only"}>Supprimer</span>
+          <span className="sr-only"> {subject}</span>
         </>
       )}
     </button>
   );
 }
+
+function idleOrConfirmClassName({
+  confirming,
+  withLabel,
+}: {
+  confirming: boolean;
+  withLabel: boolean;
+}) {
+  if (confirming) return confirmClassName;
+  return withLabel ? labelButtonClassName : iconButtonClassName;
+}
+
+const labelButtonClassName =
+  "flex h-11 shrink-0 items-center gap-2 rounded-md border border-neutral-400 px-3 text-base font-medium text-red-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
 
 const iconButtonClassName =
   "grid size-11 shrink-0 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";

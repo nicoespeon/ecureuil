@@ -9,6 +9,7 @@ import { RayonsView } from "./RayonsView";
 import { Reglages } from "./Reglages";
 import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
+import { useMediaQuery } from "./useMediaQuery";
 
 type Foyer = {
   readonly state: State;
@@ -28,6 +29,8 @@ export function ConfigurationView({
 }) {
   const titleRef = useFocusOnMount<HTMLHeadingElement>();
   const { announcement, announce } = useAnnouncer();
+  // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
+  const sidebar = useMediaQuery("(min-width: 48rem)");
   const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: titleRef });
   const actions = { ...configActions(journal, foyer.magasinActif.id), announce, openFiche };
 
@@ -41,7 +44,11 @@ export function ConfigurationView({
           Configuration
         </h1>
       </header>
-      <Tabs.Root defaultValue="rayons" className="md:flex">
+      <Tabs.Root
+        defaultValue="rayons"
+        orientation={sidebar ? "vertical" : "horizontal"}
+        className="md:flex"
+      >
         <Tabs.List
           aria-label="Section"
           className="flex border-b border-neutral-300 md:w-48 md:shrink-0 md:flex-col md:border-r md:border-b-0"
