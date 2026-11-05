@@ -1,12 +1,16 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import type { Liste } from "@ecureuil/domain";
+import type { RefObject } from "react";
 
 export function TerminerLesCourses({
   liste,
   finishSortie,
+  focusAfterFinish,
 }: {
   liste: Liste;
   finishSortie: () => void;
+  /** The trigger is disabled once the panier is empty, so focus goes here instead. */
+  focusAfterFinish: RefObject<HTMLElement | null>;
 }) {
   const inPanier = liste.panier.length;
   const toBuy =
@@ -15,7 +19,10 @@ export function TerminerLesCourses({
 
   return (
     <AlertDialog.Root>
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)]">
+      <div
+        style={{ viewTransitionName: "terminer-les-courses" }}
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)]"
+      >
         <div className="mx-auto max-w-xl p-3">
           <AlertDialog.Trigger
             disabled={inPanier === 0}
@@ -27,7 +34,10 @@ export function TerminerLesCourses({
       </div>
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
-        <AlertDialog.Popup className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl">
+        <AlertDialog.Popup
+          finalFocus={() => (inPanier === 0 ? focusAfterFinish.current : true)}
+          className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl"
+        >
           <AlertDialog.Title className="text-lg font-semibold">
             Terminer les courses ?
           </AlertDialog.Title>

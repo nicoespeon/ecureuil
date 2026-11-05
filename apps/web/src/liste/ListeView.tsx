@@ -1,15 +1,14 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Liste, ListItem, Section } from "@ecureuil/domain";
 import { type ReactNode, useId, useLayoutEffect, useRef } from "react";
+import type { useFoyer } from "../journal/useFoyer";
+import { headingTransitionName } from "./animateMove";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 
-type Actions = {
-  readonly check: (itemId: string) => void;
-  readonly uncheck: (itemId: string) => void;
-  readonly setQuantity: (itemId: string, quantity: number) => void;
-  readonly removeFromList: (itemId: string) => void;
-  readonly announce: (message: string) => void;
-};
+type Actions = Pick<
+  ReturnType<typeof useFoyer>,
+  "check" | "uncheck" | "setQuantity" | "removeFromList"
+> & { readonly announce: (message: string) => void };
 
 export function ListeView({
   liste,
@@ -44,12 +43,16 @@ export function ListeView({
   return (
     <div ref={containerRef} className="pb-24">
       {liste.sections.map((section) => (
-        <ListeSection key={sectionKey(section)} title={sectionTitle(section)}>
+        <ListeSection
+          key={sectionKey(section)}
+          id={sectionKey(section)}
+          title={sectionTitle(section)}
+        >
           <ToBuyRows items={section.items} actions={rowActions} />
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (
-        <ListeSection title="Dans le panier">
+        <ListeSection id="panier" title="Dans le panier">
           <ul>
             {liste.panier.map((item) => (
               <PanierRow key={item.id} item={item} uncheck={rowActions.uncheck} />
@@ -96,7 +99,7 @@ function useFocusNeighborOfLeavingRow() {
 }
 
 function sectionKey(section: Section) {
-  return section._tag === "Rayon" ? section.rayonId : "non-classe";
+  return section._tag === "Rayon" ? `rayon-${section.rayonId}` : "non-classe";
 }
 
 function sectionTitle(section: Section) {
@@ -106,11 +109,15 @@ function sectionTitle(section: Section) {
 const headingClassName =
   "sticky top-14 z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
 
-function ListeSection({ title, children }: { title: string; children: ReactNode }) {
+function ListeSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   const headingId = useId();
   return (
     <section aria-labelledby={headingId}>
-      <h2 id={headingId} className={headingClassName}>
+      <h2
+        id={headingId}
+        style={{ viewTransitionName: headingTransitionName(id) }}
+        className={headingClassName}
+      >
         {title}
       </h2>
       {children}
@@ -127,9 +134,14 @@ function PasVenduIci({
   items: ReadonlyArray<ListItem>;
   actions: ToBuyActions;
 }) {
+  const headingId = useId();
   return (
-    <Collapsible.Root render={<section />}>
-      <h2 className={headingClassName}>
+    <Collapsible.Root render={<section aria-labelledby={headingId} />}>
+      <h2
+        id={headingId}
+        style={{ viewTransitionName: headingTransitionName("pas-vendu-ici") }}
+        className={headingClassName}
+      >
         <Collapsible.Trigger className="group flex w-full items-center gap-2 text-left">
           <svg
             aria-hidden="true"

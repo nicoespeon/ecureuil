@@ -39,6 +39,25 @@ describe("la liste d'un magasin", () => {
     expect(itemNames()).toEqual(itemsAtCostco);
   });
 
+  it("range les items absents de Maxi dans « Pas chez Maxi »", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+
+    await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
+
+    expect(
+      section("Pas chez Maxi (1)").getByRole("checkbox", { name: "Pyjama polaire Gabriel" }),
+    ).toBeVisible();
+  });
+
+  it("s'affiche quand le stockage de l'appareil est bloqué", () => {
+    vi.stubGlobal("localStorage", blockedStorage());
+
+    renderApp();
+
+    expect(screen.getByRole("tab", { name: "Costco" })).toHaveAttribute("aria-selected", "true");
+  });
+
   it("garde le magasin choisi après un remontage", async () => {
     const { user, unmount } = renderApp();
     await user.click(screen.getByRole("tab", { name: "Maxi" }));
@@ -134,6 +153,14 @@ describe("la quantité", () => {
     await user.click(screen.getByRole("button", { name: "Augmenter la quantité de Babybel" }));
 
     expect(screen.getByRole("group", { name: "Quantité de Babybel" })).toHaveTextContent("2");
+  });
+
+  it("« − » diminue la quantité de Lait", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Diminuer la quantité de Lait" }));
+
+    expect(screen.getByRole("group", { name: "Quantité de Lait" })).toHaveTextContent("2");
   });
 
   it("« − » est désactivé à 1", () => {
@@ -253,6 +280,15 @@ describe("terminer les courses", () => {
     ]);
   });
 
+  it("rend le focus à la liste une fois les courses terminées", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+
+    await finishSortie(user);
+
+    expect(screen.getByRole("tabpanel")).toHaveFocus();
+  });
+
   it("« Annuler » garde le panier", async () => {
     const { user } = renderApp();
     await checkLaitAndBabybel(user);
@@ -300,4 +336,12 @@ function section(name: string) {
 
 function row(itemName: string) {
   return screen.getByRole("checkbox", { name: itemName }).closest("li");
+}
+
+/** What a browser hands out when site storage is disabled: every access throws. */
+function blockedStorage() {
+  const blocked = () => {
+    throw new DOMException("Storage blocked", "SecurityError");
+  };
+  return { getItem: blocked, setItem: blocked, removeItem: blocked, clear: blocked };
 }

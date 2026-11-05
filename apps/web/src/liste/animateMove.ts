@@ -15,5 +15,10 @@ export function animateMove(update: () => void) {
 }
 
 export function moveTransitionName(itemId: string) {
-  return `item-${itemId}`;
+  return `item-${CSS.escape(itemId)}`;
+}
+
+/** Section headings slide with their rows instead of cross-fading between two places. */
+export function headingTransitionName(sectionKey: string) {
+  return `section-${CSS.escape(sectionKey)}`;
 }
