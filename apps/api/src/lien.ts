@@ -18,6 +18,17 @@ export async function roleOfSecret(db: D1Database, secret: string) {
   return lien?.role;
 }
 
+const decodeCreatedAt = Schema.decodeUnknownSync(Schema.NullOr(Schema.Int));
+
+/** Epoch milliseconds, `null` when this role has no lien. */
+export async function lienCreatedAt(db: D1Database, role: Actor) {
+  const createdAt = await db
+    .prepare("SELECT created_at FROM lien WHERE role = ?")
+    .bind(role)
+    .first("created_at");
+  return decodeCreatedAt(createdAt);
+}
+
 /** The old secret of this role stops working at once. */
 export async function replaceLien(db: D1Database, role: Actor, secret: string) {
   await db

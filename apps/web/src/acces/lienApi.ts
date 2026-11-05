@@ -13,13 +13,13 @@ const decodeLien = Schema.decodeUnknownSync(LienResponse);
 const decodeNewLien = Schema.decodeUnknownSync(NewLienResponse);
 
 /**
- * The role of the lien, or `undefined` when the API does not know its secret (401).
- * Rejects when the API cannot be reached or answers out of contract.
+ * The role of the lien and the invite's lien, or `undefined` when the API does not know its
+ * secret (401). Rejects when the API cannot be reached or answers out of contract.
  */
-export async function fetchRole(connexion: Connexion) {
+export async function fetchLien(connexion: Connexion) {
   const response = await call(connexion, lienPath, "GET");
   if (response.status === 401) return undefined;
-  return decodeLien(await read(response)).role;
+  return decodeLien(await read(response));
 }
 
 /** Replaces the invite's lien: its old secret stops working. Proprietaire only. */

@@ -39,15 +39,20 @@ describe("les réglages", () => {
 });
 
 describe("un nouveau lien pour Mariane", () => {
-  it("s'affiche une fois créé, et l'ancien ne marche plus", async () => {
+  it("dit quand son lien actuel a été créé", async () => {
+    renderReglages(secrets.proprietaire, fakeLienApi(secrets, new Date(2026, 10, 5).getTime()));
+
+    expect(await screen.findByText("Un lien existe pour Mariane, créé le 5 nov.")).toBeVisible();
+  });
+
+  it("s'affiche une fois créé", async () => {
     const { user } = renderReglages(secrets.proprietaire);
 
     await createLienForMariane(user);
 
-    expect(await screen.findByRole("textbox", { name: "Nouveau lien de Mariane" })).toHaveValue(
+    expect(await screen.findByRole("textbox", { name: "Lien de Mariane" })).toHaveValue(
       `${location.origin}/#secret-invite-1`,
     );
-    expect(screen.getByText(/L'ancien lien de Mariane ne marche plus/)).toBeVisible();
   });
 
   it("se copie", async () => {
@@ -81,6 +86,21 @@ describe("un nouveau lien pour Mariane", () => {
     await createLienForMariane(user);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/n'a pas pu être créé/);
+  });
+
+  it("sans lien pour Mariane, se crée sans avertir et date le nouveau", async () => {
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 10, 7) });
+    const { user } = renderReglages(
+      secrets.proprietaire,
+      fakeLienApi({ ...secrets, invite: null }),
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Créer le lien pour Mariane" }));
+
+    expect(await screen.findByRole("textbox", { name: "Lien de Mariane" })).toHaveValue(
+      `${location.origin}/#secret-invite-1`,
+    );
+    expect(screen.getByText("Un lien existe pour Mariane, créé le 7 nov.")).toBeVisible();
   });
 
   it("n'est pas proposé à l'invité", async () => {

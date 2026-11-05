@@ -33,9 +33,11 @@ export function Reglages({ acces }: { acces: AccesStore }) {
             <dd className="font-medium">{roleLabels[state.role]}</dd>
           </dl>
         )}
-        {state._tag === "Connecte" && state.role === "proprietaire" && (
-          <NouveauLienMariane newInviteLien={acces.newInviteLien} />
-        )}
+        {state._tag === "Connecte" &&
+          state.role === "proprietaire" &&
+          state.invite !== undefined && (
+            <NouveauLienMariane invite={state.invite} newInviteLien={acces.newInviteLien} />
+          )}
       </section>
     </div>
   );
@@ -50,7 +52,6 @@ function NomAppareil() {
   const [name, setName] = useState(() => deviceName() ?? "");
   const [saved, setSaved] = useState(false);
   const inputId = useId();
-  const hintId = useId();
 
   return (
     <form
@@ -67,18 +68,15 @@ function NomAppareil() {
       </label>
       <input
         id={inputId}
-        aria-describedby={hintId}
         required
         value={name}
         onChange={(event) => {
           setName(event.target.value);
           setSaved(false);
         }}
+        placeholder="Téléphone de Nicolas"
         className={inputClassName}
       />
-      <p id={hintId} className="text-sm text-neutral-700">
-        Par exemple « Téléphone de Nicolas ». Il reste sur cet appareil.
-      </p>
       <button type="submit" className={buttonClassName}>
         Enregistrer
       </button>
