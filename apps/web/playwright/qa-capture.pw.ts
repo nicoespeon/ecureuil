@@ -32,6 +32,13 @@ test.describe("captures", () => {
     await expect(page.getByRole("alertdialog")).toBeVisible();
     await screenshot(page, "terminer", { fullPage: false });
   });
+
+  test("réglages d'un appareil sans lien", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Réglages" }).click();
+    await expect(page.getByRole("heading", { name: "Réglages" })).toBeVisible();
+    await screenshot(page, "reglages");
+  });
 });
 
 test("vidéo : cocher puis terminer les courses", async ({ page }) => {

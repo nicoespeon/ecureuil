@@ -1,7 +1,10 @@
 import { fold, listForMagasin } from "@ecureuil/domain";
+import type { Actor } from "@ecureuil/wire";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { appendProprietaireEvent, type EventType, type PayloadOf } from "./appendProprietaireEvent";
+import { appendEvent, type EventType, type PayloadOf } from "./appendEvent";
 import type { Journal } from "./journal";
+
+export type Foyer = ReturnType<typeof useFoyer>;
 
 const MAGASIN_ACTIF_KEY = "ecureuil.magasinActif";
 
@@ -9,7 +12,7 @@ const MAGASIN_ACTIF_KEY = "ecureuil.magasinActif";
  * The foyer as React sees it: the state replayed from the whole journal, the list of the
  * active magasin, and plain functions that append events.
  */
-export function useFoyer(journal: Journal) {
+export function useFoyer(journal: Journal, actor: Actor) {
   const events = useSyncExternalStore(journal.subscribe, journal.all);
   const state = useMemo(() => fold(events), [events]);
   const magasins = Object.values(state.magasins);
@@ -25,7 +28,7 @@ export function useFoyer(journal: Journal) {
 
   const append = <T extends EventType>(type: T, payload: PayloadOf<T>) => {
     if (magasinActifId !== undefined)
-      appendProprietaireEvent(journal, { type, magasin: magasinActifId, payload });
+      appendEvent(journal, { actor, type, magasin: magasinActifId, payload });
   };
 
   return {
