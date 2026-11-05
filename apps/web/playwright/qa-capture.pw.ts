@@ -59,7 +59,6 @@ test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
     await screenshot(page, "liste-375");
     await checkLaitAndBabybel(page);
     await screenshot(page, "panier-375", { fullPage: false });
-    await finishSortie(page);
 
     await page.getByRole("button", { name: "Ajouter" }).click();
     await expect(page.getByRole("region", { name: "Fréquents" })).toBeVisible();
@@ -76,13 +75,11 @@ test.describe("vidéo de l'ajout rapide à 375 px", () => {
 
   test("vidéo : remettre un fréquent, trouver un item, en créer un", async ({ page }) => {
     await page.goto("/");
-    await checkLaitAndBabybel(page);
-    await finishSortie(page);
     await page.getByRole("button", { name: "Ajouter" }).click();
     await pause(page);
     await page
       .getByRole("region", { name: "Fréquents" })
-      .getByRole("button", { name: "Lait" })
+      .getByRole("button", { name: "Bananes" })
       .click();
     await pause(page);
     await searchbox(page).pressSequentially("pom", { delay: 200 });
@@ -218,12 +215,6 @@ async function saveVideo(page: Page, name: string) {
   // The video is only written once the page closes.
   await page.close();
   await page.video()?.saveAs(join(outDir, `${name}.webm`));
-}
-
-async function finishSortie(page: Page) {
-  await page.getByRole("button", { name: "Terminer les courses" }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
-  await expect(page.getByRole("region", { name: "Dans le panier" })).toBeHidden();
 }
 
 function searchbox(page: Page) {

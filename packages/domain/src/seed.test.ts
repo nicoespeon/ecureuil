@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { listForMagasin } from "./list";
 import { fold } from "./reducer";
-import { seed } from "./seed";
+import { seed, seedSorties } from "./seed";
 
 const state = fold(seed);
 
@@ -91,5 +91,25 @@ describe("le seed de dev", () => {
     expect(Object.values(state.demandes)).toMatchObject([
       { id: "demande-chocolat-chaud", name: "Chocolat chaud", status: { _tag: "Pending" } },
     ]);
+  });
+});
+
+describe("les sorties passées du seed de dev", () => {
+  const withSorties = fold([...seed, ...seedSorties]);
+
+  it("ajoutent trois sorties à Costco et deux à Maxi", () => {
+    expect(withSorties.sorties.map((sortie) => sortie.magasin)).toEqual([
+      "magasin-costco",
+      "magasin-costco",
+      "magasin-costco",
+      "magasin-maxi",
+      "magasin-maxi",
+    ]);
+  });
+
+  it("laissent la liste du seed telle quelle", () => {
+    expect(listForMagasin(withSorties, "magasin-costco")).toEqual(
+      listForMagasin(state, "magasin-costco"),
+    );
   });
 });

@@ -1,4 +1,4 @@
-import { seed } from "@ecureuil/domain";
+import { seed, seedSorties } from "@ecureuil/domain";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
@@ -20,7 +20,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const secret = lienSecret();
 const acces = accesStore({ apiUrl, secret, reload: () => location.reload() });
 
-const initial = import.meta.env.DEV ? seed : [];
+const initial = import.meta.env.DEV ? [...seed, ...seedSorties] : [];
 const journal = await openLocalJournal("ecureuil", { seed: initial }).then(
   (opened) => syncedWithApi(opened, { apiUrl, secret }),
   (error: unknown) => {
