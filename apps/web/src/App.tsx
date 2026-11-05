@@ -1,11 +1,16 @@
 import { Tabs } from "@base-ui/react/tabs";
+import { Tooltip } from "@base-ui/react/tooltip";
 import type { Liste, Magasin } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
 import type { AccesStore } from "./acces/acces";
 import { CollerLeLien } from "./acces/CollerLeLien";
-import { Reglages } from "./acces/Reglages";
+import { ConfigurationView } from "./config/ConfigurationView";
+import type { Writer } from "./config/configActions";
+import { useFicheItem } from "./config/FicheItem";
+import { useAnnouncer } from "./config/useAnnouncer";
+import { useFocusOnMount } from "./config/useFocusOnMount";
 import type { Journal } from "./journal/journal";
 import { type Foyer, useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
@@ -22,19 +27,52 @@ export function App({
   acces: AccesStore;
 }) {
   const foyer = useFoyer(journal, role);
-  const [reglagesOpen, setReglagesOpen] = useState(false);
-  const { magasins, magasinActif, liste } = foyer;
+  const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
+    "liste",
+  );
+  const writer = { journal, actor: role };
+  const { magasinActif, liste } = foyer;
 
   if (!magasinActif || !liste) return <SansMagasin acces={acces} />;
+  if (screen === "configuration")
+    return (
+      <ConfigurationView
+        foyer={{ ...foyer, magasinActif }}
+        writer={writer}
+        acces={acces}
+        onClose={() => setScreen("backFromConfiguration")}
+      />
+    );
+
+  return (
+    <ListeScreen
+      foyer={{ ...foyer, magasinActif, liste }}
+      writer={writer}
+      configuration={{
+        focusOnMount: screen === "backFromConfiguration",
+        open: () => setScreen("configuration"),
+      }}
+    />
+  );
+}
+
+type FoyerWithListe = Foyer & { magasinActif: Magasin; liste: Liste };
+
+function ListeScreen({
+  foyer,
+  writer,
+  configuration,
+}: {
+  foyer: FoyerWithListe;
+  writer: Writer;
+  configuration: { focusOnMount: boolean; open: () => void };
+}) {
+  const { magasins, magasinActif } = foyer;
 
   return (
     <Tabs.Root
       value={magasinActif.id}
-      onValueChange={(value) => {
-        if (typeof value !== "string") return;
-        foyer.selectMagasin(value);
-        setReglagesOpen(false);
-      }}
+      onValueChange={(value) => typeof value === "string" && foyer.selectMagasin(value)}
       className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
     >
       <header
@@ -53,20 +91,21 @@ export function App({
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        <ReglagesToggle open={reglagesOpen} toggle={() => setReglagesOpen((open) => !open)} />
+        <ConfigurationButton
+          focusOnMount={configuration.focusOnMount}
+          onClick={configuration.open}
+        />
       </header>
-      {reglagesOpen ? (
-        <Reglages acces={acces} />
-      ) : (
-        <MagasinPanel foyer={foyer} magasin={magasinActif} liste={liste} />
-      )}
+      <MagasinPanel foyer={foyer} writer={writer} />
     </Tabs.Root>
   );
 }
 
-function MagasinPanel({ foyer, magasin, liste }: { foyer: Foyer; magasin: Magasin; liste: Liste }) {
-  const [announcement, setAnnouncement] = useState("");
+function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer }) {
+  const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
+  const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
+  const { magasinActif: magasin, liste } = foyer;
 
   return (
     <>
@@ -79,9 +118,8 @@ function MagasinPanel({ foyer, magasin, liste }: { foyer: Foyer; magasin: Magasi
             uncheck: foyer.uncheck,
             setQuantity: foyer.setQuantity,
             removeFromList: foyer.removeFromList,
-            announce: (message) =>
-              // A live region only speaks when its text changes: repeat with a nbsp.
-              setAnnouncement((previous) => (previous === message ? `${message}\u00a0` : message)),
+            openFiche,
+            announce,
           }}
         />
       </Tabs.Panel>
@@ -90,6 +128,7 @@ function MagasinPanel({ foyer, magasin, liste }: { foyer: Foyer; magasin: Magasi
         finishSortie={foyer.finishSortie}
         focusAfterFinish={panelRef}
       />
+      {fiche}
       <p role="status" className="sr-only">
         {announcement}
       </p>
@@ -97,17 +136,53 @@ function MagasinPanel({ foyer, magasin, liste }: { foyer: Foyer; magasin: Magasi
   );
 }
 
-/** Until the app has a navigation, the réglages open in place of the list. */
-function ReglagesToggle({ open, toggle }: { open: boolean; toggle: () => void }) {
+function ConfigurationButton({
+  focusOnMount,
+  onClick,
+}: {
+  focusOnMount: boolean;
+  onClick: () => void;
+}) {
+  const ref = useFocusOnMount<HTMLButtonElement>(focusOnMount);
   return (
-    <button
-      type="button"
-      aria-pressed={open}
-      onClick={toggle}
-      className="ml-auto h-11 rounded-md px-3 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:outline-blue-700 aria-pressed:bg-neutral-200 aria-pressed:text-neutral-950"
+    // An icon alone is a guess for some: the tooltip names it on hover and keyboard focus.
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        ref={ref}
+        type="button"
+        aria-label="Configuration"
+        onClick={onClick}
+        className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+      >
+        <GearIcon />
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner sideOffset={4} className="z-30">
+          <Tooltip.Popup className="rounded-md bg-neutral-900 px-2 py-1 text-sm text-white">
+            Configuration
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      Réglages
-    </button>
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   );
 }
 
