@@ -2,26 +2,10 @@ import { env } from "cloudflare:workers";
 import { authorizationHeader, Event, journalPath, PullResponse } from "@ecureuil/wire";
 import { Schema } from "effect";
 import { beforeEach, expect, it } from "vitest";
+import { resetFoyer, secrets } from "../test/liens";
 import { app } from "./index";
-import { hashSecret } from "./secret";
 
-const secrets = { proprietaire: "secret-du-proprietaire", invite: "secret-de-l-invite" };
-
-beforeEach(async () => {
-  const liens = await Promise.all(
-    Object.entries(secrets).map(async ([role, secret]) =>
-      env.DB.prepare("INSERT INTO lien (role, secret_hash, created_at) VALUES (?, ?, 0)").bind(
-        role,
-        await hashSecret(secret),
-      ),
-    ),
-  );
-  await env.DB.batch([
-    env.DB.prepare("DELETE FROM journal"),
-    env.DB.prepare("DELETE FROM lien"),
-    ...liens,
-  ]);
-});
+beforeEach(resetFoyer);
 
 it("un pull renvoie ce qu'un push a envoyé, avec un cursor", async () => {
   const events = [itemCreated("e1"), itemCreated("e2")];
