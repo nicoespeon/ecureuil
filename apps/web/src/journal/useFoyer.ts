@@ -25,7 +25,7 @@ export function useFoyer(journal: Journal) {
 
   const append = <T extends EventType>(type: T, payload: PayloadOf<T>) => {
     if (magasinActifId !== undefined)
-      appendProprietaireEvent(journal, type, magasinActifId, payload);
+      appendProprietaireEvent(journal, { type, magasin: magasinActifId, payload });
   };
 
   return {
