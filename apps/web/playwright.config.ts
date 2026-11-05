@@ -19,8 +19,10 @@ export default defineConfig({
       use: { video: { mode: "on", size: devices["Pixel 7"].viewport } },
     },
   ],
+  /** A build, so the service worker runs as in production; a development build keeps the seed. */
   webServer: {
-    command: `pnpm exec vite --port ${port} --strictPort`,
+    command: `pnpm exec vite build --outDir dist-playwright && pnpm exec vite preview --outDir dist-playwright --port ${port} --strictPort`,
+    env: { NODE_ENV: "development" },
     url: `http://localhost:${port}`,
     reuseExistingServer: false,
   },

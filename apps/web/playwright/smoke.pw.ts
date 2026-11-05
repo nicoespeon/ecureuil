@@ -36,3 +36,15 @@ test("réordonner un rayon au clavier change l'ordre de la liste", async ({ page
     "Non classé",
   ]);
 });
+
+test("après un premier chargement, l'app redémarre sans réseau", async ({ page, context }) => {
+  await page.goto("/");
+  await expect
+    .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
+    .toBe(true);
+
+  await context.setOffline(true);
+  await page.reload();
+
+  await expect(page.getByRole("checkbox", { name: "Lait", exact: true })).toBeVisible();
+});
