@@ -58,13 +58,4 @@ describe("la navigation vers la configuration", () => {
 
     expect(screen.getByRole("heading", { level: 3, name: "Accès" })).toBeVisible();
   });
-
-  it("la configuration écrit au nom du rôle de l'appareil", async () => {
-    const { user, journal } = renderApp({ role: "invite" });
-    await user.click(screen.getByRole("button", { name: "Configuration" }));
-
-    await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Pharmacie{Enter}");
-
-    expect(journal.all().at(-1)).toMatchObject({ type: "RayonCreated", actor: "invite" });
-  });
 });

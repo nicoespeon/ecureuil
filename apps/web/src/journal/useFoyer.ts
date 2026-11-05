@@ -1,10 +1,20 @@
-import { fold, listForMagasin } from "@ecureuil/domain";
+import {
+  type Demande,
+  fold,
+  itemNamed,
+  type Liste,
+  listForMagasin,
+  type Magasin,
+} from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { appendEvent, type EventType, type PayloadOf } from "./appendEvent";
 import type { Journal } from "./journal";
 
 export type Foyer = ReturnType<typeof useFoyer>;
+
+/** The foyer once a magasin is active, as the list screens see it. */
+export type FoyerWithListe = Foyer & { magasinActif: Magasin; liste: Liste };
 
 const MAGASIN_ACTIF_KEY = "ecureuil.magasinActif";
 
@@ -46,6 +56,15 @@ export function useFoyer(journal: Journal, actor: Actor) {
       append("ItemQuantitySet", { itemId, quantity }),
     removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
     finishSortie: () => append("SortieFinished", {}),
+    askFor: (name: string) => append("DemandeCreated", { demandeId: crypto.randomUUID(), name }),
+    /** Lists the catalogue item of the same name, or a new one, "Non classé" everywhere. */
+    acceptDemande: (demande: Demande) => {
+      const existing = itemNamed(state, demande.name);
+      const itemId = existing?.id ?? crypto.randomUUID();
+      if (!existing) append("ItemCreated", { itemId, name: demande.name });
+      append("DemandeAccepted", { demandeId: demande.id, itemId });
+    },
+    refuseDemande: (demande: Demande) => append("DemandeRefused", { demandeId: demande.id }),
   };
 }
 

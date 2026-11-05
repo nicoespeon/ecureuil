@@ -328,17 +328,6 @@ describe("un appareil sans magasin", () => {
   });
 });
 
-describe("l'appareil", () => {
-  it("écrit les gestes au nom de son rôle", async () => {
-    const journal = inMemoryJournal(seed);
-    const { user } = renderApp({ journal, role: "invite" });
-
-    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
-
-    expect(journal.all().at(-1)).toMatchObject({ type: "ItemChecked", actor: "invite" });
-  });
-});
-
 type User = ReturnType<typeof userEvent.setup>;
 
 async function checkLaitAndBabybel(user: User) {

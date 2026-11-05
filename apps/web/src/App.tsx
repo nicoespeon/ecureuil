@@ -1,6 +1,5 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
-import type { Liste, Magasin } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
@@ -11,8 +10,9 @@ import type { Writer } from "./config/configActions";
 import { useFicheItem } from "./config/FicheItem";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
+import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
-import { type Foyer, useFoyer } from "./journal/useFoyer";
+import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
@@ -56,8 +56,6 @@ export function App({
   );
 }
 
-type FoyerWithListe = Foyer & { magasinActif: Magasin; liste: Liste };
-
 function ListeScreen({
   foyer,
   writer,
@@ -91,12 +89,18 @@ function ListeScreen({
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        <ConfigurationButton
-          focusOnMount={configuration.focusOnMount}
-          onClick={configuration.open}
-        />
+        {writer.actor === "proprietaire" && (
+          <ConfigurationButton
+            focusOnMount={configuration.focusOnMount}
+            onClick={configuration.open}
+          />
+        )}
       </header>
-      <MagasinPanel foyer={foyer} writer={writer} />
+      {writer.actor === "invite" ? (
+        <InvitePanel foyer={foyer} />
+      ) : (
+        <MagasinPanel foyer={foyer} writer={writer} />
+      )}
     </Tabs.Root>
   );
 }
