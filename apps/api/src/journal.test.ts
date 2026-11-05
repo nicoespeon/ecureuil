@@ -119,7 +119,7 @@ it.each(["pas-un-curseur", "007", "99999999999999999999"])(
   },
 );
 
-it("lets the app, served from another origin, push with its secret", async () => {
+it("laisse l'app, servie depuis une autre origine, pousser avec son secret", async () => {
   const preflight = await app.request(journalPath, {
     method: "OPTIONS",
     headers: {
@@ -136,7 +136,7 @@ it("lets the app, served from another origin, push with its secret", async () =>
   });
 });
 
-it("lets the app read the pull from another origin", async () => {
+it("laisse l'app lire le tirage depuis une autre origine", async () => {
   const pulled = await app.request(journalPath, {
     headers: { Origin: "https://ecureuil.pages.dev", ...authorization(secrets.proprietaire) },
   });

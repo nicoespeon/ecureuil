@@ -5,7 +5,7 @@ import { EventStore, SyncTransport, TransportError } from "./ports";
 import { sync } from "./sync";
 
 describe("sync", () => {
-  it("pushes this device's events and pulls those of the other devices", async () => {
+  it("pousse les événements de cet appareil et tire ceux des autres", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
     const mac = fakeDevice();
@@ -20,7 +20,7 @@ describe("sync", () => {
     expect(await mac.ids()).toEqual(["pain", "lait"]);
   });
 
-  it("pushes an event once, not on every round", async () => {
+  it("pousse un événement une fois, pas à chaque tour", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
     await phone.write(event("lait"));
@@ -31,7 +31,7 @@ describe("sync", () => {
     expect(server.pushes()).toEqual([["lait"]]);
   });
 
-  it("keeps a gesture made during the push for the next round", async () => {
+  it("garde pour le tour suivant un geste fait pendant le push", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
     await phone.write(event("lait"));
@@ -42,7 +42,7 @@ describe("sync", () => {
     expect(server.pushes()).toEqual([["lait"], ["pain"]]);
   });
 
-  it("pulls from the cursor of the previous round", async () => {
+  it("tire depuis le curseur du tour précédent", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
     await phone.sync(server.connect());
@@ -55,7 +55,7 @@ describe("sync", () => {
     expect(server.pulls()).toEqual([null, null, "0"]);
   });
 
-  it("still pulls when the server refuses the push, and reports the refusal", async () => {
+  it("tire quand même si le serveur refuse le push, et signale le refus", async () => {
     const server = fakeServer();
     const mac = fakeDevice();
     await mac.write(event("pain"));
@@ -69,7 +69,7 @@ describe("sync", () => {
     expect(await phone.ids()).toEqual(["lait", "pain"]);
   });
 
-  it("fails offline and keeps the events for when the network is back", async () => {
+  it("échoue hors ligne et garde les événements pour le retour du réseau", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
     await phone.write(event("lait"));
