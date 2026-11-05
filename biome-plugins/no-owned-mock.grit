@@ -1,0 +1,6 @@
+language js
+
+`vi.mock($module)` as $mock where {
+  $module <: r"[\"'](?:\.|@ecureuil/).*",
+  register_diagnostic(span=$mock, message="Don't mock a module of this repo: use the real one, or inject the port it depends on. See .claude/hooks/guides/mocked-owned-module.md.")
+}
