@@ -71,8 +71,7 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 - UI layout or state-machine question: invoke `/prototype` (throwaway, never merged to `main`).
 - Fact about a library (Effect, D1, vite-plugin-pwa, Base UI…): invoke `/research`; findings go to `docs/research/<topic>.md` with sources.
 - Working a Notion task: own worktree and branch; `/grilling` first if the task is fuzzy; TDD, red before green; small conventional commits; `/code-review` on the branch with confirmed findings fixed BEFORE the PR is opened — never open a PR that has not been through it; QA evidence as described under "Pull requests"; `/pr-description` for the body; open the PR.
-- Mark the Notion task Doing at start and Done once the PR is open; archive the session after merge.
-- Tasks live in Notion (project page https://app.notion.com/p/4053f52c56c18004bbc6e30d10a1a4a3, "All Tasks" database): set the task to Doing when starting and Done when finished; one session per task, started in a worktree.
+- Tasks live in Notion (project page https://app.notion.com/p/4053f52c56c18004bbc6e30d10a1a4a3, "All Tasks" database): one session per task, started in a worktree. The task goes Doing at start and Done only once the PR is merged, never when it is opened; archive the session after merge.
 
 ### Pull requests
 
