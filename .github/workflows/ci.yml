@@ -20,6 +20,8 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm check
       - run: pnpm build
+      - run: pnpm --filter web exec playwright install --with-deps --only-shell chromium
+      - run: pnpm --filter web smoke
 
   # Production on `main`, a preview per PR branch. Fork PRs get no secrets, so no preview.
   deploy-web:
