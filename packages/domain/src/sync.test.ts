@@ -55,6 +55,20 @@ describe("sync", () => {
     expect(server.pulls()).toEqual([null, null, "0"]);
   });
 
+  it("still pulls when the server refuses the push, and reports the refusal", async () => {
+    const server = fakeServer();
+    const mac = fakeDevice();
+    await mac.write(event("pain"));
+    await mac.sync(server.connect());
+    const phone = fakeDevice();
+    await phone.write(event("lait"));
+
+    const refused = await phone.sync(server.connect({ refusePush: true }));
+
+    expect(refused).toMatchObject({ _tag: "Failure", failure: { _tag: "TransportError" } });
+    expect(await phone.ids()).toEqual(["lait", "pain"]);
+  });
+
   it("fails offline and keeps the events for when the network is back", async () => {
     const server = fakeServer();
     const phone = fakeDevice();
@@ -135,10 +149,10 @@ function fakeServer() {
     journal: () => journal.map(({ id }) => id),
     pushes: () => pushes,
     pulls: () => pulls,
-    connect: ({ offline = false, duringPush = async () => {} } = {}) =>
+    connect: ({ offline = false, refusePush = false, duringPush = async () => {} } = {}) =>
       SyncTransport.of({
         push: (events) =>
-          offline
+          offline || refusePush
             ? Effect.fail(new TransportError({ cause: "offline" }))
             : Effect.promise(async () => {
                 pushes.push(events.map(({ id }) => id));

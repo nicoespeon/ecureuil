@@ -12,11 +12,11 @@ Chaque appareil écrit d'abord dans son journal local, puis pousse ce qui n'est 
 
 ## Décision
 
-**La boucle est un programme Effect du domaine**, `sync`, qui ne voit que les ports : pousser les événements non poussés, les marquer poussés par leurs ids, tirer depuis le dernier curseur, recevoir ce qui est tiré. `apps/web` fournit les adaptateurs (IndexedDB, `fetch`) en `Layer` et décide quand lancer un tour (geste, retour du réseau, retour au premier plan, intervalle). Les composants React ne voient toujours pas Effect (ADR 3).
+**La boucle est un programme Effect du domaine**, `sync`, qui ne voit que les ports : pousser les événements non poussés, les marquer poussés par leurs ids, tirer depuis le dernier curseur, recevoir ce qui est tiré. `apps/web` fournit les adaptateurs (IndexedDB, `fetch`) comme implémentations des services et décide quand lancer un tour (geste, retour du réseau, retour au premier plan, intervalle). Les composants React ne voient toujours pas Effect (ADR 3).
 
-**L'`EventStore` tient la comptabilité** : `unpushed`, `markPushed(ids)`, `cursor`, et `receive({ events, cursor })`, qui garde les ids inconnus comme déjà poussés et avance le curseur dans la même transaction. Marquer par ids, pas « tout ce qui précède », laisse en attente un événement écrit pendant le push.
+**L'`EventStore` tient la comptabilité** : `unpushed`, `markPushed(ids)`, `cursor`, et `receive({ events, cursor })`, qui garde les événements tirés comme poussés (ils sont sur le serveur) et avance le curseur dans la même transaction. Marquer par ids, pas « tout ce qui précède », laisse en attente un événement écrit pendant le push.
 
-**Le transport échoue de façon typée** (`TransportError`) : hors ligne est attendu, pas un défaut. Un tour qui échoue ne change rien ; le suivant reprend.
+**Le transport échoue de façon typée** (`TransportError`) : hors ligne est attendu, pas un défaut. Un push qui échoue laisse les événements en attente pour le tour suivant, sans empêcher le tirage : un événement que le serveur refuse ne coupe pas l'appareil des autres.
 
 ## Alternatives écartées
 

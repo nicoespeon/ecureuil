@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { lienSecret } from "./journal/device";
 import { httpTransport } from "./journal/httpTransport";
-import type { Journal } from "./journal/journal";
+import { inMemoryJournal, type Journal } from "./journal/journal";
 import { openLocalJournal } from "./journal/localJournal";
 import { startSync } from "./journal/startSync";
 import "./styles.css";
@@ -14,11 +14,18 @@ if (!root) {
   throw new Error("Missing #root element");
 }
 
-const local = await openLocalJournal("ecureuil", { seed: import.meta.env.DEV ? seed : [] });
+const initial = import.meta.env.DEV ? seed : [];
+const journal = await openLocalJournal("ecureuil", { seed: initial }).then(
+  syncedWithApi,
+  (error: unknown) => {
+    console.error("IndexedDB unavailable: this page keeps its gestures in memory only", error);
+    return inMemoryJournal(initial);
+  },
+);
 
 createRoot(root).render(
   <StrictMode>
-    <App journal={syncedWithApi(local)} />
+    <App journal={journal} />
   </StrictMode>,
 );
 

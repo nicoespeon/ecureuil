@@ -10,10 +10,16 @@ const decodePull = Schema.decodeUnknownSync(PullResponse);
  * the next one tries again.
  */
 export function httpTransport({ apiUrl, secret }: { apiUrl: string; secret: string }) {
-  const call = <A>(init: RequestInit, query: string, read: (response: Response) => Promise<A>) =>
+  const call = <A>(
+    init: RequestInit,
+    since: string | null,
+    read: (response: Response) => Promise<A>,
+  ) =>
     Effect.tryPromise({
       try: async () => {
-        const response = await fetch(`${apiUrl}${journalPath}${query}`, {
+        const url = new URL(journalPath, apiUrl);
+        if (since !== null) url.searchParams.set("since", since);
+        const response = await fetch(url.href, {
           ...init,
           headers: { [authorizationHeader]: `Bearer ${secret}`, ...init.headers },
         });
@@ -31,12 +37,9 @@ export function httpTransport({ apiUrl, secret }: { apiUrl: string; secret: stri
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ events } satisfies PushRequest),
         },
-        "",
+        null,
         async () => {},
       ),
-    pull: (since) =>
-      call({}, since === null ? "" : `?since=${encodeURIComponent(since)}`, async (response) =>
-        decodePull(await response.json()),
-      ),
+    pull: (since) => call({}, since, async (response) => decodePull(await response.json())),
   });
 }

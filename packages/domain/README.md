@@ -107,9 +107,9 @@ Il est déterministe : ids lisibles et fixes (`magasin-costco`, `rayon-costco-bo
 Services Effect (`Context.Service`), sans implémentation ici :
 
 - `Clock` : `now: Effect<number>`, en millisecondes epoch.
-- `EventStore` : `append(events)` (écrits ici, en attente de push), `all`, `unpushed`, `markPushed(ids)`, `cursor`, et `receive({ events, cursor })`, qui garde les événements tirés encore inconnus comme déjà poussés et le curseur, d'un coup ([ADR 6](../../docs/adr/0006-boucle-de-sync-dans-le-domaine.md)).
+- `EventStore` : `append(events)` (écrits ici, en attente de push), `all`, `unpushed`, `markPushed(ids)`, `cursor`, et `receive({ events, cursor })`, qui garde les événements tirés comme poussés (ils sont sur le serveur) et le curseur, d'un coup ([ADR 6](../../docs/adr/0006-boucle-de-sync-dans-le-domaine.md)).
 - `SyncTransport` : `push(events)`, `pull(since: Cursor | null)` → `{ events, cursor }`, qui échouent en `TransportError` (hors ligne, refus du serveur). `Cursor` est une chaîne opaque fournie par le serveur.
 
 ## `sync`
 
-Un tour de synchronisation sur les ports : pousse `unpushed`, les marque poussés par leurs ids, tire depuis `cursor`, `receive`. Un geste fait pendant le push attend le tour suivant ; un tour en échec ne change rien. Quand lancer un tour (geste, réseau revenu, intervalle) est l'affaire de l'app.
+Un tour de synchronisation sur les ports : pousse `unpushed`, les marque poussés par leurs ids, tire depuis `cursor`, `receive`. Un geste fait pendant le push attend le tour suivant. Un push en échec n'empêche pas le tirage, puis fait échouer le tour : ce qui n'est pas parti attend le suivant. Quand lancer un tour (geste, réseau revenu, intervalle) est l'affaire de l'app.

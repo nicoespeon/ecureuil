@@ -58,6 +58,21 @@ describe("le journal local", () => {
     expect(server.pulls()).toEqual([null, "1"]);
   });
 
+  it("montre dans un onglet ce qu'un autre onglet du même appareil a tiré", async () => {
+    const server = fakeServer();
+    const mac = await openLocalJournal(newDatabase());
+    await mac.journal.append(event("pain"));
+    await syncWith(mac, server);
+    const database = newDatabase();
+    const firstTab = await openLocalJournal(database);
+    const secondTab = await openLocalJournal(database);
+
+    await syncWith(secondTab, server);
+    await syncWith(firstTab, server);
+
+    expect(ids(firstTab)).toEqual(["pain"]);
+  });
+
   it("charge le seed comme déjà poussé : il ne part jamais au serveur", async () => {
     const server = fakeServer();
     const phone = await openLocalJournal(newDatabase(), { seed: [event("lait")] });

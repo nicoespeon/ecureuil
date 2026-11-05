@@ -19,6 +19,15 @@ describe("le transport HTTP", () => {
     expect(fromCursor).toEqual({ events: [], cursor: "1" });
   });
 
+  it("accepte une URL d'API écrite avec un slash final", async () => {
+    vi.stubGlobal("fetch", fakeApi());
+    const transport = httpTransport({ apiUrl: `${API_URL}/`, secret: SECRET });
+
+    const pulled = await Effect.runPromise(Effect.result(transport.pull(null)));
+
+    expect(pulled).toMatchObject({ _tag: "Success" });
+  });
+
   it.each([
     ["un secret refusé", fakeApi({ secret: "un-autre-secret" })],
     ["le réseau coupé", () => Promise.reject(new TypeError("Failed to fetch"))],

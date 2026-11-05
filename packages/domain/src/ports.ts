@@ -19,7 +19,7 @@ export class EventStore extends Context.Service<
     readonly unpushed: Effect.Effect<ReadonlyArray<Event>>;
     readonly markPushed: (ids: ReadonlyArray<Event["id"]>) => Effect.Effect<void>;
     readonly cursor: Effect.Effect<Cursor | null>;
-    /** Keeps the pulled events it does not know yet, as pushed, and the cursor, at once. */
+    /** Keeps the pulled events as pushed, since the server has them, and the cursor, at once. */
     readonly receive: (pulled: PullResponse) => Effect.Effect<void>;
   }
 >()("@ecureuil/domain/EventStore") {}

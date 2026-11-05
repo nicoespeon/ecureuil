@@ -4,7 +4,8 @@ import { Effect } from "effect";
 const INTERVAL_MS = 30_000;
 
 /**
- * Runs a sync round now, then whenever the network or the app comes back, and every 30 s.
+ * Runs a sync round now, then whenever the network or the app comes back, and every 30 s
+ * while the app is in the foreground.
  * One round at a time: a request during a round runs one more round right after it, so a
  * gesture made meanwhile does not wait for the next trigger.
  */
@@ -45,7 +46,7 @@ export function startSync(ports: {
 
   window.addEventListener("online", requestSync);
   document.addEventListener("visibilitychange", syncWhenVisible);
-  const interval = setInterval(requestSync, INTERVAL_MS);
+  const interval = setInterval(syncWhenVisible, INTERVAL_MS);
   requestSync();
 
   return {

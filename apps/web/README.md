@@ -6,8 +6,10 @@ La PWA : React consomme l'état replié du journal ([`@ecureuil/domain`](../../p
 
 - `localJournal.ts` : le journal dans IndexedDB (base `ecureuil`), vu comme un `Journal` synchrone pour React et comme l'`EventStore` du domaine.
 - `httpTransport.ts` : le `SyncTransport` vers `/journal`, selon [`@ecureuil/wire`](../../packages/wire/README.md#contrat-de-lapi).
-- `startSync.ts` : lance un tour de `sync` au démarrage, au retour du réseau (`online`), au retour au premier plan et toutes les 30 s, un tour à la fois ; `main.tsx` en demande un après chaque geste.
+- `startSync.ts` : lance un tour de `sync` au démarrage, au retour du réseau (`online`), au retour au premier plan et toutes les 30 s tant que l'app est au premier plan, un tour à la fois ; `main.tsx` en demande un après chaque geste.
 - `device.ts` : l'id de l'appareil et le secret du lien, gardés en `localStorage`.
+
+Si IndexedDB ne s'ouvre pas, l'app tourne sur un journal en mémoire, sans sync, le temps de la page.
 
 En dev (`pnpm --filter web dev`), un journal vide reçoit le `seed` du domaine, marqué déjà poussé : il n'est jamais envoyé au serveur. En production, le journal démarre vide et se remplit par le tirage.
 

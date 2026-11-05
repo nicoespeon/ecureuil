@@ -32,16 +32,20 @@ export async function openLocalJournal(
     });
   };
 
-  /** Pulled or seeded events are already on the server, or must never go there. */
+  /**
+   * Pulled events are on the server, so pushed; seeded ones must never go there. IndexedDB is
+   * shared by the tabs of this device: reload what another tab may have written meanwhile.
+   */
   const keepAsPushed = async (kept: ReadonlyArray<Event>, cursor?: Cursor) => {
-    const known = new Set(events.map(({ id }) => id));
-    const unknown = kept.filter(({ id }) => !known.has(id));
     await transaction(db, (tx) => {
-      for (const event of unknown) tx.objectStore(EVENTS).put({ event, pushed: true });
+      for (const event of kept) tx.objectStore(EVENTS).put({ event, pushed: true });
       if (cursor !== undefined) tx.objectStore(META).put(cursor, CURSOR_KEY);
     });
-    if (unknown.length === 0) return;
-    events = [...events, ...unknown];
+    const stored = (await readEntries(db)).map(({ event }) => event);
+    const known = new Set(events.map(({ id }) => id));
+    const added = stored.filter(({ id }) => !known.has(id));
+    if (added.length === 0) return;
+    events = [...events, ...added];
     notify();
   };
 
