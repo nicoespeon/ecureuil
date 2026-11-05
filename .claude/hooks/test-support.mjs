@@ -10,12 +10,6 @@ const HOOK_DIR = dirname(fileURLToPath(import.meta.url));
 const CHECKOUT = join(HOOK_DIR, "../..");
 const scratchRepos = [];
 
-// Under the pre-commit hook, git exports GIT_DIR and GIT_INDEX_FILE: inherited, they point
-// every scratch repo's git command at this checkout, and `git init` makes it bare.
-for (const name of Object.keys(process.env).filter((key) => key.startsWith("GIT_"))) {
-  delete process.env[name];
-}
-
 after(() => {
   for (const repo of scratchRepos) {
     rmSync(repo, { recursive: true, force: true });
@@ -53,6 +47,7 @@ export function sessionIn(repo) {
         tool_input: { file_path: join(repo, file_path), ...toolInput },
       }),
       encoding: "utf8",
+      env: childEnv(),
     });
     if (status !== 0) {
       throw new Error(`${hook} exited ${status}: ${stderr}`);
@@ -63,6 +58,17 @@ export function sessionIn(repo) {
     const { hookSpecificOutput } = JSON.parse(stdout);
     return hookSpecificOutput.additionalContext ?? hookSpecificOutput.permissionDecisionReason;
   };
+}
+
+/**
+ * The environment for every process a test starts. Under the pre-commit hook, git exports
+ * GIT_DIR and GIT_INDEX_FILE: inherited, they point a scratch repo's git at this checkout,
+ * and `git init` makes it bare.
+ */
+export function childEnv() {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+  );
 }
 
 function writeFiles(repo, files) {
@@ -84,6 +90,6 @@ function git(cwd, ...args) {
       "core.hooksPath=/dev/null",
       ...args,
     ],
-    { cwd, stdio: "ignore" },
+    { cwd, stdio: "ignore", env: childEnv() },
   );
 }

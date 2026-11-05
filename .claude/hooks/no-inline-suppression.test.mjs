@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { describe, test } from "node:test";
 
-import { repoWith, runHook } from "./test-support.mjs";
+import { childEnv, repoWith, runHook } from "./test-support.mjs";
 
 const HOOK = "no-inline-suppression.mjs";
 
@@ -99,5 +99,6 @@ function scan(repo) {
   return spawnSync(process.execPath, [join(import.meta.dirname, HOOK), "--all"], {
     cwd: repo,
     encoding: "utf8",
+    env: childEnv(),
   });
 }

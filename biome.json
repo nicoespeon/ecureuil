@@ -131,6 +131,16 @@
           }
         }
       }
+    },
+    {
+      "includes": [".claude/hooks/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUndeclaredEnvVars": "off"
+          }
+        }
+      }
     }
   ],
   "assist": {
