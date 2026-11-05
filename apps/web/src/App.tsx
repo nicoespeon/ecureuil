@@ -1,4 +1,5 @@
 import { Tabs } from "@base-ui/react/tabs";
+import { Tooltip } from "@base-ui/react/tooltip";
 import type { Liste, Magasin } from "@ecureuil/domain";
 import { useRef, useState } from "react";
 import { ConfigurationView } from "./config/ConfigurationView";
@@ -116,15 +117,25 @@ function ConfigurationButton({
 }) {
   const ref = useFocusOnMount<HTMLButtonElement>(focusOnMount);
   return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={onClick}
-      className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
-    >
-      <GearIcon />
-      <span className="sr-only">Configuration</span>
-    </button>
+    // An icon alone is a guess for some: the tooltip names it on hover and keyboard focus.
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        ref={ref}
+        type="button"
+        aria-label="Configuration"
+        onClick={onClick}
+        className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+      >
+        <GearIcon />
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner sideOffset={4} className="z-30">
+          <Tooltip.Popup className="rounded-md bg-neutral-900 px-2 py-1 text-sm text-white">
+            Configuration
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 

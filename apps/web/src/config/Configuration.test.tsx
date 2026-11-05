@@ -16,6 +16,14 @@ describe("la navigation vers la configuration", () => {
     expect(screen.getByRole("checkbox", { name: "Lait" })).toBeVisible();
   });
 
+  it("survoler l'engrenage affiche l'infobulle « Configuration »", async () => {
+    const { user } = renderApp();
+
+    await user.hover(screen.getByRole("button", { name: "Configuration" }));
+
+    expect(await screen.findByText("Configuration", {}, { timeout: 2000 })).toBeVisible();
+  });
+
   it("le focus va au titre de la configuration, puis revient au bouton qui l'a ouverte", async () => {
     const { user } = renderApp();
 
