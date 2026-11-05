@@ -267,7 +267,8 @@ function withDemande(state: State, demande: Demande): State {
 }
 
 /**
- * First arbitration wins: a demande that is no longer pending ignores later verdicts.
+ * The demande while it is still pending. First arbitration wins, so a later verdict finds
+ * nothing to settle.
  */
 function pendingDemande(state: State, demandeId: string) {
   const demande = state.demandes[demandeId];
