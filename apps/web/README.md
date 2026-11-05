@@ -7,7 +7,7 @@ La PWA : React consomme l'état replié du journal ([`@ecureuil/domain`](../../p
 - `localJournal.ts` : le journal dans IndexedDB (base `ecureuil`), vu comme un `Journal` synchrone pour React et comme l'`EventStore` du domaine.
 - `httpTransport.ts` : le `SyncTransport` vers `/journal`, selon [`@ecureuil/wire`](../../packages/wire/README.md#contrat-de-lapi).
 - `startSync.ts` : lance un tour de `sync` au démarrage, au retour du réseau (`online`), au retour au premier plan et toutes les 30 s tant que l'app est au premier plan, un tour à la fois ; `main.tsx` en demande un après chaque geste.
-- `device.ts` : l'id de l'appareil et le secret du lien, gardés en `localStorage`.
+- `device.ts` : ce que l'appareil garde en `localStorage` : son id, son nom, le secret du lien et le rôle appris pour ce secret.
 
 Si IndexedDB ne s'ouvre pas, l'app tourne sur un journal en mémoire, sans sync, le temps de la page.
 
@@ -25,8 +25,16 @@ echo "VITE_API_URL=http://localhost:8787" > apps/web/.env.local
 pnpm --filter web dev
 ```
 
-Puis ouvrir le lien du propriétaire affiché par `liens`. Le secret arrive dans le fragment de l'URL, qui ne part jamais au serveur ; l'app le garde dans `localStorage` (`ecureuil.lien`) et le retire de la barre d'adresse. On peut aussi le coller à la main dans la console : `localStorage.setItem("ecureuil.lien", "<secret>")`.
+Puis ouvrir un lien affiché par `liens`. Le secret arrive dans le fragment de l'URL, qui ne part jamais au serveur ; l'app le garde dans `localStorage` (`ecureuil.lien`) et le retire de la barre d'adresse. Une PWA installée n'a pas de barre d'adresse : on colle alors le lien dans le champ « Lien d'accès » de l'écran d'accueil (sans magasin) ou des réglages.
 
-Seul le lien du propriétaire peut pousser pour l'instant : l'app écrit ses événements au nom du propriétaire, et l'API refuse un push dont l'`actor` n'est pas le rôle du lien.
+## Accès : rôle, nom, réglages
+
+Le dossier `src/acces/` dit qui utilise l'appareil.
+
+- **Rôle** : au démarrage, l'app demande son rôle à l'API (`GET /lien`) et le garde (`ecureuil.role`). Tant qu'elle ne le connaît pas, elle n'ouvre pas la liste (« Connexion au foyer… », puis « Réessayer » hors ligne) : un événement écrit avec le mauvais rôle serait refusé par l'API à chaque envoi. Une fois appris, le rôle ouvre l'app même hors ligne. Chaque événement porte ce rôle en `actor`. Sans API ou sans lien, l'appareil fonctionne seul, en propriétaire.
+- **Lien refusé** : si l'API répond 401 (lien remplacé), l'app affiche « Ce lien ne marche plus » et le champ pour coller le nouveau. Ouvrir ou coller un autre lien oublie le rôle appris et redémarre l'app.
+- **Réglages** (bouton dans le header) : le nom de l'appareil (`ecureuil.deviceName`, il reste sur l'appareil) et le rôle. Pour le propriétaire, « Nouveau lien pour Mariane » remplace le lien de l'invité après confirmation (`POST /lien/invite`) : le nouveau lien s'affiche une seule fois avec un bouton « Copier », et l'ancien ne marche plus.
+
+Le lien de Mariane se range dans le 1Password partagé du foyer : c'est là qu'elle le retrouve pour l'ouvrir sur un nouvel appareil.
 
 En production, la CI construit l'app avec la variable de dépôt GitHub `API_URL` (l'origine du Worker) en `VITE_API_URL`.

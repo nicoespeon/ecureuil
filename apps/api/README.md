@@ -34,6 +34,20 @@ Amorcer le foyer, une fois, dans cet ordre :
 
 `seed` lit `API_URL` et `LIEN_SECRET` dans l'environnement, jamais en argument, et ne les affiche pas. Sans `--remote`, il vise `http://localhost:8787`. Il n'envoie que les événements du propriétaire : la demande de l'invite du seed est ignorée (l'API refuserait tout le push), une vraie viendra par le lien invite. Le relancer ne change rien, l'API ignore les ids déjà reçus. Il s'arrête avec un code non nul sur un 401 (secret inconnu), un 403 (secret de l'invite), un 400 ou une erreur réseau.
 
+## Rôle et nouveau lien de l'invité
+
+```sh
+curl http://localhost:8787/lien -H "Authorization: Bearer <secret-invite>"
+# {"role":"invite"}
+
+curl -X POST http://localhost:8787/lien/invite -H "Authorization: Bearer <secret-proprietaire>"
+# {"secret":"…"} : le nouveau secret de l'invité, l'ancien répond 401 dès maintenant
+```
+
+- L'app demande `GET /lien` à chaque démarrage pour connaître son rôle, et voit un lien remplacé (401).
+- `POST /lien/invite` répond 403 à l'invité. Le serveur génère le secret et remplace la ligne `invite` de la table `lien`. L'app compose le lien complet (`https://<app>/#<secret>`), car l'API ne connaît pas l'adresse de l'app.
+- Le lien du propriétaire ne se régénère pas depuis l'app (on se fermerait la porte) : c'est le script `liens`, qui partage la génération et le hachage du secret avec la route (`src/secret.ts`).
+
 ## Push et pull
 
 ```sh
