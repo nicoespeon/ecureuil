@@ -17,3 +17,11 @@ export async function roleOfSecret(db: D1Database, secret: string) {
   });
   return lien?.role;
 }
+
+/** The old secret of this role stops working at once. */
+export async function replaceLien(db: D1Database, role: Actor, secret: string) {
+  await db
+    .prepare("INSERT OR REPLACE INTO lien (role, secret_hash, created_at) VALUES (?, ?, ?)")
+    .bind(role, await hashSecret(secret), Date.now())
+    .run();
+}

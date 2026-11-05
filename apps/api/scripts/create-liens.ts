@@ -1,7 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { randomBytes } from "node:crypto";
 import { parseArgs } from "node:util";
-import { hashSecret } from "../src/secret.ts";
+import { hashSecret, newSecret } from "../src/secret.ts";
 
 const { values: options } = parseArgs({
   options: {
@@ -12,7 +11,7 @@ const { values: options } = parseArgs({
 
 const liens = await Promise.all(
   (["proprietaire", "invite"] as const).map(async (role) => {
-    const secret = randomBytes(32).toString("base64url");
+    const secret = newSecret();
     return { role, secret, hash: await hashSecret(secret) };
   }),
 );

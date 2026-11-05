@@ -1,7 +1,11 @@
 import {
   type Actor,
   authorizationHeader,
+  inviteLienPath,
   journalPath,
+  type LienResponse,
+  lienPath,
+  type NewLienResponse,
   PullQuery,
   type PullResponse,
   PushRequest,
@@ -11,7 +15,8 @@ import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { cors } from "hono/cors";
 import { appendEvents, eventsAfter, seqOfCursor } from "./journal";
-import { roleOfSecret } from "./lien";
+import { replaceLien, roleOfSecret } from "./lien";
+import { newSecret } from "./secret";
 
 type Bindings = {
   DB: D1Database;
@@ -29,10 +34,8 @@ app.get("/health", (c) => c.json({ ok: true }));
 
 // The app lives on another origin (Pages). Any origin is fine: access rides on the Bearer
 // secret, never on cookies, and the preflight must pass before the secret is checked.
-app.use(journalPath, cors());
-
-app.use(
-  journalPath,
+const authorized = [
+  cors(),
   bearerAuth<ApiEnv>({
     headerName: authorizationHeader,
     verifyToken: async (secret, c) => {
@@ -42,7 +45,19 @@ app.use(
       return true;
     },
   }),
-);
+];
+for (const path of [journalPath, lienPath, inviteLienPath]) app.use(path, ...authorized);
+
+app.get(lienPath, (c) => c.json({ role: c.get("role") } satisfies LienResponse));
+
+app.post(inviteLienPath, async (c) => {
+  if (c.get("role") !== "proprietaire") {
+    return c.json({ error: "Only the proprietaire gives the invite a new lien" }, 403);
+  }
+  const secret = newSecret();
+  await replaceLien(c.env.DB, "invite", secret);
+  return c.json({ secret } satisfies NewLienResponse);
+});
 
 const decodePush = Schema.decodeUnknownResult(Schema.fromJsonString(PushRequest));
 
