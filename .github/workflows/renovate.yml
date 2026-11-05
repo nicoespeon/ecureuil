@@ -3,8 +3,8 @@ name: Renovate
 
 on:
   schedule:
-    # Mondays 09:00 UTC, early morning in Montreal.
-    - cron: "0 9 * * 1"
+    # Daily 09:00 UTC, early morning in Montreal. prHourlyLimit (2) caps new PRs per run.
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions:
