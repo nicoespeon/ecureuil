@@ -9,7 +9,7 @@ import { NameInput } from "./NameInput";
 import { RayonSelect } from "./RayonSelect";
 import { useAnnouncer } from "./useAnnouncer";
 
-type Foyer = {
+export type FicheFoyer = {
   readonly state: State;
   readonly magasins: ReadonlyArray<Magasin>;
   readonly magasinActif: Magasin;
@@ -24,7 +24,7 @@ export function useFicheItem({
   journal,
   focusAfterRemove,
 }: {
-  foyer: Foyer;
+  foyer: FicheFoyer;
   journal: Journal;
   focusAfterRemove: RefObject<HTMLElement | null>;
 }) {

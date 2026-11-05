@@ -1,8 +1,7 @@
 import { Tabs } from "@base-ui/react/tabs";
-import type { Magasin, State } from "@ecureuil/domain";
 import type { Journal } from "../journal/journal";
 import { configActions } from "./configActions";
-import { useFicheItem } from "./FicheItem";
+import { type FicheFoyer, useFicheItem } from "./FicheItem";
 import { ItemsView } from "./ItemsView";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
@@ -11,12 +10,7 @@ import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
 import { useMediaQuery } from "./useMediaQuery";
 
-type Foyer = {
-  readonly state: State;
-  readonly magasins: ReadonlyArray<Magasin>;
-  readonly magasinActif: Magasin;
-  readonly selectMagasin: (magasinId: string) => void;
-};
+type Foyer = FicheFoyer & { readonly selectMagasin: (magasinId: string) => void };
 
 export function ConfigurationView({
   foyer,

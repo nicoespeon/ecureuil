@@ -3,6 +3,7 @@ import type { Liste, Magasin } from "@ecureuil/domain";
 import { useRef, useState } from "react";
 import { ConfigurationView } from "./config/ConfigurationView";
 import { useFicheItem } from "./config/FicheItem";
+import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
 import type { Journal } from "./journal/journal";
 import { useFoyer } from "./journal/useFoyer";
@@ -11,16 +12,18 @@ import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
 export function App({ journal }: { journal: Journal }) {
   const foyer = useFoyer(journal);
-  const [ecran, setEcran] = useState<"liste" | "configuration" | "retourDeConfiguration">("liste");
+  const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
+    "liste",
+  );
   const { magasinActif, liste } = foyer;
 
   if (!magasinActif || !liste) return <SansMagasin />;
-  if (ecran === "configuration")
+  if (screen === "configuration")
     return (
       <ConfigurationView
         foyer={{ ...foyer, magasinActif }}
         journal={journal}
-        onClose={() => setEcran("retourDeConfiguration")}
+        onClose={() => setScreen("backFromConfiguration")}
       />
     );
 
@@ -29,8 +32,8 @@ export function App({ journal }: { journal: Journal }) {
       foyer={{ ...foyer, magasinActif, liste }}
       journal={journal}
       configuration={{
-        focusOnMount: ecran === "retourDeConfiguration",
-        open: () => setEcran("configuration"),
+        focusOnMount: screen === "backFromConfiguration",
+        open: () => setScreen("configuration"),
       }}
     />
   );
@@ -45,7 +48,7 @@ function ListeScreen({
   journal: Journal;
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
-  const [announcement, setAnnouncement] = useState("");
+  const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
   const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: panelRef });
   const { magasins, magasinActif, liste } = foyer;
@@ -87,9 +90,7 @@ function ListeScreen({
             setQuantity: foyer.setQuantity,
             removeFromList: foyer.removeFromList,
             openFiche,
-            announce: (message) =>
-              // A live region only speaks when its text changes: repeat with a nbsp.
-              setAnnouncement((previous) => (previous === message ? `${message}\u00a0` : message)),
+            announce,
           }}
         />
       </Tabs.Panel>
