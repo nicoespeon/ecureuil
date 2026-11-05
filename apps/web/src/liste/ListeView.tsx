@@ -130,7 +130,17 @@ function PasVenduIci({
   return (
     <Collapsible.Root render={<section />}>
       <h2 className={headingClassName}>
-        <Collapsible.Trigger className="w-full text-left">
+        <Collapsible.Trigger className="group flex w-full items-center gap-2 text-left">
+          <svg
+            aria-hidden="true"
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            className="motion-safe:transition-transform group-data-panel-open:rotate-90"
+          >
+            <path d="M6 12V4l4.5 4z" />
+          </svg>
           Pas chez {magasinName} ({items.length})
         </Collapsible.Trigger>
       </h2>
