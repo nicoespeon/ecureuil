@@ -60,8 +60,15 @@ export function NouveauLienMariane({
   );
 }
 
-const createdOn = (at: number) =>
-  new Date(at).toLocaleDateString("fr-CA", { day: "numeric", month: "short" });
+function createdOn(at: number) {
+  const date = new Date(at);
+  const thisYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString("fr-CA", {
+    day: "numeric",
+    month: "short",
+    year: thisYear ? undefined : "numeric",
+  });
+}
 
 function RemplacerLeLien({ disabled, onConfirm }: { disabled: boolean; onConfirm: () => void }) {
   return (
@@ -95,7 +102,8 @@ function LienCree({ lien }: { lien: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
-  useEffect(() => inputRef.current?.select(), []);
+  // Focus, not only select: the button that created the lien may have just left the page.
+  useEffect(() => inputRef.current?.focus(), []);
 
   return (
     <div className="flex flex-col gap-2 rounded-md border border-neutral-300 p-3">

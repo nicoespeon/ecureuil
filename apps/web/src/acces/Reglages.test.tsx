@@ -45,6 +45,14 @@ describe("un nouveau lien pour Mariane", () => {
     expect(await screen.findByText("Un lien existe pour Mariane, créé le 5 nov.")).toBeVisible();
   });
 
+  it("donne l'année d'un lien créé une autre année", async () => {
+    renderReglages(secrets.proprietaire, fakeLienApi(secrets, new Date(2025, 10, 5).getTime()));
+
+    expect(
+      await screen.findByText("Un lien existe pour Mariane, créé le 5 nov. 2025"),
+    ).toBeVisible();
+  });
+
   it("s'affiche une fois créé", async () => {
     const { user } = renderReglages(secrets.proprietaire);
 
@@ -97,9 +105,9 @@ describe("un nouveau lien pour Mariane", () => {
 
     await user.click(await screen.findByRole("button", { name: "Créer le lien pour Mariane" }));
 
-    expect(await screen.findByRole("textbox", { name: "Lien de Mariane" })).toHaveValue(
-      `${location.origin}/#secret-invite-1`,
-    );
+    const lien = await screen.findByRole("textbox", { name: "Lien de Mariane" });
+    expect(lien).toHaveValue(`${location.origin}/#secret-invite-1`);
+    expect(lien).toHaveFocus();
     expect(screen.getByText("Un lien existe pour Mariane, créé le 7 nov.")).toBeVisible();
   });
 
