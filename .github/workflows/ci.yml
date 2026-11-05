@@ -35,6 +35,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - run: pnpm --filter web build
+        env:
+          # The production Worker's origin, a repository variable. Unset, the app never syncs.
+          VITE_API_URL: ${{ vars.API_URL }}
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

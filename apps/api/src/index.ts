@@ -9,6 +9,7 @@ import {
 import { Result, Schema } from "effect";
 import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
+import { cors } from "hono/cors";
 import { appendEvents, eventsAfter, seqOfCursor } from "./journal";
 import { roleOfSecret } from "./lien";
 
@@ -25,6 +26,10 @@ type ApiEnv = { Bindings: Bindings; Variables: Variables };
 export const app = new Hono<ApiEnv>();
 
 app.get("/health", (c) => c.json({ ok: true }));
+
+// The app lives on another origin (Pages). Any origin is fine: access rides on the Bearer
+// secret, never on cookies, and the preflight must pass before the secret is checked.
+app.use(journalPath, cors());
 
 app.use(
   journalPath,

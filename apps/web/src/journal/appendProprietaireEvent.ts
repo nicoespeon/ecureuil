@@ -1,11 +1,9 @@
 import { Event } from "@ecureuil/wire";
 import { Schema } from "effect";
+import { thisDevice } from "./device";
 import type { Journal } from "./journal";
 
 const decodeEvent = Schema.decodeUnknownSync(Event);
-
-/** Until devices join the foyer (sync task), every event comes from the same device. */
-const PROVISIONAL_DEVICE = "web";
 
 export type EventType = Event["type"];
 export type PayloadOf<T extends EventType> = Extract<Event, { readonly type: T }>["payload"];
@@ -18,17 +16,20 @@ export function appendProprietaireEvent<T extends EventType>(
   journal: Journal,
   { type, magasin, payload }: { type: T; magasin: string; payload: PayloadOf<T> },
 ) {
-  journal.append(
-    decodeEvent({
-      id: crypto.randomUUID(),
-      at: nextAt(journal.all()),
-      actor: "proprietaire",
-      device: PROVISIONAL_DEVICE,
-      magasin,
-      type,
-      payload,
-    }),
-  );
+  journal
+    .append(
+      decodeEvent({
+        id: crypto.randomUUID(),
+        at: nextAt(journal.all()),
+        actor: "proprietaire",
+        device: thisDevice(),
+        magasin,
+        type,
+        payload,
+      }),
+    )
+    // No UI reports storage failures yet: the gesture shows, but a reload would lose it.
+    .catch((error: unknown) => console.error("The gesture was not saved on this device", error));
 }
 
 /**
