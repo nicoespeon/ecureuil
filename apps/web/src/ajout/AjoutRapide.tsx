@@ -1,6 +1,6 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Item, Magasin } from "@ecureuil/domain";
-import { type RefObject, useId, useRef, useState } from "react";
+import { type ReactNode, type RefObject, useId, useRef, useState } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
 import { frequentItems, searchItems } from "./suggestions";
@@ -15,7 +15,9 @@ export function AjoutRapide({ foyer }: { foyer: AjoutFoyer }) {
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger className={`${buttonClassName} flex-1 border border-neutral-400 bg-white`}>
+      <Dialog.Trigger
+        className={`${buttonClassName} grow whitespace-nowrap border border-neutral-400 bg-white`}
+      >
         <span aria-hidden="true" className="mr-2">
           +
         </span>
@@ -101,9 +103,9 @@ function AjoutPanel({
           ))}
           {nameToCreate !== null && (
             <li>
-              <button type="button" onClick={() => create(nameToCreate)} className={rowClassName}>
-                Créer « {nameToCreate} »
-              </button>
+              <AddButton onClick={() => create(nameToCreate)}>
+                <span className="min-w-0 flex-1 truncate">Créer « {nameToCreate} »</span>
+              </AddButton>
             </li>
           )}
         </ul>
@@ -127,9 +129,9 @@ function Frequents({ items, add }: { items: ReadonlyArray<Item>; add: (item: Ite
       <ul>
         {items.map((item) => (
           <li key={item.id}>
-            <button type="button" onClick={() => add(item)} className={rowClassName}>
-              {item.name}
-            </button>
+            <AddButton onClick={() => add(item)}>
+              <span className="min-w-0 flex-1 truncate">{item.name}</span>
+            </AddButton>
           </li>
         ))}
       </ul>
@@ -163,11 +165,24 @@ function ItemOption({
   );
 
   return item.status === "notToBuy" ? (
-    <button type="button" onClick={() => add(item)} className={rowClassName}>
-      {content}
-    </button>
+    <AddButton onClick={() => add(item)}>{content}</AddButton>
   ) : (
     <div className={`${rowLayoutClassName} text-neutral-700`}>{content}</div>
+  );
+}
+
+function AddButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${rowLayoutClassName} hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`}
+    >
+      {children}
+      <span aria-hidden="true" className="shrink-0 text-xl leading-none">
+        +
+      </span>
+    </button>
   );
 }
 
@@ -179,5 +194,3 @@ const closeClassName =
 
 const rowLayoutClassName =
   "flex min-h-12 w-full items-center gap-3 border-b border-neutral-200 px-4 text-left text-base";
-
-const rowClassName = `${rowLayoutClassName} hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`;

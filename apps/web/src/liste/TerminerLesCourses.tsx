@@ -20,7 +20,9 @@ export function TerminerLesCourses({
   return (
     <AlertDialog.Root>
       {inPanier > 0 && (
-        <AlertDialog.Trigger className={`${buttonClassName} flex-1 bg-neutral-900 text-white`}>
+        <AlertDialog.Trigger
+          className={`${buttonClassName} grow whitespace-nowrap bg-neutral-900 text-white`}
+        >
           Terminer les courses
         </AlertDialog.Trigger>
       )}

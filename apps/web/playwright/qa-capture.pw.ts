@@ -51,6 +51,56 @@ test.describe("captures de la configuration à 375 px", () => {
   });
 });
 
+test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  test("liste, panier, fréquents et recherche", async ({ page }) => {
+    await page.goto("/");
+    await screenshot(page, "liste-375");
+    await checkLaitAndBabybel(page);
+    await screenshot(page, "panier-375", { fullPage: false });
+    await finishSortie(page);
+
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await expect(page.getByRole("region", { name: "Fréquents" })).toBeVisible();
+    await screenshot(page, "ajout-frequents", { fullPage: false });
+
+    await searchbox(page).fill("lai");
+    await expect(page.getByRole("button", { name: "Créer « lai »" })).toBeVisible();
+    await screenshot(page, "ajout-recherche", { fullPage: false });
+  });
+});
+
+test.describe("vidéo de l'ajout rapide à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : remettre un fréquent, trouver un item, en créer un", async ({ page }) => {
+    await page.goto("/");
+    await checkLaitAndBabybel(page);
+    await finishSortie(page);
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await pause(page);
+    await page
+      .getByRole("region", { name: "Fréquents" })
+      .getByRole("button", { name: "Lait" })
+      .click();
+    await pause(page);
+    await searchbox(page).pressSequentially("pom", { delay: 200 });
+    await pause(page);
+    await page.getByRole("button", { name: "Pommes" }).click();
+    await pause(page);
+    await searchbox(page).pressSequentially("Laitue", { delay: 200 });
+    await pause(page);
+    await page.getByRole("button", { name: "Créer « Laitue »" }).click();
+    await pause(page);
+    await page.getByRole("button", { name: "Fermer" }).click();
+    const laitue = page.getByRole("checkbox", { name: "Laitue" });
+    await laitue.scrollIntoViewIfNeeded();
+    await expect(laitue).toBeVisible();
+    await saveVideo(page, "ajout");
+  });
+});
+
 test.describe("captures sur desktop", () => {
   test.use({ reducedMotion: "reduce", ...desktop });
 
@@ -168,6 +218,16 @@ async function saveVideo(page: Page, name: string) {
   // The video is only written once the page closes.
   await page.close();
   await page.video()?.saveAs(join(outDir, `${name}.webm`));
+}
+
+async function finishSortie(page: Page) {
+  await page.getByRole("button", { name: "Terminer les courses" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
+  await expect(page.getByRole("region", { name: "Dans le panier" })).toBeHidden();
+}
+
+function searchbox(page: Page) {
+  return page.getByRole("searchbox", { name: "Item à ajouter" });
 }
 
 async function checkLaitAndBabybel(page: Page) {
