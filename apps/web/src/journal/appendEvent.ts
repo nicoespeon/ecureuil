@@ -1,4 +1,4 @@
-import { Event } from "@ecureuil/wire";
+import { type Actor, Event } from "@ecureuil/wire";
 import { Schema } from "effect";
 import { thisDevice } from "./device";
 import type { Journal } from "./journal";
@@ -9,19 +9,24 @@ export type EventType = Event["type"];
 export type PayloadOf<T extends EventType> = Extract<Event, { readonly type: T }>["payload"];
 
 /**
- * Appends an event written by the proprietaire on this device, decoded through the wire
+ * Appends an event written on this device in the role of its lien, decoded through the wire
  * contract so the journal never holds an event the API would refuse.
  */
-export function appendProprietaireEvent<T extends EventType>(
+export function appendEvent<T extends EventType>(
   journal: Journal,
-  { type, magasin, payload }: { type: T; magasin: string; payload: PayloadOf<T> },
+  {
+    actor,
+    type,
+    magasin,
+    payload,
+  }: { actor: Actor; type: T; magasin: string; payload: PayloadOf<T> },
 ) {
   journal
     .append(
       decodeEvent({
         id: crypto.randomUUID(),
         at: nextAt(journal.all()),
-        actor: "proprietaire",
+        actor,
         device: thisDevice(),
         magasin,
         type,

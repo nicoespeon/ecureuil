@@ -1,9 +1,6 @@
-import { seed } from "@ecureuil/domain";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { App } from "../App";
-import { inMemoryJournal } from "../journal/journal";
+import { renderApp } from "./renderApp";
 
 describe("la navigation vers la configuration", () => {
   it("le bouton Configuration ouvre la configuration, « Liste » ramène à la liste", async () => {
@@ -52,10 +49,22 @@ describe("la navigation vers la configuration", () => {
 
     expect(screen.getByRole("tab", { name: "Items" })).toHaveFocus();
   });
-});
 
-function renderApp() {
-  const user = userEvent.setup();
-  render(<App journal={inMemoryJournal(seed)} />);
-  return { user };
-}
+  it("la section Réglages montre les réglages de l'appareil", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    await user.click(screen.getByRole("tab", { name: "Réglages" }));
+
+    expect(screen.getByRole("heading", { level: 3, name: "Accès" })).toBeVisible();
+  });
+
+  it("la configuration écrit au nom du rôle de l'appareil", async () => {
+    const { user, journal } = renderApp({ role: "invite" });
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Pharmacie{Enter}");
+
+    expect(journal.all().at(-1)).toMatchObject({ type: "RayonCreated", actor: "invite" });
+  });
+});

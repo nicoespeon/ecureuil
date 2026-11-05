@@ -8,3 +8,4 @@ export {
   PullResponse,
   PushRequest,
 } from "./journal";
+export { inviteLienPath, LienResponse, lienPath, NewLienResponse } from "./lien";

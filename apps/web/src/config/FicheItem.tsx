@@ -1,10 +1,9 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Item, Magasin, State } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
-import type { Journal } from "../journal/journal";
 import { Stepper } from "../liste/ItemRow";
 import { ConfirmButton } from "./ConfirmButton";
-import { type ConfigActions, configActions } from "./configActions";
+import { type ConfigActions, configActions, type Writer } from "./configActions";
 import { NameInput } from "./NameInput";
 import { RayonSelect } from "./RayonSelect";
 import { useAnnouncer } from "./useAnnouncer";
@@ -21,17 +20,17 @@ export type FicheFoyer = {
  */
 export function useFicheItem({
   foyer,
-  journal,
+  writer,
   focusAfterRemove,
 }: {
   foyer: FicheFoyer;
-  journal: Journal;
+  writer: Writer;
   focusAfterRemove: RefObject<HTMLElement | null>;
 }) {
   const [itemId, setItemId] = useState<string | null>(null);
   const lastItemId = useRef<string | null>(null);
   const item = itemId === null ? undefined : foyer.state.items[itemId];
-  const actions = configActions(journal, foyer.magasinActif.id);
+  const actions = configActions(writer, foyer.magasinActif.id);
 
   return {
     openFiche: (id: string) => {

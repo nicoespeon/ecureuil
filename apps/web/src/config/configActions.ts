@@ -1,8 +1,5 @@
-import {
-  appendProprietaireEvent,
-  type EventType,
-  type PayloadOf,
-} from "../journal/appendProprietaireEvent";
+import type { Actor } from "@ecureuil/wire";
+import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import type { Journal } from "../journal/journal";
 import { itemRayonOf } from "./rayonChoice";
 
@@ -11,9 +8,9 @@ import { itemRayonOf } from "./rayonChoice";
  * the item sheet sets the rayon of every magasin, not only the active one. Item events carry
  * the active magasin as context.
  */
-export function configActions(journal: Journal, magasinActifId: string) {
+export function configActions({ journal, actor }: Writer, magasinActifId: string) {
   const append = <T extends EventType>(type: T, magasin: string, payload: PayloadOf<T>) =>
-    appendProprietaireEvent(journal, { type, magasin, payload });
+    appendEvent(journal, { actor, type, magasin, payload });
 
   return {
     createRayon: (magasinId: string, name: string) =>
@@ -39,3 +36,6 @@ export function configActions(journal: Journal, magasinActifId: string) {
 }
 
 export type ConfigActions = ReturnType<typeof configActions>;
+
+/** Where this device writes, and in which role: the API refuses any other actor. */
+export type Writer = { readonly journal: Journal; readonly actor: Actor };

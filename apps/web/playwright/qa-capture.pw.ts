@@ -33,6 +33,14 @@ test.describe("captures", () => {
     await expect(page.getByRole("alertdialog")).toBeVisible();
     await screenshot(page, "terminer", { fullPage: false });
   });
+
+  test("réglages d'un appareil sans lien", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Configuration" }).click();
+    await page.getByRole("tab", { name: "Réglages" }).click();
+    await expect(page.getByRole("heading", { name: "Réglages" })).toBeVisible();
+    await screenshot(page, "reglages");
+  });
 });
 
 test.describe("captures de la configuration à 375 px", () => {

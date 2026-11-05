@@ -1,9 +1,7 @@
-import { seed } from "@ecureuil/domain";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, within } from "@testing-library/react";
+import type userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { App } from "../App";
-import { inMemoryJournal } from "../journal/journal";
+import { renderApp } from "./renderApp";
 
 describe("tous les items", () => {
   it("liste le catalogue par nom, avec le rayon de chaque item dans le magasin actif", async () => {
@@ -56,8 +54,7 @@ describe("tous les items", () => {
 type User = ReturnType<typeof userEvent.setup>;
 
 async function openItems() {
-  const user = userEvent.setup();
-  render(<App journal={inMemoryJournal(seed)} />);
+  const { user } = renderApp();
   await user.click(screen.getByRole("button", { name: "Configuration" }));
   await user.click(screen.getByRole("tab", { name: "Items" }));
   return { user };

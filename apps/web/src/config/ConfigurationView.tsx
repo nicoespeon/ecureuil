@@ -1,11 +1,12 @@
 import { Tabs } from "@base-ui/react/tabs";
-import type { Journal } from "../journal/journal";
-import { configActions } from "./configActions";
+import type { AccesStore } from "../acces/acces";
+import { Reglages } from "../acces/Reglages";
+import { configActions, type Writer } from "./configActions";
 import { type FicheFoyer, useFicheItem } from "./FicheItem";
 import { ItemsView } from "./ItemsView";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
-import { Reglages } from "./Reglages";
+
 import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
 import { useMediaQuery } from "./useMediaQuery";
@@ -14,19 +15,21 @@ type Foyer = FicheFoyer & { readonly selectMagasin: (magasinId: string) => void 
 
 export function ConfigurationView({
   foyer,
-  journal,
+  writer,
+  acces,
   onClose,
 }: {
   foyer: Foyer;
-  journal: Journal;
+  writer: Writer;
+  acces: AccesStore;
   onClose: () => void;
 }) {
   const titleRef = useFocusOnMount<HTMLHeadingElement>();
   const { announcement, announce } = useAnnouncer();
   // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
   const sidebar = useMediaQuery("(min-width: 48rem)");
-  const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: titleRef });
-  const actions = { ...configActions(journal, foyer.magasinActif.id), announce, openFiche };
+  const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: titleRef });
+  const actions = { ...configActions(writer, foyer.magasinActif.id), announce, openFiche };
 
   return (
     <div className="mx-auto min-h-dvh max-w-5xl bg-white text-neutral-950">
@@ -64,7 +67,7 @@ export function ConfigurationView({
           </MagasinTabs>
         </Tabs.Panel>
         <Tabs.Panel value="reglages" className={panelClassName}>
-          <Reglages />
+          <Reglages acces={acces} />
         </Tabs.Panel>
       </Tabs.Root>
       {fiche}

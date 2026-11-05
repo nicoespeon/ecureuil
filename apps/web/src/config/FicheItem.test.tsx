@@ -1,9 +1,6 @@
-import { seed } from "@ecureuil/domain";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { App } from "../App";
-import { inMemoryJournal } from "../journal/journal";
+import { renderApp } from "./renderApp";
 
 describe("la fiche d'un item", () => {
   it("s'ouvre en touchant le nom d'un item dans la liste", async () => {
@@ -112,12 +109,6 @@ describe("la fiche d'un item", () => {
     expect(screen.queryByRole("checkbox", { name: "Lait" })).not.toBeInTheDocument();
   });
 });
-
-function renderApp() {
-  const user = userEvent.setup();
-  render(<App journal={inMemoryJournal(seed)} />);
-  return { user };
-}
 
 function fiche(name: string) {
   return within(screen.getByRole("dialog", { name }));

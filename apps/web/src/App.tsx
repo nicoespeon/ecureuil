@@ -1,29 +1,45 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
 import type { Liste, Magasin } from "@ecureuil/domain";
-import { useRef, useState } from "react";
+import type { Actor } from "@ecureuil/wire";
+import { useRef, useState, useSyncExternalStore } from "react";
+import { Accueil } from "./acces/Accueil";
+import type { AccesStore } from "./acces/acces";
+import { CollerLeLien } from "./acces/CollerLeLien";
 import { ConfigurationView } from "./config/ConfigurationView";
+import type { Writer } from "./config/configActions";
 import { useFicheItem } from "./config/FicheItem";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
 import type { Journal } from "./journal/journal";
-import { useFoyer } from "./journal/useFoyer";
+import { type Foyer, useFoyer } from "./journal/useFoyer";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
-export function App({ journal }: { journal: Journal }) {
-  const foyer = useFoyer(journal);
+export function App({
+  journal,
+  role,
+  acces,
+}: {
+  journal: Journal;
+  /** Every event written here carries it: the API refuses any other actor. */
+  role: Actor;
+  acces: AccesStore;
+}) {
+  const foyer = useFoyer(journal, role);
   const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
     "liste",
   );
+  const writer = { journal, actor: role };
   const { magasinActif, liste } = foyer;
 
-  if (!magasinActif || !liste) return <SansMagasin />;
+  if (!magasinActif || !liste) return <SansMagasin acces={acces} />;
   if (screen === "configuration")
     return (
       <ConfigurationView
         foyer={{ ...foyer, magasinActif }}
-        journal={journal}
+        writer={writer}
+        acces={acces}
         onClose={() => setScreen("backFromConfiguration")}
       />
     );
@@ -31,7 +47,7 @@ export function App({ journal }: { journal: Journal }) {
   return (
     <ListeScreen
       foyer={{ ...foyer, magasinActif, liste }}
-      journal={journal}
+      writer={writer}
       configuration={{
         focusOnMount: screen === "backFromConfiguration",
         open: () => setScreen("configuration"),
@@ -40,19 +56,18 @@ export function App({ journal }: { journal: Journal }) {
   );
 }
 
+type FoyerWithListe = Foyer & { magasinActif: Magasin; liste: Liste };
+
 function ListeScreen({
   foyer,
-  journal,
+  writer,
   configuration,
 }: {
-  foyer: ReturnType<typeof useFoyer> & { magasinActif: Magasin; liste: Liste };
-  journal: Journal;
+  foyer: FoyerWithListe;
+  writer: Writer;
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
-  const { announcement, announce } = useAnnouncer();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const { openFiche, fiche } = useFicheItem({ foyer, journal, focusAfterRemove: panelRef });
-  const { magasins, magasinActif, liste } = foyer;
+  const { magasins, magasinActif } = foyer;
 
   return (
     <Tabs.Root
@@ -81,10 +96,23 @@ function ListeScreen({
           onClick={configuration.open}
         />
       </header>
-      <Tabs.Panel ref={panelRef} value={magasinActif.id} className="outline-none">
+      <MagasinPanel foyer={foyer} writer={writer} />
+    </Tabs.Root>
+  );
+}
+
+function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer }) {
+  const { announcement, announce } = useAnnouncer();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
+  const { magasinActif: magasin, liste } = foyer;
+
+  return (
+    <>
+      <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
         <ListeView
           liste={liste}
-          magasinName={magasinActif.name}
+          magasinName={magasin.name}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -104,7 +132,7 @@ function ListeScreen({
       <p role="status" className="sr-only">
         {announcement}
       </p>
-    </Tabs.Root>
+    </>
   );
 }
 
@@ -159,15 +187,17 @@ function GearIcon() {
 }
 
 /** A new device, or one whose first sync has not brought a magasin yet. */
-function SansMagasin() {
+function SansMagasin({ acces }: { acces: AccesStore }) {
+  const state = useSyncExternalStore(acces.subscribe, acces.get);
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 bg-white px-6 text-neutral-950">
-      <h1 className="text-3xl font-semibold">Écureuil</h1>
+    <Accueil title="Écureuil">
       <p className="text-lg">Cet appareil n'a encore aucun magasin.</p>
       <p className="text-lg text-neutral-700">
-        Ouvrez votre lien d'accès sur cet appareil, en le collant dans la barre d'adresse : la liste
-        du foyer arrive avec la synchronisation.
+        Ouvrez votre lien d'accès sur cet appareil, ou collez-le ici : votre liste arrive avec la
+        synchronisation.
       </p>
-    </main>
+      {state._tag === "SansLien" && <CollerLeLien openLien={acces.openLien} />}
+    </Accueil>
   );
 }

@@ -1,9 +1,7 @@
-import { seed } from "@ecureuil/domain";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, within } from "@testing-library/react";
+import type userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { App } from "../App";
-import { inMemoryJournal } from "../journal/journal";
+import { renderApp } from "./renderApp";
 
 describe("les rayons d'un magasin", () => {
   it("s'affichent dans l'ordre du magasin actif", async () => {
@@ -103,8 +101,7 @@ describe("les rayons d'un magasin", () => {
 type User = ReturnType<typeof userEvent.setup>;
 
 async function openRayons() {
-  const user = userEvent.setup();
-  render(<App journal={inMemoryJournal(seed)} />);
+  const { user } = renderApp();
   await user.click(screen.getByRole("button", { name: "Configuration" }));
   return { user };
 }

@@ -4,7 +4,7 @@ Three parameters is the most this repo accepts. A fourth is a sign of coupling: 
 
 Find which one it is:
 
-1. **Parameters that always travel together** are a concept. Look for an existing type they belong to (an `Event`'s own fields, a `MagasinSeed`), and pass that. `appendProprietaireEvent(journal, { type, magasin, payload })` takes the fields of the event being written, which the function then stamps with `id`, `at` and `device`.
+1. **Parameters that always travel together** are a concept. Look for an existing type they belong to (an `Event`'s own fields, a `MagasinSeed`), and pass that. `appendEvent(journal, { actor, type, magasin, payload })` takes the fields of the event being written, which the function then stamps with `id`, `at` and `device`.
 2. **A callback or flag that changes what the function does** means two jobs in one. Split them. `arbitrate(state, demandeId, verdict, then)` became `pendingDemande(state, demandeId)`, a guard each handler calls before settling the demande its own way.
 3. **An optional parameter used at one call site** is an exception: express it at that call site. The seed's single invite demande reads `byInvite(draft(...))` instead of `draft` growing a fourth `actor` parameter.
 
