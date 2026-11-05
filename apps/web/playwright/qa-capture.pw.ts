@@ -1,10 +1,14 @@
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { devices, expect, type Page, test } from "@playwright/test";
 
 const mobile = devices["Pixel 7"].viewport;
 
 /** `QA_OUT=before` on `main`, the default `after` on the branch: two folders to compare. */
-const outDir = join(import.meta.dirname, "../../../qa-output", process.env.QA_OUT ?? "after");
+const outDir = join(import.meta.dirname, "../../../qa-output", process.env.QA_OUT || "after");
+
+// A failed run must not leave an older capture to be attached as this one.
+test.beforeAll(() => rm(outDir, { recursive: true, force: true }));
 
 test.describe("captures", () => {
   // Rows move with a view transition: a still frame mid-move would differ from run to run.
