@@ -1,9 +1,15 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { Liste, ListItem, Section } from "@ecureuil/domain";
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useId, useLayoutEffect, useRef } from "react";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 
-type Actions = ToBuyActions & { readonly uncheck: (itemId: string) => void };
+type Actions = {
+  readonly check: (itemId: string) => void;
+  readonly uncheck: (itemId: string) => void;
+  readonly setQuantity: (itemId: string, quantity: number) => void;
+  readonly removeFromList: (itemId: string) => void;
+  readonly announce: (message: string) => void;
+};
 
 export function ListeView({
   liste,
@@ -14,27 +20,79 @@ export function ListeView({
   magasinName: string;
   actions: Actions;
 }) {
+  const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow();
+  const rowActions = {
+    setQuantity: actions.setQuantity,
+    announce: actions.announce,
+    check: (item: ListItem) => {
+      focusNeighborOf(item.id);
+      actions.check(item.id);
+      actions.announce(`${item.name} dans le panier`);
+    },
+    uncheck: (item: ListItem) => {
+      focusNeighborOf(item.id);
+      actions.uncheck(item.id);
+      actions.announce(`${item.name} retiré du panier`);
+    },
+    removeFromList: (item: ListItem) => {
+      focusNeighborOf(item.id);
+      actions.removeFromList(item.id);
+      actions.announce(`${item.name} retiré de la liste`);
+    },
+  };
+
   return (
-    <div className="pb-24">
+    <div ref={containerRef} className="pb-24">
       {liste.sections.map((section) => (
         <ListeSection key={sectionKey(section)} title={sectionTitle(section)}>
-          <ToBuyRows items={section.items} actions={actions} />
+          <ToBuyRows items={section.items} actions={rowActions} />
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (
         <ListeSection title="Dans le panier">
           <ul>
             {liste.panier.map((item) => (
-              <PanierRow key={item.id} item={item} uncheck={actions.uncheck} />
+              <PanierRow key={item.id} item={item} uncheck={rowActions.uncheck} />
             ))}
           </ul>
         </ListeSection>
       )}
       {liste.pasVenduIci.length > 0 && (
-        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} actions={actions} />
+        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} actions={rowActions} />
       )}
     </div>
   );
+}
+
+/**
+ * A row that leaves its place (checked, unchecked, removed) would take the keyboard focus with
+ * it: the focus goes to the next row instead, or the previous one, without scrolling.
+ */
+function useFocusNeighborOfLeavingRow() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const neighborId = useRef<string | undefined>(undefined);
+
+  const checkboxes = () => [
+    ...(containerRef.current?.querySelectorAll<HTMLInputElement>("input[data-item-id]") ?? []),
+  ];
+
+  useLayoutEffect(() => {
+    if (neighborId.current === undefined) return;
+    const neighbor = checkboxes().find(
+      (checkbox) => checkbox.dataset.itemId === neighborId.current,
+    );
+    neighborId.current = undefined;
+    neighbor?.focus({ preventScroll: true });
+  });
+
+  return {
+    containerRef,
+    focusNeighborOf: (itemId: string) => {
+      const all = checkboxes();
+      const index = all.findIndex((checkbox) => checkbox.dataset.itemId === itemId);
+      neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.itemId;
+    },
+  };
 }
 
 function sectionKey(section: Section) {

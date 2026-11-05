@@ -76,6 +76,31 @@ describe("le panier", () => {
     expect(section("Produits laitiers").getByRole("checkbox", { name: "Lait" })).not.toBeChecked();
   });
 
+  it("annonce que Lait est dans le panier", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Lait dans le panier");
+  });
+
+  it("cocher Lait donne le focus à l'item suivant", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
+
+    expect(screen.getByRole("checkbox", { name: "Yaourts" })).toHaveFocus();
+  });
+
+  it("décocher Babybel donne le focus à l'item suivant du panier", async () => {
+    const { user } = renderApp();
+    await checkLaitAndBabybel(user);
+
+    await user.click(section("Dans le panier").getByRole("checkbox", { name: "Babybel" }));
+
+    expect(section("Dans le panier").getByRole("checkbox", { name: "Lait" })).toHaveFocus();
+  });
+
   it("relit dans l'ordre d'écriture deux gestes de la même milliseconde", async () => {
     vi.spyOn(Date, "now").mockReturnValue(Date.UTC(2026, 10, 4, 18));
     vi.spyOn(crypto, "randomUUID")
@@ -143,6 +168,24 @@ describe("retirer de la liste", () => {
     await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
 
     expect(screen.queryByRole("checkbox", { name: "Babybel" })).toBeNull();
+  });
+
+  it("donne le focus à l'item suivant après le retrait de Babybel", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
+
+    expect(screen.getByRole("checkbox", { name: "Lait" })).toHaveFocus();
+  });
+
+  it("donne le focus à l'item précédent après le retrait du dernier de la liste", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Fromage râpé de la liste" }));
+
+    await user.click(screen.getByRole("button", { name: "Retirer Fromage râpé ?" }));
+
+    expect(screen.getByRole("checkbox", { name: "Croissants" })).toHaveFocus();
   });
 
   it("la confirmation retombe après 3 secondes", async () => {

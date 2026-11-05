@@ -7,15 +7,15 @@ const MAX_QUANTITY = 10;
 const REMOVE_CONFIRMATION_MS = 3000;
 
 export type ToBuyActions = {
-  readonly check: (itemId: string) => void;
+  readonly check: (item: ListItem) => void;
   readonly setQuantity: (itemId: string, quantity: number) => void;
-  readonly removeFromList: (itemId: string) => void;
+  readonly removeFromList: (item: ListItem) => void;
   readonly announce: (message: string) => void;
 };
 
 export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActions }) {
   return (
-    <Row item={item} checked={false} onToggle={() => actions.check(item.id)}>
+    <Row item={item} checked={false} onToggle={() => actions.check(item)}>
       <Stepper item={item} setQuantity={actions.setQuantity} />
       <RemoveButton item={item} actions={actions} />
     </Row>
@@ -27,9 +27,9 @@ export function PanierRow({
   uncheck,
 }: {
   item: ListItem;
-  uncheck: (itemId: string) => void;
+  uncheck: (item: ListItem) => void;
 }) {
-  return <Row item={item} checked onToggle={() => uncheck(item.id)} />;
+  return <Row item={item} checked onToggle={() => uncheck(item)} />;
 }
 
 function Row({
@@ -53,6 +53,7 @@ function Row({
         <input
           type="checkbox"
           aria-label={item.name}
+          data-item-id={item.id}
           checked={checked}
           onChange={() => animateMove(onToggle)}
           className="size-6 cursor-pointer accent-neutral-900"
@@ -116,8 +117,7 @@ function RemoveButton({ item, actions }: { item: ListItem; actions: ToBuyActions
       type="button"
       onClick={() => {
         if (confirming) {
-          actions.removeFromList(item.id);
-          actions.announce(`${item.name} retiré de la liste`);
+          actions.removeFromList(item);
         } else {
           setConfirming(true);
           actions.announce(`Touchez encore pour retirer ${item.name} de la liste`);
