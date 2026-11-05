@@ -1,6 +1,19 @@
 {
   "permissions": {
-    "allow": ["mcp__Claude_Browser__preview_start"]
+    "allow": [
+      "mcp__Claude_Browser__preview_start",
+      "Bash(pnpm check)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm qa:*)",
+      "Bash(pnpm --filter web:*)",
+      "Bash(pnpm --filter api dev:*)",
+      "Bash(pnpm --filter api test:*)",
+      "Bash(pnpm --filter api typecheck:*)",
+      "Bash(pnpm --filter api db:migrate)",
+      "Bash(pnpm --filter api liens)",
+      "Bash(pnpm --filter api seed)"
+    ]
   },
   "hooks": {
     "PreToolUse": [
