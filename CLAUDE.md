@@ -22,7 +22,11 @@ pnpm build                 # builds apps/web (CI runs it after check)
 pnpm check:fix             # biome auto-fix
 pnpm --filter web dev      # http://localhost:5173
 pnpm --filter api dev      # http://localhost:8787/health (wrangler, local D1)
+pnpm --filter api db:migrate   # apply apps/api/migrations to the local D1 (--remote for production)
+pnpm --filter api liens        # create (or replace) the two secret links (--remote for production)
 ```
+
+The API (`/journal` push and pull, curl examples) is documented in [`apps/api/README.md`](apps/api/README.md).
 
 `.claude/launch.json` declares both dev servers (`web`, `api`).
 
@@ -78,7 +82,7 @@ The global standards in `~/.claude/CLAUDE.md` apply (TDD-first, less code, named
 ### Pull requests
 
 - Continuous integration: every task ends in a PR to `main`; merge = deploy. The PR is the QA gate, not `main`.
-- `.github/workflows/ci.yml` runs `pnpm check` and `pnpm build`, then deploys `apps/web` to Cloudflare Pages (preview per PR branch, production on `main`) and `apps/api` to Workers on `main` only, smoke-tested on `/health`. No API preview: it would share the production D1. Facts and sources: [`docs/research/ci-cd.md`](docs/research/ci-cd.md).
+- `.github/workflows/ci.yml` runs `pnpm check` and `pnpm build`, then deploys `apps/web` to Cloudflare Pages (preview per PR branch, production on `main`) and `apps/api` to Workers on `main` only, after applying the D1 migrations, smoke-tested on `/health`. No API preview: it would share the production D1. Facts and sources: [`docs/research/ci-cd.md`](docs/research/ci-cd.md).
 - The PR title becomes the squash commit, so `.github/workflows/pr-title.yml` checks it is `type(scope)?: subject` (≤ 100 characters); test a title locally with `node .github/scripts/check-pr-title.mjs "feat: …"`.
 - Renovate runs self-hosted daily (`.github/workflows/renovate.yml`, `renovate.json`): pinned versions, at most 2 new PRs a day, non-major updates grouped and automerged once CI is green, majors left open for Nicolas, lockfile maintenance on Mondays.
 - The session that did the work does the QA itself before opening the PR and puts the evidence in the PR body: before/after screenshots for any UI change, a short video (webm) for any interaction change, captured with `pnpm qa:capture` (Playwright over the dev seed; added by task 12 — until then, Playwright or the built-in browser by hand).
