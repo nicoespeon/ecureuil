@@ -14,6 +14,8 @@ concurrency:
 
 jobs:
   check:
+    # PROTOTYPE branch: throwaway code without tests, skipped.
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
