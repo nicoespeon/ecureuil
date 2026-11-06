@@ -1,6 +1,6 @@
 # switch
 
-A `switch` lets a case go missing silently: add a variant to `Event` or `ItemRayon` and every `switch` over it still compiles. Exhaustive matching turns "did I handle every case?" into a compile error.
+A `switch` lets a case go missing silently: add a variant to `Event` or `ArticleRayon` and every `switch` over it still compiles. Exhaustive matching turns "did I handle every case?" into a compile error.
 
 Pick the shape by where the code lives:
 

@@ -1,6 +1,6 @@
 # Écureuil
 
-Offline-first grocery list for one household, with a catalogue of items with a rayon per magasin so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
+Offline-first grocery list for one household, with a catalogue of articles with a rayon per magasin so the list walks the store in order. Codename _Écureuil_ (squirrel). The brief and the task list live in the Notion project page "Créer une app pour faire les courses"; the decisions live here, in [`GLOSSARY.md`](GLOSSARY.md) and in [`docs/adr`](docs/adr).
 
 ## Repo layout
 
@@ -63,8 +63,8 @@ A finding is fixed in the code, guided by `.claude/hooks/guides/<smell>.md` (or 
 
 The ubiquitous language is French, deliberately hybrid with English technical vocabulary:
 
-- Domain nouns are French identifiers, exactly as in [`GLOSSARY.md`](GLOSSARY.md): `Foyer`, `Magasin`, `Rayon`, `Item`, `Liste`, `Panier`, `Sortie`, `Achat`, `Demande`. No accents in identifiers (`NonClasse`, `PasVenduIci`).
-- Events are a French noun with an English verb: `MagasinCreated`, `ItemRayonSet`, `SortieFinished`, `DemandeRefused`.
+- Domain nouns are French identifiers, exactly as in [`GLOSSARY.md`](GLOSSARY.md): `Foyer`, `Magasin`, `Rayon`, `Article`, `Liste`, `Panier`, `Sortie`, `Achat`, `Demande`. No accents in identifiers (`NonClasse`, `PasVenduIci`).
+- Events are a French noun with an English verb: `MagasinCreated`, `ArticleRayonSet`, `SortieFinished`, `DemandeRefused`.
 - Roles are domain terms too: `proprietaire` / `invite`. Technical vocabulary stays English: `device`, `fold`, `listForMagasin`, the ports, statuses (`toBuy`, `Pending`), attributes (`name`, `quantity`).
 - Code comments in English. ADRs, PR bodies and the glossary in French.
 - Test titles (`describe`, `it`, `it.each`, Playwright `test`) in French, keeping domain identifiers and English technical vocabulary as is; the test code and its comments stay English.

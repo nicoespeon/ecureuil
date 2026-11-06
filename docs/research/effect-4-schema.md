@@ -11,13 +11,13 @@ Vérifié contre **Effect 4.1.2** (`effect` dans `packages/domain` et `packages/
 - **`Schema.Literal(x)`** pour une seule valeur, **`Schema.Literals([x, y])`** pour plusieurs.
   Pourquoi : `Actor` est `Schema.Literals(["proprietaire", "invite"])`, le `type` de chaque événement un `Schema.Literal`.
 - **`Schema.TaggedStruct("Tag", { ... })`** ajoute le champ `_tag`.
-  Pourquoi : les trois membres de `ItemRayon`.
+  Pourquoi : les trois membres de `ArticleRayon`.
 - **`Schema.NullOr(S)`**, **`Schema.Array(S)`**, **`Schema.NonEmptyString`**.
   Pourquoi : le `magasin` nullable des événements du foyer, `rayonIds`, les ids et les noms.
 - **`Schema.Int`** rejette `NaN` et `±Infinity` ; on le raffine avec `Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)))`. `check` prend un ou plusieurs filtres, `isGreaterThan` une borne exclusive.
-  Pourquoi : la quantité d'un item est un entier strictement positif.
+  Pourquoi : la quantité d'un article est un entier strictement positif.
 - **`Schema.Schema.Type<typeof S>`** donne le type décodé.
-  Pourquoi : `Event`, `Actor` et `ItemRayon` exportent un type du même nom que leur schéma.
+  Pourquoi : `Event`, `Actor` et `ArticleRayon` exportent un type du même nom que leur schéma.
 - **`Schema.Struct.Fields`** est la contrainte d'une map de champs (un objet dont les valeurs sont des schémas).
   Pourquoi : les helpers génériques `foyerEvent` et `magasinEvent` prennent `const P extends Schema.Struct.Fields`.
 - **Décoder** : `Schema.decodeUnknownSync(S)(input)` rend le type ou lève une erreur ; `Schema.decodeUnknownResult(S)(input)` rend un `Result<Type, SchemaError>`. Il n'y a plus de module `Either` (pas de `Either.d.ts`, `Result.d.ts` existe), ni de `decodeUnknownEither`.
@@ -30,7 +30,7 @@ Vérifié contre **Effect 4.1.2** (`effect` dans `packages/domain` et `packages/
 
 ## Data
 
-- **`Data.TaggedEnum<{ A: {...}; B: Record<never, never> }>`** déclare l'union taguée, **`Data.taggedEnum<T>()`** en fabrique les constructeurs : `DemandeStatus.Pending()`, `DemandeStatus.Accepted({ itemId })`.
+- **`Data.TaggedEnum<{ A: {...}; B: Record<never, never> }>`** déclare l'union taguée, **`Data.taggedEnum<T>()`** en fabrique les constructeurs : `DemandeStatus.Pending()`, `DemandeStatus.Accepted({ articleId })`.
   Pourquoi : `DemandeStatus` et les `Section` de la liste, au lieu d'unions `_tag` écrites à la main.
 
 ## Services

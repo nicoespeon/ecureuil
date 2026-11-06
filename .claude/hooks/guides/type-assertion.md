@@ -14,6 +14,6 @@ Each finding falls in one of three cases:
    ```
 
    `unknown` is the honest type before decoding; `any` never is.
-3. **A value that may be absent** (`state.items[itemId]`, `document.getElementById`). Narrow it: an early return, optional chaining, or a guard that returns the narrowed value, like `pendingDemande` in `reducer.ts`. `main.tsx` checks `if (!root)` and throws a named error instead of writing `root!`.
+3. **A value that may be absent** (`state.articles[articleId]`, `document.getElementById`). Narrow it: an early return, optional chaining, or a guard that returns the narrowed value, like `pendingDemande` in `reducer.ts`. `main.tsx` checks `if (!root)` and throws a named error instead of writing `root!`.
 
 You are done when the type comes from a decoder, a guard or inference, and the compiler checks every use after it.
