@@ -20,16 +20,11 @@ export function TerminerLesCourses({
   return (
     <AlertDialog.Root>
       {inPanier > 0 && (
-        <div
-          style={{ viewTransitionName: "terminer-les-courses" }}
-          className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)]"
+        <AlertDialog.Trigger
+          className={`${buttonClassName} grow whitespace-nowrap bg-neutral-900 text-white`}
         >
-          <div className="mx-auto max-w-xl p-3">
-            <AlertDialog.Trigger className={`${buttonClassName} w-full bg-neutral-900 text-white`}>
-              Terminer les courses
-            </AlertDialog.Trigger>
-          </div>
-        </div>
+          Terminer les courses
+        </AlertDialog.Trigger>
       )}
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />

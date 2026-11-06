@@ -11,7 +11,7 @@ La PWA : React consomme l'état replié du journal ([`@ecureuil/domain`](../../p
 
 Si IndexedDB ne s'ouvre pas, l'app tourne sur un journal en mémoire, sans sync, le temps de la page.
 
-En dev (`pnpm --filter web dev`), un journal vide reçoit le `seed` du domaine, marqué déjà poussé : il n'est jamais envoyé au serveur. En production, le journal démarre vide et se remplit par le tirage.
+En dev (`pnpm --filter web dev`), un journal vide reçoit le `seed` du domaine et ses sorties passées (`seedSorties`), marqués déjà poussés : il n'est jamais envoyé au serveur. En production, le journal démarre vide et se remplit par le tirage.
 
 ## Synchroniser avec l'API
 

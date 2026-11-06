@@ -102,6 +102,8 @@ const liste = listForMagasin(state, "magasin-costco");
 
 Il est déterministe : ids lisibles et fixes (`magasin-costco`, `rayon-costco-boulangerie`, `item-lait`), `at` croissant d'une minute à partir d'une epoch fixe, `device` `seed`. Chaque événement est décodé par le schéma `Event` de `@ecureuil/wire`, donc la fixture casse au chargement si elle sort du contrat. En dev, l'app web le charge dans un journal local vide, marqué déjà poussé : il n'est jamais envoyé au serveur (il contient une demande de l'invité, que le lien du propriétaire ne peut pas pousser).
 
+`seedSorties` ajoute cinq sorties passées (trois à Costco, deux à Maxi) pour que les items fréquents de l'ajout rapide aient de quoi s'afficher en dev. Elles restent hors de `seed`, que la commande `seed` de l'API pousse en production, où de fausses sorties fausseraient les vrais fréquents. Leurs items ne sont pas sur la liste du seed, qui reste la même.
+
 ## Ports
 
 Services Effect (`Context.Service`), sans implémentation ici :

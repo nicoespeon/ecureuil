@@ -51,6 +51,71 @@ test.describe("captures de la configuration à 375 px", () => {
   });
 });
 
+test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  test("liste, panier, fréquents et recherche", async ({ page }) => {
+    await page.goto("/");
+    await screenshot(page, "liste-375");
+    await checkLaitAndBabybel(page);
+    await screenshot(page, "panier-375", { fullPage: false });
+
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await expect(page.getByRole("region", { name: "Fréquents" })).toBeVisible();
+    await screenshot(page, "ajout-frequents", { fullPage: false });
+
+    await searchbox(page).fill("lai");
+    await expect(page.getByRole("button", { name: "Créer « lai »" })).toBeVisible();
+    await screenshot(page, "ajout-recherche", { fullPage: false });
+
+    await page.getByRole("button", { name: "Créer « lai »" }).click();
+    await expect(page.getByRole("dialog", { name: "lai" })).toBeVisible();
+    await screenshot(page, "ajout-fiche", { fullPage: false });
+  });
+});
+
+test.describe("vidéo de l'ajout rapide à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : remettre un fréquent, trouver un item, en créer un", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await pause(page);
+    await page
+      .getByRole("region", { name: "Fréquents" })
+      .getByRole("button", { name: "Bananes" })
+      .click();
+    await pause(page);
+    await searchbox(page).pressSequentially("pom", { delay: 200 });
+    await pause(page);
+    await page.getByRole("button", { name: "Pommes" }).click();
+    await pause(page);
+    await searchbox(page).pressSequentially("Laitue", { delay: 200 });
+    await pause(page);
+    await page.getByRole("button", { name: "Créer « Laitue »" }).click();
+    const fiche = page.getByRole("dialog", { name: "Laitue" });
+    await expect(fiche).toBeVisible();
+    await pause(page);
+    await fiche
+      .getByRole("combobox", { name: "Rayon chez Costco" })
+      .selectOption({ label: "Fruits et légumes" });
+    await pause(page);
+    await fiche.getByRole("button", { name: "Fermer" }).click();
+    await expect(searchbox(page)).toBeFocused();
+    await pause(page);
+    await page
+      .getByRole("dialog", { name: "Ajouter à la liste" })
+      .getByRole("button", { name: "Fermer" })
+      .click();
+    const laitue = page
+      .getByRole("region", { name: "Fruits et légumes" })
+      .getByRole("checkbox", { name: "Laitue" });
+    await laitue.scrollIntoViewIfNeeded();
+    await expect(laitue).toBeVisible();
+    await saveVideo(page, "ajout");
+  });
+});
+
 test.describe("captures sur desktop", () => {
   test.use({ reducedMotion: "reduce", ...desktop });
 
@@ -168,6 +233,10 @@ async function saveVideo(page: Page, name: string) {
   // The video is only written once the page closes.
   await page.close();
   await page.video()?.saveAs(join(outDir, `${name}.webm`));
+}
+
+function searchbox(page: Page) {
+  return page.getByRole("searchbox", { name: "Item à ajouter" });
 }
 
 async function checkLaitAndBabybel(page: Page) {
