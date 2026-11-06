@@ -172,12 +172,20 @@ function NomDuMagasin({
         withLabel
         warning={{
           announce: actions.announce,
-          message: `Supprimer ${magasin.name} ? Ses ${magasin.rayons.length} rayons et le classement de ${classifiedItemCount} items seront perdus.`,
+          message: removalWarning(magasin, classifiedItemCount),
         }}
         onConfirm={actions.remove}
       />
     </div>
   );
+}
+
+const plural = new Intl.PluralRules("fr");
+
+function removalWarning(magasin: Magasin, classifiedItemCount: number) {
+  const count = (n: number, noun: string) =>
+    plural.select(n) === "one" ? `${n} ${noun}` : `${n} ${noun}s`;
+  return `Supprimer ${magasin.name} ? Seront perdus : ${count(magasin.rayons.length, "rayon")} et le classement de ${count(classifiedItemCount, "item")}.`;
 }
 
 function classifiedItemCount(items: State["items"], magasinId: string) {

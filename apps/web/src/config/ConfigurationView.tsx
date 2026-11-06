@@ -33,14 +33,16 @@ export function ConfigurationView({
   const sidebar = useMediaQuery("(min-width: 48rem)");
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: titleRef });
   const [section, setSection] = useState("rayons");
+  const config = configActions(writer, foyer.magasinActif.id);
   const magasinActions = useMagasinActions({
     foyer,
     writer,
     announce,
     showRayons: () => setSection("rayons"),
+    removeMagasin: config.removeMagasin,
   });
   const actions = {
-    ...configActions(writer, foyer.magasinActif.id),
+    ...config,
     ...magasinActions,
     announce,
     openFiche,
@@ -103,9 +105,11 @@ function useMagasinActions({
   writer,
   announce,
   showRayons,
+  removeMagasin,
 }: {
   foyer: Foyer;
   writer: Writer;
+  removeMagasin: (magasinId: string) => void;
   announce: (message: string) => void;
   showRayons: () => void;
 }) {
@@ -120,7 +124,7 @@ function useMagasinActions({
     },
     removeMagasin: ({ id, name }: Magasin) => {
       focus.request("onglet");
-      configActions(writer, id).removeMagasin(id);
+      removeMagasin(id);
       announce(`Magasin ${name} supprimé.`);
     },
   };

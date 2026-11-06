@@ -70,16 +70,35 @@ describe("renommer et supprimer un magasin", () => {
     await user.click(screen.getByRole("button", { name: "Supprimer Costco" }));
 
     expect(
-      screen.getByText(
-        "Supprimer Costco ? Ses 8 rayons et le classement de 18 items seront perdus.",
-      ),
+      screen.getByText("Supprimer Costco ? Seront perdus : 8 rayons et le classement de 18 items."),
+    ).toHaveRole("status");
+  });
+
+  it("le message de suppression s'accorde au singulier", async () => {
+    const { user } = await openConfiguration();
+    await createMagasin(user, "IGA");
+    const allButOne = [
+      "Boulangerie",
+      "Viandes et poissons",
+      "Produits laitiers",
+      "Épicerie",
+      "Surgelés",
+      "Hygiène",
+      "Entretien",
+    ];
+    for (const rayon of allButOne) await confirmRemoval(user, rayon);
+
+    await user.click(screen.getByRole("button", { name: "Supprimer IGA" }));
+
+    expect(
+      screen.getByText("Supprimer IGA ? Seront perdus : 1 rayon et le classement de 0 item."),
     ).toHaveRole("status");
   });
 
   it("une fois confirmé, l'onglet disparaît et le focus va au magasin restant", async () => {
     const { user } = await openConfiguration();
 
-    await removeMagasin(user, "Costco");
+    await confirmRemoval(user, "Costco");
 
     expect(magasinTabNames()).toEqual(["Maxi"]);
     expect(screen.getByRole("tab", { name: "Maxi" })).toHaveFocus();
@@ -90,8 +109,8 @@ describe("renommer et supprimer un magasin", () => {
 describe("sans magasin", () => {
   it("après le dernier magasin supprimé, le propriétaire peut en créer un et le configurer", async () => {
     const { user } = await openConfiguration();
-    await removeMagasin(user, "Costco");
-    await removeMagasin(user, "Maxi");
+    await confirmRemoval(user, "Costco");
+    await confirmRemoval(user, "Maxi");
 
     await user.click(screen.getByRole("button", { name: "Créer un magasin" }));
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "IGA{Enter}");
@@ -123,7 +142,8 @@ async function createMagasin(user: User, name: string) {
   await user.click(within(dialog).getByRole("button", { name: "Créer" }));
 }
 
-async function removeMagasin(user: User, name: string) {
+/** Removes a magasin or a rayon: both ask for a second tap. */
+async function confirmRemoval(user: User, name: string) {
   await user.click(screen.getByRole("button", { name: `Supprimer ${name}` }));
   await user.click(screen.getByRole("button", { name: `Confirmer la suppression de ${name}` }));
 }
