@@ -7,7 +7,7 @@ import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEv
 import { inMemoryJournal } from "../journal/journal";
 
 describe("la liste vue par l'invité", () => {
-  it("montre les items du magasin sans case à cocher ni « Terminer les courses »", () => {
+  it("montre les articles du magasin sans case à cocher ni « Terminer les courses »", () => {
     renderApp({ role: "invite" });
 
     expect(section("Produits laitiers").getByText("Lait")).toBeVisible();
@@ -118,13 +118,13 @@ describe("mes demandes", () => {
     );
     appendEvent(
       journal,
-      written("proprietaire", "ItemCreated", { itemId: "item-cafe", name: "Café" }),
+      written("proprietaire", "ArticleCreated", { articleId: "article-cafe", name: "Café" }),
     );
     appendEvent(
       journal,
       written("proprietaire", "DemandeAccepted", {
         demandeId: "demande-cafe",
-        itemId: "item-cafe",
+        articleId: "article-cafe",
       }),
     );
     appendEvent(

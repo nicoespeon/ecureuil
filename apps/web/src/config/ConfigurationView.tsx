@@ -3,9 +3,9 @@ import type { Magasin } from "@ecureuil/domain";
 import { useState } from "react";
 import type { AccesStore } from "../acces/acces";
 import { Reglages } from "../acces/Reglages";
+import { ArticlesView } from "./ArticlesView";
 import { configActions, createMagasin, type Writer } from "./configActions";
-import { type FicheFoyer, useFicheItem } from "./FicheItem";
-import { ItemsView } from "./ItemsView";
+import { type FicheFoyer, useFicheArticle } from "./FicheArticle";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
 
@@ -31,7 +31,7 @@ export function ConfigurationView({
   const { announcement, announce } = useAnnouncer();
   // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
   const sidebar = useMediaQuery("(min-width: 48rem)");
-  const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: titleRef });
+  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: titleRef });
   const [section, setSection] = useState("rayons");
   const config = configActions(writer, foyer.magasinActif.id);
   const magasinActions = useMagasinActions({
@@ -76,12 +76,20 @@ export function ConfigurationView({
         </Tabs.List>
         <Tabs.Panel value="rayons" className={panelClassName}>
           <MagasinTabs {...foyer} {...magasinActions}>
-            <RayonsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
+            <RayonsView
+              magasin={foyer.magasinActif}
+              articles={foyer.state.articles}
+              actions={actions}
+            />
           </MagasinTabs>
         </Tabs.Panel>
-        <Tabs.Panel value="items" className={panelClassName}>
+        <Tabs.Panel value="articles" className={panelClassName}>
           <MagasinTabs {...foyer} {...magasinActions}>
-            <ItemsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
+            <ArticlesView
+              magasin={foyer.magasinActif}
+              articles={foyer.state.articles}
+              actions={actions}
+            />
           </MagasinTabs>
         </Tabs.Panel>
         <Tabs.Panel value="reglages" className={panelClassName}>
@@ -132,7 +140,7 @@ function useMagasinActions({
 
 const sections = [
   { value: "rayons", label: "Rayons" },
-  { value: "items", label: "Items" },
+  { value: "articles", label: "Articles" },
   { value: "reglages", label: "Réglages" },
 ];
 

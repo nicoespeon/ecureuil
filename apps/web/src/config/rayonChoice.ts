@@ -1,5 +1,5 @@
-import type { Item } from "@ecureuil/domain";
-import { ItemRayon } from "@ecureuil/wire";
+import type { Article } from "@ecureuil/domain";
+import { ArticleRayon } from "@ecureuil/wire";
 
 /**
  * The value of a rayon `<select>`: one of the magasin's rayons, « Non classé » or « Pas chez X ».
@@ -13,15 +13,15 @@ export function rayonChoiceOf(rayonId: string) {
   return `${RAYON_PREFIX}${rayonId}`;
 }
 
-export function currentRayonChoice(item: Item, magasinId: string) {
-  const itemRayon = item.rayonParMagasin[magasinId];
-  if (itemRayon === undefined) return NON_CLASSE;
-  return itemRayon._tag === "Rayon" ? rayonChoiceOf(itemRayon.rayonId) : PAS_VENDU_ICI;
+export function currentRayonChoice(article: Article, magasinId: string) {
+  const articleRayon = article.rayonParMagasin[magasinId];
+  if (articleRayon === undefined) return NON_CLASSE;
+  return articleRayon._tag === "Rayon" ? rayonChoiceOf(articleRayon.rayonId) : PAS_VENDU_ICI;
 }
 
-export function itemRayonOf(choice: string) {
-  if (choice === PAS_VENDU_ICI) return ItemRayon.cases.PasVenduIci.make({});
+export function articleRayonOf(choice: string) {
+  if (choice === PAS_VENDU_ICI) return ArticleRayon.cases.PasVenduIci.make({});
   if (choice.startsWith(RAYON_PREFIX))
-    return ItemRayon.cases.Rayon.make({ rayonId: choice.slice(RAYON_PREFIX.length) });
-  return ItemRayon.cases.NonClasse.make({});
+    return ArticleRayon.cases.Rayon.make({ rayonId: choice.slice(RAYON_PREFIX.length) });
+  return ArticleRayon.cases.NonClasse.make({});
 }

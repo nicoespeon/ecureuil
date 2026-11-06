@@ -77,8 +77,8 @@ function event(id: string) {
     actor: "proprietaire",
     device: "pixel",
     magasin: null,
-    type: "ItemCreated",
-    payload: { itemId: id, name: id },
+    type: "ArticleCreated",
+    payload: { articleId: id, name: id },
   });
 }
 

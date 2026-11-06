@@ -51,7 +51,7 @@ test.describe("captures", () => {
 test.describe("captures de la configuration à 375 px", () => {
   test.use({ reducedMotion: "reduce", viewport: narrowPhone });
 
-  test("rayons, items et fiche", async ({ page }) => {
+  test("rayons, articles et fiche", async ({ page }) => {
     await captureConfiguration(page, "375");
   });
 
@@ -131,7 +131,7 @@ test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
 test.describe("vidéo de l'ajout rapide à 375 px", () => {
   test.use({ viewport: narrowPhone });
 
-  test("vidéo : remettre un fréquent, trouver un item, en créer un", async ({ page }) => {
+  test("vidéo : remettre un fréquent, trouver un article, en créer un", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Ajouter" }).click();
     await pause(page);
@@ -173,7 +173,7 @@ test.describe("vidéo de l'ajout rapide à 375 px", () => {
 test.describe("captures sur desktop", () => {
   test.use({ reducedMotion: "reduce", ...desktop });
 
-  test("liste, rayons, items et fiche", async ({ page }) => {
+  test("liste, rayons, articles et fiche", async ({ page }) => {
     await page.goto("/");
     await screenshot(page, "liste-desktop");
     await captureConfiguration(page, "desktop");
@@ -325,9 +325,9 @@ async function captureConfiguration(page: Page, suffix: string) {
   await openRayons(page);
   await screenshot(page, `rayons-${suffix}`);
 
-  await page.getByRole("tab", { name: "Items" }).click();
-  await expect(page.getByRole("list", { name: "Items" })).toBeVisible();
-  await screenshot(page, `items-${suffix}`);
+  await page.getByRole("tab", { name: "Articles" }).click();
+  await expect(page.getByRole("list", { name: "Articles" })).toBeVisible();
+  await screenshot(page, `articles-${suffix}`);
 
   await page.getByRole("button", { name: "Lait", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Lait" })).toBeVisible();
@@ -379,7 +379,7 @@ async function saveVideo(page: Page, name: string) {
 }
 
 function searchbox(page: Page) {
-  return page.getByRole("searchbox", { name: "Item à ajouter" });
+  return page.getByRole("searchbox", { name: "Article à ajouter" });
 }
 
 async function startCourses(page: Page) {

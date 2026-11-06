@@ -2,8 +2,8 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderApp } from "./renderApp";
 
-describe("la fiche d'un item", () => {
-  it("s'ouvre en touchant le nom d'un item dans la liste", async () => {
+describe("la fiche d'un article", () => {
+  it("s'ouvre en touchant le nom d'un article dans la liste", async () => {
     const { user } = renderApp();
 
     await user.click(screen.getByRole("button", { name: "Lait" }));
@@ -19,17 +19,17 @@ describe("la fiche d'un item", () => {
     );
   });
 
-  it("s'ouvre depuis la vue Items de la configuration", async () => {
+  it("s'ouvre depuis la vue Articles de la configuration", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Configuration" }));
-    await user.click(screen.getByRole("tab", { name: "Items" }));
+    await user.click(screen.getByRole("tab", { name: "Articles" }));
 
     await user.click(screen.getByRole("button", { name: "Pain" }));
 
     expect(fiche("Pain").getByRole("checkbox", { name: "À acheter" })).not.toBeChecked();
   });
 
-  it("renommer l'item renomme sa ligne dans la liste", async () => {
+  it("renommer l'article renomme sa ligne dans la liste", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Lait" }));
 
@@ -41,7 +41,7 @@ describe("la fiche d'un item", () => {
     expect(screen.getByRole("button", { name: "Lait d'avoine" })).toBeVisible();
   });
 
-  it("décocher « À acheter » retire l'item de la liste", async () => {
+  it("décocher « À acheter » retire l'article de la liste", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Lait" }));
 
@@ -75,7 +75,7 @@ describe("la fiche d'un item", () => {
     expect(section("Épicerie").getByRole("button", { name: "Croissants" })).toBeVisible();
   });
 
-  it("fermer la fiche rend le focus au nom de l'item, même rangé ailleurs", async () => {
+  it("fermer la fiche rend le focus au nom de l'article, même rangé ailleurs", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Croissants" }));
 
@@ -88,7 +88,7 @@ describe("la fiche d'un item", () => {
     expect(section("Épicerie").getByRole("button", { name: "Croissants" })).toHaveFocus();
   });
 
-  it("fermer la fiche d'un item retiré de la liste ne perd pas le focus", async () => {
+  it("fermer la fiche d'un article retiré de la liste ne perd pas le focus", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Lait" }));
 
@@ -98,7 +98,7 @@ describe("la fiche d'un item", () => {
     expect(screen.getByRole("tabpanel", { name: "Costco" })).toHaveFocus();
   });
 
-  it("supprimer l'item, confirmé, le retire du catalogue et ferme la fiche", async () => {
+  it("supprimer l'article, confirmé, le retire du catalogue et ferme la fiche", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Lait" }));
 

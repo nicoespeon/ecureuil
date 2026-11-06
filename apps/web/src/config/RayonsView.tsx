@@ -34,11 +34,11 @@ type Actions = Pick<
 
 export function RayonsView({
   magasin,
-  items,
+  articles,
   actions,
 }: {
   magasin: Magasin;
-  items: State["items"];
+  articles: State["articles"];
   actions: Actions;
 }) {
   const { rayons } = magasin;
@@ -62,7 +62,7 @@ export function RayonsView({
       <NomDuMagasin
         key={magasin.id}
         magasin={magasin}
-        classifiedItemCount={classifiedItemCount(items, magasin.id)}
+        classifiedArticleCount={classifiedArticleCount(articles, magasin.id)}
         actions={{
           rename: (name) => actions.renameMagasin(magasin.id, name),
           remove: () => actions.removeMagasin(magasin),
@@ -82,7 +82,10 @@ export function RayonsView({
               <RayonRow
                 key={rayon.id}
                 rayon={rayon}
-                itemCount={itemCountIn(items, { magasinId: magasin.id, rayonId: rayon.id })}
+                articleCount={articleCountIn(articles, {
+                  magasinId: magasin.id,
+                  rayonId: rayon.id,
+                })}
                 actions={{
                   rename: (name) => actions.renameRayon(magasin.id, { rayonId: rayon.id, name }),
                   remove: () => {
@@ -129,23 +132,23 @@ function useFocusNeighborOfRemovedRayon(rayonIds: ReadonlyArray<string>) {
   };
 }
 
-function itemCountIn(
-  items: State["items"],
+function articleCountIn(
+  articles: State["articles"],
   { magasinId, rayonId }: { magasinId: string; rayonId: string },
 ) {
-  return Object.values(items).filter((item) => {
-    const itemRayon = item.rayonParMagasin[magasinId];
-    return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayonId;
+  return Object.values(articles).filter((article) => {
+    const articleRayon = article.rayonParMagasin[magasinId];
+    return articleRayon?._tag === "Rayon" && articleRayon.rayonId === rayonId;
   }).length;
 }
 
 function NomDuMagasin({
   magasin,
-  classifiedItemCount,
+  classifiedArticleCount,
   actions,
 }: {
   magasin: Magasin;
-  classifiedItemCount: number;
+  classifiedArticleCount: number;
   actions: {
     rename: (name: string) => void;
     remove: () => void;
@@ -172,7 +175,7 @@ function NomDuMagasin({
         withLabel
         warning={{
           announce: actions.announce,
-          message: removalWarning(magasin, classifiedItemCount),
+          message: removalWarning(magasin, classifiedArticleCount),
         }}
         onConfirm={actions.remove}
       />
@@ -182,15 +185,16 @@ function NomDuMagasin({
 
 const plural = new Intl.PluralRules("fr");
 
-function removalWarning(magasin: Magasin, classifiedItemCount: number) {
+function removalWarning(magasin: Magasin, classifiedArticleCount: number) {
   const count = (n: number, noun: string) =>
     plural.select(n) === "one" ? `${n} ${noun}` : `${n} ${noun}s`;
-  return `Supprimer ${magasin.name} ? Seront perdus : ${count(magasin.rayons.length, "rayon")} et le classement de ${count(classifiedItemCount, "item")}.`;
+  return `Supprimer ${magasin.name} ? Seront perdus : ${count(magasin.rayons.length, "rayon")} et le classement de ${count(classifiedArticleCount, "article")}.`;
 }
 
-function classifiedItemCount(items: State["items"], magasinId: string) {
-  return Object.values(items).filter((item) => item.rayonParMagasin[magasinId]?._tag === "Rayon")
-    .length;
+function classifiedArticleCount(articles: State["articles"], magasinId: string) {
+  return Object.values(articles).filter(
+    (article) => article.rayonParMagasin[magasinId]?._tag === "Rayon",
+  ).length;
 }
 
 function NouveauRayon({ create }: { create: (name: string) => void }) {

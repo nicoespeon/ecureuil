@@ -1,4 +1,4 @@
-import type { Event, ItemRayon } from "@ecureuil/wire";
+import type { ArticleRayon, Event } from "@ecureuil/wire";
 import { Data, Match } from "effect";
 
 export type Magasin = {
@@ -9,23 +9,23 @@ export type Magasin = {
 
 export type Rayon = { readonly id: string; readonly name: string };
 
-export type Item = {
+export type Article = {
   readonly id: string;
   readonly name: string;
   readonly quantity: number;
-  readonly status: ItemStatus;
+  readonly status: ArticleStatus;
   /**
    * Per magasin. An absent magasin means NonClasse ("Non classé").
    */
   readonly rayonParMagasin: Readonly<
-    Record<string, Exclude<ItemRayon, { readonly _tag: "NonClasse" }>>
+    Record<string, Exclude<ArticleRayon, { readonly _tag: "NonClasse" }>>
   >;
 };
 
 /**
  * "notToBuy" = in the catalogue only; "toBuy" = on the list; "inCart" = checked during a sortie.
  */
-export type ItemStatus = "notToBuy" | "toBuy" | "inCart";
+export type ArticleStatus = "notToBuy" | "toBuy" | "inCart";
 
 /**
  * One shopping run, closed by "Terminer les courses".
@@ -34,11 +34,11 @@ export type Sortie = {
   readonly id: string;
   readonly magasin: string;
   readonly at: number;
-  readonly achats: ReadonlyArray<{ readonly itemId: string; readonly quantity: number }>;
+  readonly achats: ReadonlyArray<{ readonly articleId: string; readonly quantity: number }>;
 };
 
 /**
- * An item the guest asks for; the first decision is final, the owner's verdict or the guest
+ * An article the guest asks for; the first decision is final, the owner's verdict or the guest
  * withdrawing it.
  */
 export type Demande = {
@@ -50,7 +50,7 @@ export type Demande = {
 
 export type DemandeStatus = Data.TaggedEnum<{
   Pending: Record<never, never>;
-  Accepted: { readonly itemId: string };
+  Accepted: { readonly articleId: string };
   Refused: Record<never, never>;
   /** Taken back by the invite while still pending. */
   Withdrawn: Record<never, never>;
@@ -59,12 +59,12 @@ const DemandeStatus = Data.taggedEnum<DemandeStatus>();
 
 export type State = {
   readonly magasins: Readonly<Record<string, Magasin>>;
-  readonly items: Readonly<Record<string, Item>>;
+  readonly articles: Readonly<Record<string, Article>>;
   readonly demandes: Readonly<Record<string, Demande>>;
   readonly sorties: ReadonlyArray<Sortie>;
 };
 
-export const initialState: State = { magasins: {}, items: {}, demandes: {}, sorties: [] };
+export const initialState: State = { magasins: {}, articles: {}, demandes: {}, sorties: [] };
 
 /**
  * Devices sync out of order and may resend: the journal is replayed in one total order
@@ -98,7 +98,9 @@ const applyEvent = Match.type<Event>().pipe(
       updateMagasin(state, event.magasin, (magasin) => ({ ...magasin, name: event.payload.name })),
     MagasinRemoved: (event) => (state: State) => {
       const { [event.magasin]: _removed, ...magasins } = state.magasins;
-      return updateItems({ ...state, magasins }, (item) => unsetRayon(item, event.magasin));
+      return updateArticles({ ...state, magasins }, (article) =>
+        unsetRayon(article, event.magasin),
+      );
     },
     RayonCreated: (event) => (state: State) =>
       updateMagasin(state, event.magasin, (magasin) =>
@@ -127,71 +129,81 @@ const applyEvent = Match.type<Event>().pipe(
         ...magasin,
         rayons: magasin.rayons.filter((rayon) => rayon.id !== rayonId),
       }));
-      return updateItems(withoutRayon, (item) => {
-        const itemRayon = item.rayonParMagasin[event.magasin];
-        return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayonId
-          ? unsetRayon(item, event.magasin)
-          : item;
+      return updateArticles(withoutRayon, (article) => {
+        const articleRayon = article.rayonParMagasin[event.magasin];
+        return articleRayon?._tag === "Rayon" && articleRayon.rayonId === rayonId
+          ? unsetRayon(article, event.magasin)
+          : article;
       });
     },
-    ItemCreated: (event) => (state: State) =>
-      state.items[event.payload.itemId]
+    ArticleCreated: (event) => (state: State) =>
+      state.articles[event.payload.articleId]
         ? state
-        : withItem(state, {
-            id: event.payload.itemId,
+        : withArticle(state, {
+            id: event.payload.articleId,
             name: event.payload.name,
             quantity: 1,
             status: "notToBuy",
             rayonParMagasin: {},
           }),
-    ItemRenamed: (event) => (state: State) =>
-      updateItem(state, event.payload.itemId, (item) => ({ ...item, name: event.payload.name })),
-    ItemQuantitySet: (event) => (state: State) =>
-      updateItem(state, event.payload.itemId, (item) => ({
-        ...item,
+    ArticleRenamed: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, (article) => ({
+        ...article,
+        name: event.payload.name,
+      })),
+    ArticleQuantitySet: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, (article) => ({
+        ...article,
         quantity: event.payload.quantity,
       })),
-    ItemRemoved: (event) => (state: State) => {
-      const { [event.payload.itemId]: _removed, ...items } = state.items;
-      return { ...state, items };
+    ArticleRemoved: (event) => (state: State) => {
+      const { [event.payload.articleId]: _removed, ...articles } = state.articles;
+      return { ...state, articles };
     },
-    ItemRayonSet: (event) => (state: State) => {
-      const { rayon: itemRayon } = event.payload;
+    ArticleRayonSet: (event) => (state: State) => {
+      const { rayon: articleRayon } = event.payload;
       const magasin = state.magasins[event.magasin];
       if (!magasin) return state;
       if (
-        itemRayon._tag === "Rayon" &&
-        !magasin.rayons.some((rayon) => rayon.id === itemRayon.rayonId)
+        articleRayon._tag === "Rayon" &&
+        !magasin.rayons.some((rayon) => rayon.id === articleRayon.rayonId)
       ) {
         return state;
       }
-      return updateItem(state, event.payload.itemId, (item) =>
-        itemRayon._tag === "NonClasse"
-          ? unsetRayon(item, event.magasin)
-          : { ...item, rayonParMagasin: { ...item.rayonParMagasin, [event.magasin]: itemRayon } },
+      return updateArticle(state, event.payload.articleId, (article) =>
+        articleRayon._tag === "NonClasse"
+          ? unsetRayon(article, event.magasin)
+          : {
+              ...article,
+              rayonParMagasin: { ...article.rayonParMagasin, [event.magasin]: articleRayon },
+            },
       );
     },
-    ItemMarkedToBuy: (event) => (state: State) => updateItem(state, event.payload.itemId, list),
-    ItemMarkedNotToBuy: (event) => (state: State) =>
-      updateItem(state, event.payload.itemId, (item) => ({ ...item, status: "notToBuy" })),
-    ItemChecked: (event) => (state: State) =>
-      updateItem(state, event.payload.itemId, (item) =>
-        item.status === "notToBuy" ? item : { ...item, status: "inCart" },
+    ArticleMarkedToBuy: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, list),
+    ArticleMarkedNotToBuy: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, (article) => ({
+        ...article,
+        status: "notToBuy",
+      })),
+    ArticleChecked: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, (article) =>
+        article.status === "notToBuy" ? article : { ...article, status: "inCart" },
       ),
-    ItemUnchecked: (event) => (state: State) =>
-      updateItem(state, event.payload.itemId, (item) =>
-        item.status === "inCart" ? { ...item, status: "toBuy" } : item,
+    ArticleUnchecked: (event) => (state: State) =>
+      updateArticle(state, event.payload.articleId, (article) =>
+        article.status === "inCart" ? { ...article, status: "toBuy" } : article,
       ),
     SortieFinished: (event) => (state: State) => {
-      const bought = Object.values(state.items).filter((item) => item.status === "inCart");
+      const bought = Object.values(state.articles).filter((article) => article.status === "inCart");
       const sortie: Sortie = {
         id: event.id,
         magasin: event.magasin,
         at: event.at,
-        achats: bought.map(({ id, quantity }) => ({ itemId: id, quantity })),
+        achats: bought.map(({ id, quantity }) => ({ articleId: id, quantity })),
       };
-      const emptied = updateItems(state, (item) =>
-        item.status === "inCart" ? { ...item, status: "notToBuy" } : item,
+      const emptied = updateArticles(state, (article) =>
+        article.status === "inCart" ? { ...article, status: "notToBuy" } : article,
       );
       return { ...emptied, sorties: [...state.sorties, sortie] };
     },
@@ -205,12 +217,12 @@ const applyEvent = Match.type<Event>().pipe(
             status: DemandeStatus.Pending(),
           }),
     DemandeAccepted: (event) => (state: State) => {
-      const { demandeId, itemId } = event.payload;
+      const { demandeId, articleId } = event.payload;
       const demande = pendingDemande(state, demandeId);
-      // Accepting toward an unknown item would settle the demande for nothing: stay pending.
-      if (!demande || !state.items[itemId]) return state;
-      const accepted = { ...demande, status: DemandeStatus.Accepted({ itemId }) };
-      return updateItem(withDemande(state, accepted), itemId, list);
+      // Accepting toward an unknown article would settle the demande for nothing: stay pending.
+      if (!demande || !state.articles[articleId]) return state;
+      const accepted = { ...demande, status: DemandeStatus.Accepted({ articleId }) };
+      return updateArticle(withDemande(state, accepted), articleId, list);
     },
     DemandeRefused: (event) => (state: State) => {
       const demande = pendingDemande(state, event.payload.demandeId);
@@ -249,30 +261,36 @@ function reorder(rayons: ReadonlyArray<Rayon>, rayonIds: ReadonlyArray<string>) 
   return [...mentioned, ...unmentioned];
 }
 
-function withItem(state: State, item: Item): State {
-  return { ...state, items: { ...state.items, [item.id]: item } };
+function withArticle(state: State, article: Article): State {
+  return { ...state, articles: { ...state.articles, [article.id]: article } };
 }
 
-function updateItem(state: State, itemId: string, update: (item: Item) => Item): State {
-  const item = state.items[itemId];
-  return item ? withItem(state, update(item)) : state;
+function updateArticle(
+  state: State,
+  articleId: string,
+  update: (article: Article) => Article,
+): State {
+  const article = state.articles[articleId];
+  return article ? withArticle(state, update(article)) : state;
 }
 
-function updateItems(state: State, update: (item: Item) => Item): State {
-  const items = Object.values(state.items).map((item) => [item.id, update(item)] as const);
-  return { ...state, items: Object.fromEntries(items) };
+function updateArticles(state: State, update: (article: Article) => Article): State {
+  const articles = Object.values(state.articles).map(
+    (article) => [article.id, update(article)] as const,
+  );
+  return { ...state, articles: Object.fromEntries(articles) };
 }
 
 /**
- * Puts an item on the list; already listed or in the panier, it stays where it is.
+ * Puts an article on the list; already listed or in the panier, it stays where it is.
  */
-function list(item: Item): Item {
-  return item.status === "notToBuy" ? { ...item, status: "toBuy" } : item;
+function list(article: Article): Article {
+  return article.status === "notToBuy" ? { ...article, status: "toBuy" } : article;
 }
 
-function unsetRayon(item: Item, magasinId: string): Item {
-  const { [magasinId]: _unfiled, ...rayonParMagasin } = item.rayonParMagasin;
-  return { ...item, rayonParMagasin };
+function unsetRayon(article: Article, magasinId: string): Article {
+  const { [magasinId]: _unfiled, ...rayonParMagasin } = article.rayonParMagasin;
+  return { ...article, rayonParMagasin };
 }
 
 function withDemande(state: State, demande: Demande): State {

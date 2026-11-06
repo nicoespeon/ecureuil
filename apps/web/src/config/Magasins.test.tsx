@@ -32,9 +32,9 @@ describe("créer un magasin", () => {
     expect(screen.getByText("Magasin IGA créé.")).toHaveRole("status");
   });
 
-  it("depuis la section Items, la création ramène à la section Rayons", async () => {
+  it("depuis la section Articles, la création ramène à la section Rayons", async () => {
     const { user } = await openConfiguration();
-    await user.click(screen.getByRole("tab", { name: "Items" }));
+    await user.click(screen.getByRole("tab", { name: "Articles" }));
 
     await createMagasin(user, "IGA");
 
@@ -70,7 +70,9 @@ describe("renommer et supprimer un magasin", () => {
     await user.click(screen.getByRole("button", { name: "Supprimer Costco" }));
 
     expect(
-      screen.getByText("Supprimer Costco ? Seront perdus : 8 rayons et le classement de 18 items."),
+      screen.getByText(
+        "Supprimer Costco ? Seront perdus : 8 rayons et le classement de 18 articles.",
+      ),
     ).toHaveRole("status");
   });
 
@@ -91,7 +93,7 @@ describe("renommer et supprimer un magasin", () => {
     await user.click(screen.getByRole("button", { name: "Supprimer IGA" }));
 
     expect(
-      screen.getByText("Supprimer IGA ? Seront perdus : 1 rayon et le classement de 0 item."),
+      screen.getByText("Supprimer IGA ? Seront perdus : 1 rayon et le classement de 0 article."),
     ).toHaveRole("status");
   });
 

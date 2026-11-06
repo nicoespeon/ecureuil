@@ -2,11 +2,11 @@ import { magasinCreation } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import type { Journal } from "../journal/journal";
-import { itemRayonOf } from "./rayonChoice";
+import { articleRayonOf } from "./rayonChoice";
 
 /**
  * What the configuration writes to the journal. Unlike the list, it targets a magasin by id:
- * the item sheet sets the rayon of every magasin, not only the active one. Item events carry
+ * the article sheet sets the rayon of every magasin, not only the active one. Article events carry
  * the active magasin as context.
  */
 export function configActions({ journal, actor }: Writer, magasinActifId: string) {
@@ -25,17 +25,19 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
       append("RayonsReordered", magasinId, { rayonIds }),
     removeRayon: (magasinId: string, rayonId: string) =>
       append("RayonRemoved", magasinId, { rayonId }),
-    setItemRayon: (magasinId: string, { itemId, choice }: { itemId: string; choice: string }) =>
-      append("ItemRayonSet", magasinId, { itemId, rayon: itemRayonOf(choice) }),
-    renameItem: (itemId: string, name: string) =>
-      append("ItemRenamed", magasinActifId, { itemId, name }),
-    setQuantity: (itemId: string, quantity: number) =>
-      append("ItemQuantitySet", magasinActifId, { itemId, quantity }),
-    setToBuy: (itemId: string, toBuy: boolean) =>
+    setArticleRayon: (
+      magasinId: string,
+      { articleId, choice }: { articleId: string; choice: string },
+    ) => append("ArticleRayonSet", magasinId, { articleId, rayon: articleRayonOf(choice) }),
+    renameArticle: (articleId: string, name: string) =>
+      append("ArticleRenamed", magasinActifId, { articleId, name }),
+    setQuantity: (articleId: string, quantity: number) =>
+      append("ArticleQuantitySet", magasinActifId, { articleId, quantity }),
+    setToBuy: (articleId: string, toBuy: boolean) =>
       toBuy
-        ? append("ItemMarkedToBuy", magasinActifId, { itemId })
-        : append("ItemMarkedNotToBuy", magasinActifId, { itemId }),
-    removeItem: (itemId: string) => append("ItemRemoved", magasinActifId, { itemId }),
+        ? append("ArticleMarkedToBuy", magasinActifId, { articleId })
+        : append("ArticleMarkedNotToBuy", magasinActifId, { articleId }),
+    removeArticle: (articleId: string) => append("ArticleRemoved", magasinActifId, { articleId }),
   };
 }
 

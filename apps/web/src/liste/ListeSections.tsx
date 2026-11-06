@@ -1,9 +1,9 @@
 import { Collapsible } from "@base-ui/react/collapsible";
-import type { Liste, ListItem, Section } from "@ecureuil/domain";
+import type { ListArticle, Liste, Section } from "@ecureuil/domain";
 import { type ReactNode, useId } from "react";
 import { headingTransitionName } from "./animateMove";
 
-type Rows = (items: ReadonlyArray<ListItem>) => ReactNode;
+type Rows = (articles: ReadonlyArray<ListArticle>) => ReactNode;
 
 /**
  * The list as walked in the magasin, whoever reads it: the rows are the caller's, with or
@@ -28,7 +28,7 @@ export function ListeSections({
           id={sectionKey(section)}
           title={sectionTitle(section)}
         >
-          {toBuyRows(section.items)}
+          {toBuyRows(section.articles)}
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (

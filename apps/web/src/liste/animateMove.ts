@@ -1,7 +1,7 @@
 import { flushSync } from "react-dom";
 
 /**
- * Animates items moving between sections (rayon ↔ panier) with a view transition, matched by
+ * Animates articles moving between sections (rayon ↔ panier) with a view transition, matched by
  * each row's `view-transition-name`. No animation when the user asks for reduced motion or the
  * browser can't.
  */
@@ -14,8 +14,8 @@ export function animateMove(update: () => void) {
   document.startViewTransition(() => flushSync(update));
 }
 
-export function moveTransitionName(itemId: string) {
-  return `item-${CSS.escape(itemId)}`;
+export function moveTransitionName(articleId: string) {
+  return `article-${CSS.escape(articleId)}`;
 }
 
 /** Section headings slide with their rows instead of cross-fading between two places. */

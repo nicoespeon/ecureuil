@@ -23,9 +23,9 @@ describe("la liste d'un magasin", () => {
     ]);
   });
 
-  it("passer à Maxi change les groupes, pas les items", async () => {
+  it("passer à Maxi change les groupes, pas les articles", async () => {
     const { user } = renderApp();
-    const itemsAtCostco = itemNames();
+    const articlesAtCostco = articleNames();
 
     await user.click(screen.getByRole("tab", { name: "Maxi" }));
     await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
@@ -40,10 +40,10 @@ describe("la liste d'un magasin", () => {
       "Non classé",
       "Pas chez Maxi (1)",
     ]);
-    expect(itemNames()).toEqual(itemsAtCostco);
+    expect(articleNames()).toEqual(articlesAtCostco);
   });
 
-  it("range les items absents de Maxi dans « Pas chez Maxi »", async () => {
+  it("range les articles absents de Maxi dans « Pas chez Maxi »", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("tab", { name: "Maxi" }));
 
@@ -111,7 +111,7 @@ describe("le panier", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Lait dans le panier");
   });
 
-  it("cocher Lait donne le focus à l'item suivant", async () => {
+  it("cocher Lait donne le focus à l'article suivant", async () => {
     const { user } = renderApp();
     await startCourses(user);
 
@@ -120,7 +120,7 @@ describe("le panier", () => {
     expect(screen.getByRole("checkbox", { name: "Yaourts" })).toHaveFocus();
   });
 
-  it("décocher Babybel donne le focus à l'item suivant du panier", async () => {
+  it("décocher Babybel donne le focus à l'article suivant du panier", async () => {
     const { user } = renderApp();
     await startCourses(user);
     await checkLaitAndBabybel(user);
@@ -204,7 +204,7 @@ describe("retirer de la liste", () => {
     expect(screen.queryByRole("button", { name: "Babybel" })).toBeNull();
   });
 
-  it("donne le focus à la poubelle de l'item suivant après le retrait de Babybel", async () => {
+  it("donne le focus à la poubelle de l'article suivant après le retrait de Babybel", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
 
@@ -213,7 +213,7 @@ describe("retirer de la liste", () => {
     expect(screen.getByRole("button", { name: "Retirer Lait de la liste" })).toHaveFocus();
   });
 
-  it("donne le focus à la poubelle de l'item précédent après le retrait du dernier de la liste", async () => {
+  it("donne le focus à la poubelle de l'article précédent après le retrait du dernier de la liste", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Fromage râpé de la liste" }));
 
@@ -249,18 +249,18 @@ describe("terminer les courses", () => {
     await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
 
     expect(screen.getByRole("alertdialog")).toHaveTextContent(
-      "2 items dans le panier, 8 restent à acheter",
+      "2 articles dans le panier, 8 restent à acheter",
     );
   });
 
-  it("accorde un panier d'un seul item au singulier", async () => {
+  it("accorde un panier d'un seul article au singulier", async () => {
     const { user } = renderApp();
     await startCourses(user);
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
     await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
 
-    expect(screen.getByRole("alertdialog")).toHaveTextContent("1 item dans le panier");
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("1 article dans le panier");
   });
 
   it("vide le panier", async () => {
@@ -273,14 +273,14 @@ describe("terminer les courses", () => {
     expect(screen.queryByRole("region", { name: "Dans le panier" })).toBeNull();
   });
 
-  it("laisse les autres items à acheter", async () => {
+  it("laisse les autres articles à acheter", async () => {
     const { user } = renderApp();
     await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await finishSortie(user);
 
-    expect(itemNames()).toEqual([
+    expect(articleNames()).toEqual([
       "Champignons",
       "Croissants",
       "Fromage râpé",
@@ -373,8 +373,8 @@ function sectionTitles() {
   return screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
 }
 
-/** Every item to buy, by its trash in Préparer, sorted so a different grouping compares equal. */
-function itemNames() {
+/** Every article to buy, by its trash in Préparer, sorted so a different grouping compares equal. */
+function articleNames() {
   return screen
     .getAllByRole("button", { name: /^Retirer .+ de la liste$/ })
     .map((trash) => trash.textContent?.replace(/^Retirer (.+) de la liste$/, "$1"))
@@ -385,8 +385,8 @@ function section(name: string) {
   return within(screen.getByRole("region", { name }));
 }
 
-function row(itemName: string) {
-  return screen.getByRole("button", { name: itemName }).closest("li");
+function row(articleName: string) {
+  return screen.getByRole("button", { name: articleName }).closest("li");
 }
 
 /** What a browser hands out when site storage is disabled: every access throws. */

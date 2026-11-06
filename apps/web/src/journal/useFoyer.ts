@@ -1,7 +1,7 @@
 import {
+  articleNamed,
   type Demande,
   fold,
-  itemNamed,
   type Liste,
   listForMagasin,
   type Magasin,
@@ -50,30 +50,30 @@ export function useFoyer(journal: Journal, actor: Actor) {
       writePreferredMagasinId(magasinId);
       setPreferredMagasinId(magasinId);
     },
-    check: (itemId: string) => append("ItemChecked", { itemId }),
-    uncheck: (itemId: string) => append("ItemUnchecked", { itemId }),
-    setQuantity: (itemId: string, quantity: number) =>
-      append("ItemQuantitySet", { itemId, quantity }),
-    removeFromList: (itemId: string) => append("ItemMarkedNotToBuy", { itemId }),
-    markToBuy: (itemId: string) => append("ItemMarkedToBuy", { itemId }),
-    /** A new item is NonClasse in every magasin until it is sorted. Returns its id. */
-    createItem: (name: string) => {
-      const itemId = crypto.randomUUID();
-      append("ItemCreated", { itemId, name });
-      append("ItemMarkedToBuy", { itemId });
-      return itemId;
+    check: (articleId: string) => append("ArticleChecked", { articleId }),
+    uncheck: (articleId: string) => append("ArticleUnchecked", { articleId }),
+    setQuantity: (articleId: string, quantity: number) =>
+      append("ArticleQuantitySet", { articleId, quantity }),
+    removeFromList: (articleId: string) => append("ArticleMarkedNotToBuy", { articleId }),
+    markToBuy: (articleId: string) => append("ArticleMarkedToBuy", { articleId }),
+    /** A new article is NonClasse in every magasin until it is sorted. Returns its id. */
+    createArticle: (name: string) => {
+      const articleId = crypto.randomUUID();
+      append("ArticleCreated", { articleId, name });
+      append("ArticleMarkedToBuy", { articleId });
+      return articleId;
     },
     finishSortie: () => append("SortieFinished", {}),
     askFor: (name: string) => append("DemandeCreated", { demandeId: crypto.randomUUID(), name }),
     /**
-     * Lists the catalogue item of the same name, or a new one, "Non classé" everywhere. The new
-     * item takes the demande's id: two devices accepting before a sync create the same item once.
+     * Lists the catalogue article of the same name, or a new one, "Non classé" everywhere. The new
+     * article takes the demande's id: two devices accepting before a sync create the same article once.
      */
     acceptDemande: (demande: Demande) => {
-      const existing = itemNamed(state, demande.name);
-      const itemId = existing?.id ?? demande.id;
-      if (!existing) append("ItemCreated", { itemId, name: demande.name });
-      append("DemandeAccepted", { demandeId: demande.id, itemId });
+      const existing = articleNamed(state, demande.name);
+      const articleId = existing?.id ?? demande.id;
+      if (!existing) append("ArticleCreated", { articleId, name: demande.name });
+      append("DemandeAccepted", { demandeId: demande.id, articleId });
     },
     refuseDemande: (demande: Demande) => append("DemandeRefused", { demandeId: demande.id }),
     withdrawDemande: (demande: Demande) => append("DemandeWithdrawn", { demandeId: demande.id }),

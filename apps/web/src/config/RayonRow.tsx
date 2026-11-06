@@ -6,11 +6,11 @@ import { NameInput } from "./NameInput";
 
 export function RayonRow({
   rayon,
-  itemCount,
+  articleCount,
   actions,
 }: {
   rayon: Rayon;
-  itemCount: number;
+  articleCount: number;
   actions: {
     rename: (name: string) => void;
     remove: () => void;
@@ -45,18 +45,18 @@ export function RayonRow({
       <NameInput name={rayon.name} rename={actions.rename} aria-label={`Renommer ${rayon.name}`} />
       <ConfirmButton
         subject={rayon.name}
-        warning={{ announce: actions.announce, message: removalWarning(rayon.name, itemCount) }}
+        warning={{ announce: actions.announce, message: removalWarning(rayon.name, articleCount) }}
         onConfirm={actions.remove}
       />
     </li>
   );
 }
 
-function removalWarning(name: string, itemCount: number) {
+function removalWarning(name: string, articleCount: number) {
   const question = `Supprimer ${name} ?`;
-  if (itemCount === 0) return question;
-  if (itemCount === 1) return `${question} 1 item passera en Non classé.`;
-  return `${question} ${itemCount} items passeront en Non classé.`;
+  if (articleCount === 0) return question;
+  if (articleCount === 1) return `${question} 1 article passera en Non classé.`;
+  return `${question} ${articleCount} articles passeront en Non classé.`;
 }
 
 function GripIcon() {

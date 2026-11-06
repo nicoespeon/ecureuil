@@ -1,34 +1,34 @@
 import { Data } from "effect";
-import type { Item, State } from "./reducer";
+import type { Article, State } from "./reducer";
 
-export type ListItem = { readonly id: string; readonly name: string; readonly quantity: number };
+export type ListArticle = { readonly id: string; readonly name: string; readonly quantity: number };
 
 export type Section = Data.TaggedEnum<{
   Rayon: {
     readonly rayonId: string;
     readonly name: string;
-    readonly items: ReadonlyArray<ListItem>;
+    readonly articles: ReadonlyArray<ListArticle>;
   };
-  NonClasse: { readonly items: ReadonlyArray<ListItem> };
+  NonClasse: { readonly articles: ReadonlyArray<ListArticle> };
 }>;
 const Section = Data.taggedEnum<Section>();
 
 /**
  * The list as walked in one magasin: its rayons in order (empty ones skipped), "Non classé"
- * last, "Pas chez X" and the panier apart. Another magasin re-sorts the same items.
+ * last, "Pas chez X" and the panier apart. Another magasin re-sorts the same articles.
  */
 export type Liste = {
   readonly sections: ReadonlyArray<Section>;
-  readonly pasVenduIci: ReadonlyArray<ListItem>;
-  readonly panier: ReadonlyArray<ListItem>;
+  readonly pasVenduIci: ReadonlyArray<ListArticle>;
+  readonly panier: ReadonlyArray<ListArticle>;
 };
 
 export function listForMagasin(state: State, magasinId: string): Liste {
-  const listed = Object.values(state.items)
-    .filter((item) => item.status !== "notToBuy")
+  const listed = Object.values(state.articles)
+    .filter((article) => article.status !== "notToBuy")
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const toBuy = listed.filter((item) => item.status === "toBuy");
-  const rayonOf = (item: Item) => item.rayonParMagasin[magasinId];
+  const toBuy = listed.filter((article) => article.status === "toBuy");
+  const rayonOf = (article: Article) => article.rayonParMagasin[magasinId];
   const rayons = state.magasins[magasinId]?.rayons ?? [];
 
   const sections: ReadonlyArray<Section> = [
@@ -36,26 +36,28 @@ export function listForMagasin(state: State, magasinId: string): Liste {
       Section.Rayon({
         rayonId: rayon.id,
         name: rayon.name,
-        items: toBuy
-          .filter((item) => {
-            const itemRayon = rayonOf(item);
-            return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayon.id;
+        articles: toBuy
+          .filter((article) => {
+            const articleRayon = rayonOf(article);
+            return articleRayon?._tag === "Rayon" && articleRayon.rayonId === rayon.id;
           })
-          .map(toListItem),
+          .map(toListArticle),
       }),
     ),
     Section.NonClasse({
-      items: toBuy.filter((item) => rayonOf(item) === undefined).map(toListItem),
+      articles: toBuy.filter((article) => rayonOf(article) === undefined).map(toListArticle),
     }),
   ];
 
   return {
-    sections: sections.filter((section) => section.items.length > 0),
-    pasVenduIci: toBuy.filter((item) => rayonOf(item)?._tag === "PasVenduIci").map(toListItem),
-    panier: listed.filter((item) => item.status === "inCart").map(toListItem),
+    sections: sections.filter((section) => section.articles.length > 0),
+    pasVenduIci: toBuy
+      .filter((article) => rayonOf(article)?._tag === "PasVenduIci")
+      .map(toListArticle),
+    panier: listed.filter((article) => article.status === "inCart").map(toListArticle),
   };
 }
 
-function toListItem({ id, name, quantity }: Item): ListItem {
+function toListArticle({ id, name, quantity }: Article): ListArticle {
   return { id, name, quantity };
 }

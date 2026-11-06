@@ -7,14 +7,14 @@ export const Actor = Schema.Literals(["proprietaire", "invite"]);
 export type Actor = Schema.Schema.Type<typeof Actor>;
 
 /**
- * Where an item sits in one magasin. Absent = NonClasse ("Non classé").
+ * Where an article sits in one magasin. Absent = NonClasse ("Non classé").
  */
-export const ItemRayon = Schema.TaggedUnion({
+export const ArticleRayon = Schema.TaggedUnion({
   Rayon: { rayonId: Schema.NonEmptyString },
   PasVenduIci: {},
   NonClasse: {},
 });
-export type ItemRayon = Schema.Schema.Type<typeof ItemRayon>;
+export type ArticleRayon = Schema.Schema.Type<typeof ArticleRayon>;
 
 const Quantity = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 const id = Schema.NonEmptyString;
@@ -65,18 +65,18 @@ export const Event = Schema.Union([
   magasinEvent("RayonRenamed", { rayonId: id, name }),
   magasinEvent("RayonsReordered", { rayonIds: Schema.Array(Schema.String) }),
   magasinEvent("RayonRemoved", { rayonId: id }),
-  foyerEvent("ItemCreated", { itemId: id, name }),
-  foyerEvent("ItemRenamed", { itemId: id, name }),
-  foyerEvent("ItemRemoved", { itemId: id }),
-  foyerEvent("ItemQuantitySet", { itemId: id, quantity: Quantity }),
-  magasinEvent("ItemRayonSet", { itemId: id, rayon: ItemRayon }),
-  foyerEvent("ItemMarkedToBuy", { itemId: id }),
-  foyerEvent("ItemMarkedNotToBuy", { itemId: id }),
-  foyerEvent("ItemChecked", { itemId: id }),
-  foyerEvent("ItemUnchecked", { itemId: id }),
+  foyerEvent("ArticleCreated", { articleId: id, name }),
+  foyerEvent("ArticleRenamed", { articleId: id, name }),
+  foyerEvent("ArticleRemoved", { articleId: id }),
+  foyerEvent("ArticleQuantitySet", { articleId: id, quantity: Quantity }),
+  magasinEvent("ArticleRayonSet", { articleId: id, rayon: ArticleRayon }),
+  foyerEvent("ArticleMarkedToBuy", { articleId: id }),
+  foyerEvent("ArticleMarkedNotToBuy", { articleId: id }),
+  foyerEvent("ArticleChecked", { articleId: id }),
+  foyerEvent("ArticleUnchecked", { articleId: id }),
   magasinEvent("SortieFinished", {}),
   foyerEvent("DemandeCreated", { demandeId: id, name }),
-  foyerEvent("DemandeAccepted", { demandeId: id, itemId: id }),
+  foyerEvent("DemandeAccepted", { demandeId: id, articleId: id }),
   foyerEvent("DemandeRefused", { demandeId: id }),
   foyerEvent("DemandeWithdrawn", { demandeId: id }),
 ]);

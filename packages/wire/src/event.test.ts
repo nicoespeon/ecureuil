@@ -79,8 +79,8 @@ describe("le schéma wire Event", () => {
       decode({
         ...envelope,
         magasin: null,
-        type: "ItemQuantitySet",
-        payload: { itemId: "i1", quantity },
+        type: "ArticleQuantitySet",
+        payload: { articleId: "i1", quantity },
       }),
     ).toThrow();
   });

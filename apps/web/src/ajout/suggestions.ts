@@ -1,50 +1,50 @@
-import type { Item, State } from "@ecureuil/domain";
+import type { Article, State } from "@ecureuil/domain";
 
-const MAX_FREQUENT_ITEMS = 8;
+const MAX_FREQUENT_ARTICLES = 8;
 
 /**
- * The items bought most often in this magasin, by number of sorties, that are not on the list
+ * The articles bought most often in this magasin, by number of sorties, that are not on the list
  * yet: what the empty search field suggests.
  */
-export function frequentItems(state: State, magasinId: string) {
+export function frequentArticles(state: State, magasinId: string) {
   const sortiesCount = state.sorties
     .filter((sortie) => sortie.magasin === magasinId)
-    .flatMap((sortie) => sortie.achats.map((achat) => achat.itemId))
+    .flatMap((sortie) => sortie.achats.map((achat) => achat.articleId))
     .reduce(
-      (counts, itemId) => counts.set(itemId, (counts.get(itemId) ?? 0) + 1),
+      (counts, articleId) => counts.set(articleId, (counts.get(articleId) ?? 0) + 1),
       new Map<string, number>(),
     );
 
   return [...sortiesCount]
-    .flatMap(([itemId, count]) => {
-      const item = state.items[itemId];
-      return item?.status === "notToBuy" ? [{ item, count }] : [];
+    .flatMap(([articleId, count]) => {
+      const article = state.articles[articleId];
+      return article?.status === "notToBuy" ? [{ article, count }] : [];
     })
-    .sort((a, b) => b.count - a.count || byName(a.item, b.item))
-    .slice(0, MAX_FREQUENT_ITEMS)
-    .map(({ item }) => item);
+    .sort((a, b) => b.count - a.count || byName(a.article, b.article))
+    .slice(0, MAX_FREQUENT_ARTICLES)
+    .map(({ article }) => article);
 }
 
 /**
- * The catalogue items whose name contains the query, ignoring accents and case, those starting
- * with it first. `nameToCreate` is the query when no item bears that exact name.
+ * The catalogue articles whose name contains the query, ignoring accents and case, those starting
+ * with it first. `nameToCreate` is the query when no article bears that exact name.
  */
-export function searchItems(state: State, query: string) {
+export function searchArticles(state: State, query: string) {
   const name = query.trim();
   const needle = searchable(name);
-  if (needle === "") return { items: [], exactMatch: undefined, nameToCreate: null };
+  if (needle === "") return { articles: [], exactMatch: undefined, nameToCreate: null };
 
-  const found = Object.values(state.items)
-    .map((item) => ({ item, key: searchable(item.name) }))
+  const found = Object.values(state.articles)
+    .map((article) => ({ article, key: searchable(article.name) }))
     .filter(({ key }) => key.includes(needle))
     .sort(
       (a, b) =>
         Number(b.key.startsWith(needle)) - Number(a.key.startsWith(needle)) ||
-        byName(a.item, b.item),
+        byName(a.article, b.article),
     );
-  const exactMatch = found.find(({ key }) => key === needle)?.item;
+  const exactMatch = found.find(({ key }) => key === needle)?.article;
   return {
-    items: found.map(({ item }) => item),
+    articles: found.map(({ article }) => article),
     exactMatch,
     nameToCreate: exactMatch ? null : name,
   };
@@ -59,6 +59,6 @@ function searchable(text: string) {
     .replace(/æ/g, "ae");
 }
 
-function byName(a: Item, b: Item) {
+function byName(a: Article, b: Article) {
   return a.name.localeCompare(b.name, "fr");
 }

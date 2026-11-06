@@ -1,21 +1,21 @@
 import { Dialog } from "@base-ui/react/dialog";
-import type { Item, Magasin } from "@ecureuil/domain";
+import type { Article, Magasin } from "@ecureuil/domain";
 import { type ReactNode, type RefObject, useId, useRef, useState } from "react";
 import type { Writer } from "../config/configActions";
-import { useFicheItem } from "../config/FicheItem";
+import { useFicheArticle } from "../config/FicheArticle";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
-import { frequentItems, searchItems } from "./suggestions";
+import { frequentArticles, searchArticles } from "./suggestions";
 
-type AjoutFoyer = Pick<Foyer, "state" | "magasins" | "markToBuy" | "createItem"> & {
+type AjoutFoyer = Pick<Foyer, "state" | "magasins" | "markToBuy" | "createArticle"> & {
   readonly magasinActif: Magasin;
 };
 
-/** Adds an item to the list in a few keystrokes: a frequent one, a found one, or a new one. */
+/** Adds an article to the list in a few keystrokes: a frequent one, a found one, or a new one. */
 export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writer }) {
   const searchRef = useRef<HTMLInputElement>(null);
-  // A new item needs its rayons: its sheet opens over the panel, then hands the field back.
-  const { openFiche, fiche } = useFicheItem({
+  // A new article needs its rayons: its sheet opens over the panel, then hands the field back.
+  const { openFiche, fiche } = useFicheArticle({
     foyer,
     writer,
     focusAfterRemove: searchRef,
@@ -53,7 +53,7 @@ function AjoutPanel({
 }: {
   foyer: AjoutFoyer;
   searchRef: RefObject<HTMLInputElement | null>;
-  openFiche: (itemId: string) => void;
+  openFiche: (articleId: string) => void;
 }) {
   const ajout = useAjout(foyer, { searchRef, openFiche });
   const magasin = foyer.magasinActif;
@@ -74,8 +74,8 @@ function AjoutPanel({
         <input
           ref={searchRef}
           type="search"
-          aria-label="Item à ajouter"
-          placeholder="Chercher ou créer un item"
+          aria-label="Article à ajouter"
+          placeholder="Chercher ou créer un article"
           autoComplete="off"
           enterKeyHint="done"
           value={ajout.query}
@@ -85,7 +85,7 @@ function AjoutPanel({
       </form>
       {ajout.query.trim() === "" ? (
         <Frequents
-          items={frequentItems(foyer.state, magasin.id)}
+          articles={frequentArticles(foyer.state, magasin.id)}
           magasin={magasin}
           add={ajout.add}
         />
@@ -105,26 +105,26 @@ function useAjout(
   {
     searchRef,
     openFiche,
-  }: { searchRef: RefObject<HTMLInputElement | null>; openFiche: (itemId: string) => void },
+  }: { searchRef: RefObject<HTMLInputElement | null>; openFiche: (articleId: string) => void },
 ) {
   const [query, setQuery] = useState("");
   const { announcement, announce } = useAnnouncer();
-  const result = searchItems(foyer.state, query);
+  const result = searchArticles(foyer.state, query);
 
-  // The tapped row disappears: the focus goes back to the field, ready for the next item.
+  // The tapped row disappears: the focus goes back to the field, ready for the next article.
   const added = (name: string) => {
     setQuery("");
     announce(`Sur la liste : ${name}`);
     searchRef.current?.focus();
   };
-  const add = (item: Item) => {
-    foyer.markToBuy(item.id);
-    added(item.name);
+  const add = (article: Article) => {
+    foyer.markToBuy(article.id);
+    added(article.name);
   };
   const create = (name: string) => {
-    const itemId = foyer.createItem(name);
+    const articleId = foyer.createArticle(name);
     added(name);
-    openFiche(itemId);
+    openFiche(articleId);
   };
 
   return {
@@ -135,12 +135,13 @@ function useAjout(
     create,
     search: (next: string) => {
       setQuery(next);
-      if (next.trim() !== "") announce(itemsFound(searchItems(foyer.state, next).items.length));
+      if (next.trim() !== "")
+        announce(articlesFound(searchArticles(foyer.state, next).articles.length));
     },
     // The exact name wins: Enter on « lait » never adds Laitue when Lait is already on the list.
     addOnEnter: () => {
-      const { items, exactMatch, nameToCreate } = result;
-      const choice = exactMatch ?? items.find((item) => item.status === "notToBuy");
+      const { articles, exactMatch, nameToCreate } = result;
+      const choice = exactMatch ?? articles.find((article) => article.status === "notToBuy");
       if (choice?.status === "notToBuy") add(choice);
       else if (choice) announce(`Déjà sur la liste : ${choice.name}`);
       else if (nameToCreate !== null) create(nameToCreate);
@@ -149,23 +150,23 @@ function useAjout(
 }
 
 function Results({
-  items,
+  articles,
   nameToCreate,
   magasin,
   add,
   create,
 }: {
-  items: ReadonlyArray<Item>;
+  articles: ReadonlyArray<Article>;
   nameToCreate: string | null;
   magasin: Magasin;
-  add: (item: Item) => void;
+  add: (article: Article) => void;
   create: (name: string) => void;
 }) {
   return (
     <ul aria-label="Résultats">
-      {items.map((item) => (
-        <li key={item.id}>
-          <ItemOption item={item} magasin={magasin} add={add} />
+      {articles.map((article) => (
+        <li key={article.id}>
+          <ArticleOption article={article} magasin={magasin} add={add} />
         </li>
       ))}
       {nameToCreate !== null && (
@@ -180,16 +181,16 @@ function Results({
 }
 
 function Frequents({
-  items,
+  articles,
   magasin,
   add,
 }: {
-  items: ReadonlyArray<Item>;
+  articles: ReadonlyArray<Article>;
   magasin: Magasin;
-  add: (item: Item) => void;
+  add: (article: Article) => void;
 }) {
   const headingId = useId();
-  if (items.length === 0) return null;
+  if (articles.length === 0) return null;
 
   return (
     <section aria-labelledby={headingId}>
@@ -197,9 +198,9 @@ function Frequents({
         Fréquents
       </h2>
       <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            <ItemOption item={item} magasin={magasin} add={add} />
+        {articles.map((article) => (
+          <li key={article.id}>
+            <ArticleOption article={article} magasin={magasin} add={add} />
           </li>
         ))}
       </ul>
@@ -207,33 +208,33 @@ function Frequents({
   );
 }
 
-/** An item off the list is one tap away; one already on it only says where it is. */
-function ItemOption({
-  item,
+/** An article off the list is one tap away; one already on it only says where it is. */
+function ArticleOption({
+  article,
   magasin,
   add,
 }: {
-  item: Item;
+  article: Article;
   magasin: Magasin;
-  add: (item: Item) => void;
+  add: (article: Article) => void;
 }) {
-  const pasVenduIci = item.rayonParMagasin[magasin.id]?._tag === "PasVenduIci";
+  const pasVenduIci = article.rayonParMagasin[magasin.id]?._tag === "PasVenduIci";
   const details = [
-    item.status === "toBuy" && "Sur la liste",
-    item.status === "inCart" && "Dans le panier",
+    article.status === "toBuy" && "Sur la liste",
+    article.status === "inCart" && "Dans le panier",
     pasVenduIci && `Pas chez ${magasin.name}`,
   ].filter((detail) => typeof detail === "string");
   const content = (
     <>
-      <span className="min-w-0 flex-1 truncate">{item.name}</span>
+      <span className="min-w-0 flex-1 truncate">{article.name}</span>
       {details.length > 0 && (
         <span className="shrink-0 text-sm text-neutral-700">{details.join(" · ")}</span>
       )}
     </>
   );
 
-  return item.status === "notToBuy" ? (
-    <AddButton onClick={() => add(item)}>{content}</AddButton>
+  return article.status === "notToBuy" ? (
+    <AddButton onClick={() => add(article)}>{content}</AddButton>
   ) : (
     <div className={`${rowLayoutClassName} text-neutral-700`}>{content}</div>
   );
@@ -256,9 +257,9 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
 
 const plural = new Intl.PluralRules("fr");
 
-function itemsFound(count: number) {
-  if (count === 0) return "Aucun item trouvé";
-  return plural.select(count) === "one" ? `${count} item trouvé` : `${count} items trouvés`;
+function articlesFound(count: number) {
+  if (count === 0) return "Aucun article trouvé";
+  return plural.select(count) === "one" ? `${count} article trouvé` : `${count} articles trouvés`;
 }
 
 const buttonClassName =

@@ -18,7 +18,7 @@ export function TerminerLesCourses({
 }) {
   const inPanier = liste.panier.length;
   const toBuy =
-    liste.sections.reduce((count, section) => count + section.items.length, 0) +
+    liste.sections.reduce((count, section) => count + section.articles.length, 0) +
     liste.pasVenduIci.length;
 
   return (
@@ -40,7 +40,7 @@ export function TerminerLesCourses({
             Terminer les courses ?
           </AlertDialog.Title>
           <AlertDialog.Description className="text-neutral-800">
-            {itemsInPanier(inPanier)}, {stillToBuy(toBuy)}
+            {articlesInPanier(inPanier)}, {stillToBuy(toBuy)}
           </AlertDialog.Description>
           <div className="flex justify-end gap-3">
             <AlertDialog.Close className={`${buttonClassName} border border-neutral-400`}>
@@ -64,10 +64,10 @@ const buttonClassName =
 
 const plural = new Intl.PluralRules("fr");
 
-function itemsInPanier(count: number) {
+function articlesInPanier(count: number) {
   return plural.select(count) === "one"
-    ? `${count} item dans le panier`
-    : `${count} items dans le panier`;
+    ? `${count} article dans le panier`
+    : `${count} articles dans le panier`;
 }
 
 function stillToBuy(count: number) {

@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
-import type { Item, Magasin, State } from "@ecureuil/domain";
+import type { Article, Magasin, State } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
-import { Stepper } from "../liste/ItemRow";
+import { Stepper } from "../liste/ArticleRow";
 import { ConfirmButton } from "./ConfirmButton";
 import { type ConfigActions, configActions, type Writer } from "./configActions";
 import { NameInput } from "./NameInput";
@@ -15,10 +15,10 @@ export type FicheFoyer = {
 };
 
 /**
- * The item sheet, opened from the list or from the configuration. Closed, it gives the focus back
- * to the item's name wherever the item now sits, or to `focusAfterRemove` once its row is gone.
+ * The article sheet, opened from the list or from the configuration. Closed, it gives the focus back
+ * to the article's name wherever the article now sits, or to `focusAfterRemove` once its row is gone.
  */
-export function useFicheItem({
+export function useFicheArticle({
   foyer,
   writer,
   focusAfterRemove,
@@ -27,32 +27,34 @@ export function useFicheItem({
   foyer: FicheFoyer;
   writer: Writer;
   focusAfterRemove: RefObject<HTMLElement | null>;
-  /** Where the focus goes on close, whatever became of the item, when the opener is not a row. */
+  /** Where the focus goes on close, whatever became of the article, when the opener is not a row. */
   focusAfterClose?: RefObject<HTMLElement | null>;
 }) {
-  const [itemId, setItemId] = useState<string | null>(null);
-  const lastItemId = useRef<string | null>(null);
-  const item = itemId === null ? undefined : foyer.state.items[itemId];
+  const [articleId, setArticleId] = useState<string | null>(null);
+  const lastArticleId = useRef<string | null>(null);
+  const article = articleId === null ? undefined : foyer.state.articles[articleId];
   const actions = configActions(writer, foyer.magasinActif.id);
 
   return {
     openFiche: (id: string) => {
-      lastItemId.current = id;
-      setItemId(id);
+      lastArticleId.current = id;
+      setArticleId(id);
     },
     fiche: (
-      <Dialog.Root open={item !== undefined} onOpenChange={(open) => open || setItemId(null)}>
+      <Dialog.Root open={article !== undefined} onOpenChange={(open) => open || setArticleId(null)}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
           <Dialog.Popup
             finalFocus={() =>
               focusAfterClose?.current ??
-              ficheTrigger(lastItemId.current) ??
+              ficheTrigger(lastArticleId.current) ??
               focusAfterRemove.current
             }
             className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
           >
-            {item && <FicheContent item={item} magasins={foyer.magasins} actions={actions} />}
+            {article && (
+              <FicheContent article={article} magasins={foyer.magasins} actions={actions} />
+            )}
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
@@ -60,19 +62,19 @@ export function useFicheItem({
   };
 }
 
-/** The buttons that open an item's sheet carry `data-fiche-item-id`. */
-function ficheTrigger(itemId: string | null) {
-  if (itemId === null) return null;
-  const trigger = document.querySelector(`[data-fiche-item-id="${CSS.escape(itemId)}"]`);
+/** The buttons that open an article's sheet carry `data-fiche-article-id`. */
+function ficheTrigger(articleId: string | null) {
+  if (articleId === null) return null;
+  const trigger = document.querySelector(`[data-fiche-article-id="${CSS.escape(articleId)}"]`);
   return trigger instanceof HTMLElement ? trigger : null;
 }
 
 function FicheContent({
-  item,
+  article,
   magasins,
   actions,
 }: {
-  item: Item;
+  article: Article;
   magasins: ReadonlyArray<Magasin>;
   actions: ConfigActions;
 }) {
@@ -85,7 +87,7 @@ function FicheContent({
     <>
       <div className="flex h-14 items-center gap-2 border-b border-neutral-300 px-4">
         <Dialog.Title className="min-w-0 flex-1 truncate text-lg font-semibold">
-          {item.name}
+          {article.name}
         </Dialog.Title>
         <Dialog.Close className={closeClassName}>Fermer</Dialog.Close>
       </div>
@@ -96,8 +98,8 @@ function FicheContent({
           </label>
           <NameInput
             id={nameId}
-            name={item.name}
-            rename={(name) => actions.renameItem(item.id, name)}
+            name={article.name}
+            rename={(name) => actions.renameArticle(article.id, name)}
           />
         </div>
         <div className="flex items-center justify-between gap-4">
@@ -105,13 +107,13 @@ function FicheContent({
             <input
               id={toBuyId}
               type="checkbox"
-              checked={item.status !== "notToBuy"}
-              onChange={(event) => actions.setToBuy(item.id, event.currentTarget.checked)}
+              checked={article.status !== "notToBuy"}
+              onChange={(event) => actions.setToBuy(article.id, event.currentTarget.checked)}
               className="size-6 accent-neutral-900"
             />
             À acheter
           </label>
-          <Stepper item={item} setQuantity={actions.setQuantity} />
+          <Stepper article={article} setQuantity={actions.setQuantity} />
         </div>
         <fieldset className="flex flex-col gap-3">
           <legend className={`${labelClassName} mb-1`}>Rayon par magasin</legend>
@@ -122,19 +124,19 @@ function FicheContent({
               </label>
               <RayonSelect
                 id={`${rayonsId}-${magasin.id}`}
-                item={item}
+                article={article}
                 magasin={magasin}
                 label={`Rayon chez ${magasin.name}`}
-                setItemRayon={actions.setItemRayon}
+                setArticleRayon={actions.setArticleRayon}
               />
             </div>
           ))}
         </fieldset>
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 pt-4">
           <ConfirmButton
-            subject={item.name}
-            warning={{ announce, message: `Supprimer ${item.name} ?` }}
-            onConfirm={() => actions.removeItem(item.id)}
+            subject={article.name}
+            warning={{ announce, message: `Supprimer ${article.name} ?` }}
+            onConfirm={() => actions.removeArticle(article.id)}
             withLabel
           />
         </div>

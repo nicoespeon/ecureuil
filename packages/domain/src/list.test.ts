@@ -24,12 +24,12 @@ const magasin = (id: string, name: string) =>
   event({ type: "MagasinCreated", magasin: id, payload: { name } });
 const rayon = (rayonId: string, name: string) =>
   event({ type: "RayonCreated", magasin: "costco", payload: { rayonId, name } });
-const item = (itemId: string, name: string) =>
-  event({ type: "ItemCreated", payload: { itemId, name } });
-const rayonSet = (itemId: string, magasin: string, rayon: unknown) =>
-  event({ type: "ItemRayonSet", magasin, payload: { itemId, rayon } });
+const article = (articleId: string, name: string) =>
+  event({ type: "ArticleCreated", payload: { articleId, name } });
+const rayonSet = (articleId: string, magasin: string, rayon: unknown) =>
+  event({ type: "ArticleRayonSet", magasin, payload: { articleId, rayon } });
 const inRayon = (rayonId: string) => ({ _tag: "Rayon", rayonId });
-const toBuy = (itemId: string) => event({ type: "ItemMarkedToBuy", payload: { itemId } });
+const toBuy = (articleId: string) => event({ type: "ArticleMarkedToBuy", payload: { articleId } });
 
 const journal = [
   magasin("costco", "Costco"),
@@ -37,13 +37,13 @@ const journal = [
   rayon("fruits", "Fruits"),
   rayon("bakery", "Boulangerie"),
   rayon("dairy", "Laitier"),
-  item("milk", "Lait"),
-  item("water", "Eau"),
-  item("bread", "Pain"),
-  item("chips", "Chips"),
-  item("beer", "Bière"),
-  item("apples", "Pommes"),
-  item("eggs", "Œufs"),
+  article("milk", "Lait"),
+  article("water", "Eau"),
+  article("bread", "Pain"),
+  article("chips", "Chips"),
+  article("beer", "Bière"),
+  article("apples", "Pommes"),
+  article("eggs", "Œufs"),
   rayonSet("milk", "costco", inRayon("dairy")),
   rayonSet("water", "costco", inRayon("dairy")),
   rayonSet("eggs", "costco", inRayon("dairy")),
@@ -51,9 +51,9 @@ const journal = [
   rayonSet("apples", "costco", inRayon("fruits")),
   rayonSet("beer", "costco", { _tag: "PasVenduIci" }),
   rayonSet("chips", "maxi", inRayon("m-snacks")),
-  event({ type: "ItemQuantitySet", payload: { itemId: "milk", quantity: 2 } }),
+  event({ type: "ArticleQuantitySet", payload: { articleId: "milk", quantity: 2 } }),
   ...["milk", "water", "bread", "chips", "beer", "eggs"].map(toBuy),
-  event({ type: "ItemChecked", magasin: "costco", payload: { itemId: "eggs" } }),
+  event({ type: "ArticleChecked", magasin: "costco", payload: { articleId: "eggs" } }),
 ];
 
 it("parcourt le magasin : rayons dans l'ordre, non classé en dernier, pas vendu ici et panier à part", () => {
@@ -63,18 +63,18 @@ it("parcourt le magasin : rayons dans l'ordre, non classé en dernier, pas vendu
         _tag: "Rayon",
         rayonId: "bakery",
         name: "Boulangerie",
-        items: [{ id: "bread", name: "Pain", quantity: 1 }],
+        articles: [{ id: "bread", name: "Pain", quantity: 1 }],
       },
       {
         _tag: "Rayon",
         rayonId: "dairy",
         name: "Laitier",
-        items: [
+        articles: [
           { id: "water", name: "Eau", quantity: 1 },
           { id: "milk", name: "Lait", quantity: 2 },
         ],
       },
-      { _tag: "NonClasse", items: [{ id: "chips", name: "Chips", quantity: 1 }] },
+      { _tag: "NonClasse", articles: [{ id: "chips", name: "Chips", quantity: 1 }] },
     ],
     pasVenduIci: [{ id: "beer", name: "Bière", quantity: 1 }],
     panier: [{ id: "eggs", name: "Œufs", quantity: 1 }],
@@ -86,7 +86,7 @@ it("retrie la même liste pour un autre magasin sans en changer le contenu", () 
     sections: [
       {
         _tag: "NonClasse",
-        items: [
+        articles: [
           { id: "beer", name: "Bière", quantity: 1 },
           { id: "chips", name: "Chips", quantity: 1 },
           { id: "water", name: "Eau", quantity: 1 },
