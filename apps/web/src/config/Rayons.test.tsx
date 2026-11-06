@@ -109,6 +109,40 @@ describe("les rayons d'un magasin", () => {
 
 type User = ReturnType<typeof userEvent.setup>;
 
+describe("déplacer un rayon sans glisser", () => {
+  it("« Descendre Hygiène » la met après Épicerie", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Descendre Hygiène" }));
+
+    expect(rayonNames().slice(0, 3)).toEqual(["Vêtements", "Épicerie", "Hygiène"]);
+  });
+
+  it("« Monter Hygiène » la met avant Vêtements", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Monter Hygiène" }));
+
+    expect(rayonNames().slice(0, 2)).toEqual(["Hygiène", "Vêtements"]);
+  });
+
+  it("annonce la nouvelle position d'Hygiène", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Descendre Hygiène" }));
+
+    expect(screen.getByText("Hygiène en position 3 sur 8.")).toHaveRole("status");
+  });
+
+  it("« Monter » ne fait rien sur le premier rayon", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Monter Vêtements" }));
+
+    expect(rayonNames()[0]).toBe("Vêtements");
+  });
+});
+
 async function openRayons() {
   const { user } = renderApp();
   await user.click(screen.getByRole("button", { name: "Configuration" }));

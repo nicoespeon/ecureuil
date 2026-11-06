@@ -43,6 +43,15 @@ test("réordonner un rayon au clavier change l'ordre de la liste", async ({ page
   ]);
 });
 
+test("descendre un rayon au bouton garde le focus pour descendre encore", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Configuration" }).click();
+
+  await page.getByRole("button", { name: "Descendre Hygiène" }).click();
+
+  await expect(page.getByRole("button", { name: "Descendre Hygiène" })).toBeFocused();
+});
+
 test("le retour du navigateur ramène de la configuration à la liste", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Configuration" }).click();

@@ -4,7 +4,7 @@ import { useRef } from "react";
 
 export const screenReaderInstructions = {
   draggable:
-    "Pour déplacer un rayon, appuyez sur Espace. Les flèches haut et bas le déplacent, Espace le pose à sa nouvelle place, Échap annule.",
+    "Pour déplacer un rayon, utilisez Monter et Descendre, ou appuyez sur Espace : les flèches haut et bas le déplacent, Espace le pose à sa nouvelle place, Échap annule.",
 };
 
 /**

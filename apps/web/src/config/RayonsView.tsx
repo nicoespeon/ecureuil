@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Magasin, State } from "@ecureuil/domain";
+import type { Magasin, Rayon, State } from "@ecureuil/domain";
 import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
 import { ConfirmButton } from "./ConfirmButton";
 import { fieldClassName, submitClassName } from "./classNames";
@@ -50,6 +50,7 @@ export function RayonsView({
 
   const announcements = useRayonAnnouncements(rayons);
   const { containerRef, focusNeighborOf } = useFocusNeighborOfRemovedRayon(rayonIds);
+  const moveBy = moveRayon({ magasinId: magasin.id, rayonIds, actions });
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     const from = rayonIds.indexOf(String(active.id));
@@ -88,6 +89,7 @@ export function RayonsView({
                 })}
                 actions={{
                   rename: (name) => actions.renameRayon(magasin.id, { rayonId: rayon.id, name }),
+                  move: { up: moveBy(rayon, -1), down: moveBy(rayon, 1) },
                   remove: () => {
                     focusNeighborOf(rayon.id);
                     actions.removeRayon(magasin.id, rayon.id);
@@ -102,6 +104,27 @@ export function RayonsView({
       <NouveauRayon create={(name) => actions.createRayon(magasin.id, name)} />
     </div>
   );
+}
+
+/** A move one step up or down, or undefined at the end of the list. */
+function moveRayon({
+  magasinId,
+  rayonIds,
+  actions,
+}: {
+  magasinId: string;
+  rayonIds: ReadonlyArray<string>;
+  actions: Pick<Actions, "reorderRayons" | "announce">;
+}) {
+  return (rayon: Rayon, offset: -1 | 1) => {
+    const from = rayonIds.indexOf(rayon.id);
+    const to = from + offset;
+    if (to < 0 || to >= rayonIds.length) return undefined;
+    return () => {
+      actions.reorderRayons(magasinId, arrayMove([...rayonIds], from, to));
+      actions.announce(`${rayon.name} en position ${to + 1} sur ${rayonIds.length}.`);
+    };
+  };
 }
 
 /**

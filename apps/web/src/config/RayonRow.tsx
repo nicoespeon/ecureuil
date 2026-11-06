@@ -13,6 +13,8 @@ export function RayonRow({
   articleCount: number;
   actions: {
     rename: (name: string) => void;
+    /** Undefined where the rayon cannot go further. */
+    move: Readonly<Record<Direction, (() => void) | undefined>>;
     remove: () => void;
     announce: (message: string) => void;
   };
@@ -43,12 +45,57 @@ export function RayonRow({
         <span className="sr-only">Déplacer {rayon.name}</span>
       </button>
       <NameInput name={rayon.name} rename={actions.rename} aria-label={`Renommer ${rayon.name}`} />
+      <MoveButton rayon={rayon} direction="up" move={actions.move} />
+      <MoveButton rayon={rayon} direction="down" move={actions.move} />
       <ConfirmButton
         subject={rayon.name}
         warning={{ announce: actions.announce, message: removalWarning(rayon.name, articleCount) }}
         onConfirm={actions.remove}
       />
     </li>
+  );
+}
+
+export type Direction = "up" | "down";
+
+/**
+ * Dragging is not for everyone: a screen reader's double tap is a click, not a key. At the end of
+ * the list the button stays focusable, only inert, so the focus never falls to the page.
+ */
+function MoveButton({
+  rayon,
+  direction,
+  move,
+}: {
+  rayon: Rayon;
+  direction: Direction;
+  move: Readonly<Record<Direction, (() => void) | undefined>>;
+}) {
+  const onMove = move[direction];
+  return (
+    <button
+      type="button"
+      aria-disabled={onMove === undefined}
+      onClick={onMove}
+      className="grid size-11 shrink-0 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 aria-disabled:text-neutral-400 aria-disabled:hover:bg-transparent"
+    >
+      <svg
+        aria-hidden="true"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d={direction === "up" ? "m18 15-6-6-6 6" : "m6 9 6 6 6-6"} />
+      </svg>
+      <span className="sr-only">
+        {direction === "up" ? "Monter" : "Descendre"} {rayon.name}
+      </span>
+    </button>
   );
 }
 
