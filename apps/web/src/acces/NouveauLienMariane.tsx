@@ -133,7 +133,7 @@ function LienCree({ lien }: { lien: string }) {
       <p role="status" className="text-sm">
         {copy}
       </p>
-      <p className="text-neutral-700">Rangez-le dans 1Password : il ne s'affichera plus.</p>
+      <p className="text-neutral-700">Gardez-le quelque part : il ne sera plus affiché.</p>
     </div>
   );
 }
