@@ -3,6 +3,18 @@ import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEv
 import type { Journal } from "../journal/journal";
 import { itemRayonOf } from "./rayonChoice";
 
+/** A new magasin starts with these, in a common walking order, to reorder or remove (ADR 1). */
+const rayonsParDefaut = [
+  "Fruits et légumes",
+  "Boulangerie",
+  "Viandes et poissons",
+  "Produits laitiers",
+  "Épicerie",
+  "Surgelés",
+  "Hygiène",
+  "Entretien",
+];
+
 /**
  * What the configuration writes to the journal. Unlike the list, it targets a magasin by id:
  * the item sheet sets the rayon of every magasin, not only the active one. Item events carry
@@ -44,18 +56,6 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
     removeItem: (itemId: string) => append("ItemRemoved", magasinActifId, { itemId }),
   };
 }
-
-/** A new magasin starts with these, in a common walking order, to reorder or remove (ADR 1). */
-const rayonsParDefaut = [
-  "Fruits et légumes",
-  "Boulangerie",
-  "Viandes et poissons",
-  "Produits laitiers",
-  "Épicerie",
-  "Surgelés",
-  "Hygiène",
-  "Entretien",
-];
 
 export type ConfigActions = ReturnType<typeof configActions>;
 
