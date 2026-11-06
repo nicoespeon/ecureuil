@@ -1,6 +1,6 @@
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
-import type { Actor } from "@ecureuil/wire";
+import type { Actor, LienResponse } from "@ecureuil/wire";
 import { devices, expect, type Page, test } from "@playwright/test";
 
 const narrowPhone = { width: 375, height: 812 };
@@ -209,7 +209,8 @@ test.describe("vidéo des demandes", () => {
 
 /** The invite asks for two things, the proprietaire accepts one and refuses the other. */
 async function walkDemandes(page: Page, capture: (name: string) => Promise<unknown>) {
-  await page.route("**/lien", (route) => route.fulfill({ json: { role: "invite" } }));
+  const inviteLien: LienResponse = { role: "invite", invite: null };
+  await page.route("**/lien", (route) => route.fulfill({ json: inviteLien }));
   await page.route("**/journal**", (route) => route.abort());
   await page.goto("/");
   await enterAs(page, "invite");
@@ -219,6 +220,10 @@ async function walkDemandes(page: Page, capture: (name: string) => Promise<unkno
     await expect(page.getByRole("region", { name: "Mes demandes" })).toContainText(name);
   }
   await capture("invite-demandes");
+  await page.getByRole("textbox", { name: "Nom" }).fill("lait");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Déjà sur la liste");
+  await capture("invite-deja-sur-la-liste");
 
   await enterAs(page, "proprietaire");
   await expect(page.getByRole("region", { name: "À valider (3)" })).toBeVisible();

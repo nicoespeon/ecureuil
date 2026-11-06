@@ -82,6 +82,7 @@ Changer de magasin retrie les mêmes items, sans en changer le contenu. Les dema
 
 - `pendingDemandes(state)` : les demandes `Pending`, la plus ancienne d'abord (la section « À valider »).
 - `latestDemandes(state, count)` : les `count` dernières demandes, la plus récente d'abord, quel que soit leur statut (ce que l'invité voit).
+- `duplicateOf(state, name)` : `"Liste"` si un item de ce nom est déjà sur la liste (à acheter ou dans le panier), `"Demande"` si une demande de ce nom attend encore, sinon `undefined`. L'invité ne redemande pas ce qui est déjà là.
 - `itemNamed(state, name)` : l'item du catalogue qui porte ce nom, sans tenir compte des espaces autour, de la casse ni des accents (« pates » trouve « Pâtes »). Accepter une demande réutilise cet item plutôt que d'en créer un second.
 
 ## Règles du domaine
