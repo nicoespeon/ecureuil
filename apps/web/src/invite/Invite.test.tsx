@@ -150,14 +150,63 @@ describe("mes demandes", () => {
   });
 });
 
+describe("retirer une demande", () => {
+  it("écrit DemandeWithdrawn au nom de l'invité", async () => {
+    const { user, journal } = renderApp({ role: "invite" });
+
+    await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
+
+    expect(journal.all().at(-1)).toMatchObject({
+      type: "DemandeWithdrawn",
+      actor: "invite",
+      payload: { demandeId: "demande-chocolat-chaud" },
+    });
+  });
+
+  it("la demande retirée quitte « Mes demandes »", async () => {
+    const { user } = renderApp({ role: "invite" });
+    await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café{Enter}");
+
+    await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
+
+    expect(demandeNames()).toEqual(["Café"]);
+  });
+
+  it("annonce le retrait", async () => {
+    const { user } = renderApp({ role: "invite" });
+
+    await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Chocolat chaud retiré");
+  });
+
+  it("donne le focus à la demande suivante", async () => {
+    const { user } = renderApp({ role: "invite" });
+    await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café{Enter}");
+
+    await user.click(screen.getByRole("button", { name: "Retirer Café" }));
+
+    expect(screen.getByRole("button", { name: "Retirer Chocolat chaud" })).toHaveFocus();
+  });
+
+  it("rend le focus au champ après la dernière demande", async () => {
+    const { user } = renderApp({ role: "invite" });
+
+    await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
+
+    expect(screen.getByRole("textbox", { name: "Nom" })).toHaveFocus();
+  });
+});
+
 function written<T extends EventType>(actor: Actor, type: T, payload: PayloadOf<T>) {
   return { actor, type, magasin: "magasin-costco", payload };
 }
 
+/** Each row of « Mes demandes » has its « Retirer <nom> » button: the names, in order. */
 function demandeNames() {
   return section("Mes demandes")
-    .getAllByRole("listitem")
-    .map((item) => item.textContent);
+    .getAllByRole("button", { name: /^Retirer / })
+    .map((button) => button.textContent?.replace(/^Retirer /, ""));
 }
 
 function section(name: string) {

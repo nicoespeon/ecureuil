@@ -1,6 +1,7 @@
 import type { Demande } from "@ecureuil/domain";
-import { type RefObject, useLayoutEffect, useRef } from "react";
+import type { RefObject } from "react";
 import { ListeSection } from "./ListeSections";
+import { useFocusNextDemande } from "./useFocusNextDemande";
 
 type Actions = {
   readonly acceptDemande: (demande: Demande) => void;
@@ -18,7 +19,7 @@ export function AValider({
   actions: Actions;
   focusAfterLast: RefObject<HTMLElement | null>;
 }) {
-  const { listRef, focusNeighborOf } = useFocusAfterVerdict(focusAfterLast);
+  const { listRef, focusNeighborOf } = useFocusNextDemande(focusAfterLast);
   if (demandes.length === 0) return null;
 
   const accept = (demande: Demande) => {
@@ -65,30 +66,3 @@ export function AValider({
 
 const buttonClassName =
   "h-11 shrink-0 rounded-md px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
-
-/**
- * A decided demande leaves the section and would take the keyboard focus with it: the focus
- * goes to the next demande, or the previous one, or back to the list after the last.
- */
-function useFocusAfterVerdict(focusAfterLast: RefObject<HTMLElement | null>) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const neighbor = useRef<{ readonly demandeId: string | undefined } | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    if (neighbor.current === undefined) return;
-    const { demandeId } = neighbor.current;
-    neighbor.current = undefined;
-    const button = [
-      ...(listRef.current?.querySelectorAll<HTMLButtonElement>("button[data-demande-id]") ?? []),
-    ].find((candidate) => candidate.dataset.demandeId === demandeId);
-    (button ?? focusAfterLast.current)?.focus({ preventScroll: true });
-  });
-
-  return {
-    listRef,
-    focusNeighborOf: (demandes: ReadonlyArray<Demande>, demande: Demande) => {
-      const index = demandes.indexOf(demande);
-      neighbor.current = { demandeId: (demandes[index + 1] ?? demandes[index - 1])?.id };
-    },
-  };
-}

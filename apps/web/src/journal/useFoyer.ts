@@ -76,6 +76,7 @@ export function useFoyer(journal: Journal, actor: Actor) {
       append("DemandeAccepted", { demandeId: demande.id, itemId });
     },
     refuseDemande: (demande: Demande) => append("DemandeRefused", { demandeId: demande.id }),
+    withdrawDemande: (demande: Demande) => append("DemandeWithdrawn", { demandeId: demande.id }),
   };
 }
 

@@ -207,7 +207,10 @@ test.describe("vidéo des demandes", () => {
   });
 });
 
-/** The invite asks for two things, the proprietaire accepts one and refuses the other. */
+/**
+ * The invite asks for two things, the proprietaire accepts one and refuses the other, then the
+ * invite withdraws the last one waiting.
+ */
 async function walkDemandes(page: Page, capture: (name: string) => Promise<unknown>) {
   const inviteLien: LienResponse = { role: "invite", invite: null };
   await page.route("**/lien", (route) => route.fulfill({ json: inviteLien }));
@@ -236,10 +239,14 @@ async function walkDemandes(page: Page, capture: (name: string) => Promise<unkno
   await capture("a-valider-apres");
 
   await enterAs(page, "invite");
-  await expect(page.getByRole("region", { name: "Mes demandes" }).getByRole("listitem")).toHaveText(
-    ["Chocolat chaud"],
-  );
+  // One demande left waiting: one « Retirer » button in the card.
+  await expect(
+    page.getByRole("region", { name: "Mes demandes" }).getByRole("button"),
+  ).toHaveAccessibleName("Retirer Chocolat chaud");
   await capture("invite-verdicts");
+  await page.getByRole("button", { name: "Retirer Chocolat chaud" }).click();
+  await expect(page.getByRole("region", { name: "Mes demandes" })).toBeHidden();
+  await capture("invite-retrait");
 }
 
 /**
