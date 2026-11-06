@@ -24,8 +24,8 @@ jobs:
       - run: pnpm --filter web smoke
 
   # Production on `main`, a preview per PR branch. Fork PRs get no secrets, so no preview.
+  # PROTOTYPE branch: deploy the preview without waiting for `check` (throwaway code, no tests).
   deploy-web:
-    needs: check
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:

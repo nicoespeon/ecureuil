@@ -17,6 +17,16 @@ import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
 import { ListeView } from "./liste/ListeView";
+import {
+  BottomModeButton,
+  type Mode,
+  PrototypeSwitcher,
+  SegmentedMode,
+  SwitchMode,
+  useMode,
+  useVariante,
+  type Variante,
+} from "./liste/prototypeModes";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
 export function App({
@@ -69,46 +79,65 @@ function ListeScreen({
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
+  const { mode, setMode } = useMode();
+  const { variante, setVariante } = useVariante();
+  const proprietaire = writer.actor === "proprietaire";
+  const headerHeight =
+    proprietaire && variante === "A" ? "[--header-h:6.5rem]" : "[--header-h:3.5rem]";
 
   return (
     <Tabs.Root
       value={magasinActif.id}
       onValueChange={(value) => typeof value === "string" && foyer.selectMagasin(value)}
-      className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
+      className={`mx-auto min-h-dvh max-w-xl bg-white text-neutral-950 ${headerHeight}`}
     >
-      <header
-        style={{ viewTransitionName: "magasins" }}
-        className="sticky top-0 z-20 flex h-14 items-center border-b border-neutral-300 bg-white px-2"
-      >
-        <h1 className="sr-only">Écureuil</h1>
-        <Tabs.List aria-label="Magasin" className="flex h-full gap-1">
-          {magasins.map((magasin) => (
-            <Tabs.Tab
-              key={magasin.id}
-              value={magasin.id}
-              className="h-full border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
-            >
-              {magasin.name}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-        {writer.actor === "proprietaire" && (
-          <ConfigurationButton
-            focusOnMount={configuration.focusOnMount}
-            onClick={configuration.open}
-          />
-        )}
-      </header>
-      {writer.actor === "invite" ? (
-        <InvitePanel foyer={foyer} />
+      <div style={{ viewTransitionName: "magasins" }} className="sticky top-0 z-20">
+        <header className="flex h-14 items-center border-b border-neutral-300 bg-white px-2">
+          <h1 className="sr-only">Écureuil</h1>
+          <Tabs.List aria-label="Magasin" className="flex h-full gap-1">
+            {magasins.map((magasin) => (
+              <Tabs.Tab
+                key={magasin.id}
+                value={magasin.id}
+                className="h-full border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
+              >
+                {magasin.name}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          {proprietaire && (
+            <div className="ml-auto flex items-center gap-1">
+              {variante === "C" && <SwitchMode mode={mode} setMode={setMode} />}
+              <ConfigurationButton
+                focusOnMount={configuration.focusOnMount}
+                onClick={configuration.open}
+              />
+            </div>
+          )}
+        </header>
+        {proprietaire && variante === "A" && <SegmentedMode mode={mode} setMode={setMode} />}
+      </div>
+      {proprietaire ? (
+        <>
+          <MagasinPanel foyer={foyer} writer={writer} prototype={{ mode, setMode, variante }} />
+          <PrototypeSwitcher variante={variante} setVariante={setVariante} />
+        </>
       ) : (
-        <MagasinPanel foyer={foyer} writer={writer} />
+        <InvitePanel foyer={foyer} />
       )}
     </Tabs.Root>
   );
 }
 
-function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer }) {
+function MagasinPanel({
+  foyer,
+  writer,
+  prototype: { mode, setMode, variante },
+}: {
+  foyer: FoyerWithListe;
+  writer: Writer;
+  prototype: { mode: Mode; setMode: (mode: Mode) => void; variante: Variante };
+}) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
@@ -129,6 +158,7 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         <ListeView
           liste={liste}
           magasinName={magasin.name}
+          mode={mode}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -140,12 +170,19 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         />
       </Tabs.Panel>
       <BottomBar>
-        <AjoutRapide foyer={foyer} writer={writer} />
-        <TerminerLesCourses
-          liste={liste}
-          finishSortie={foyer.finishSortie}
-          focusAfterFinish={panelRef}
-        />
+        {variante === "B" && <BottomModeButton mode={mode} setMode={setMode} />}
+        {mode === "preparer" ? (
+          <AjoutRapide foyer={foyer} writer={writer} />
+        ) : (
+          <TerminerLesCourses
+            liste={liste}
+            finishSortie={() => {
+              foyer.finishSortie();
+              setMode("preparer");
+            }}
+            focusAfterFinish={panelRef}
+          />
+        )}
       </BottomBar>
       {fiche}
       <p role="status" className="sr-only">

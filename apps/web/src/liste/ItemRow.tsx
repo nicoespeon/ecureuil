@@ -1,6 +1,7 @@
 import type { ListItem } from "@ecureuil/domain";
 import { type ReactNode, useEffect, useState } from "react";
 import { animateMove, moveTransitionName } from "./animateMove";
+import type { Mode } from "./prototypeModes";
 
 /** A UI ceiling: the domain allows more, the stepper stops here. */
 const MAX_QUANTITY = 10;
@@ -14,14 +15,19 @@ export type ToBuyActions = {
   readonly openFiche: (itemId: string) => void;
 };
 
-export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActions }) {
-  return (
-    <Row
-      item={item}
-      checked={false}
-      onToggle={() => actions.check(item)}
-      openFiche={actions.openFiche}
-    >
+export function ToBuyRow({
+  item,
+  actions,
+  mode,
+}: {
+  item: ListItem;
+  actions: ToBuyActions;
+  mode: Mode;
+}) {
+  return mode === "courses" ? (
+    <Row item={item} checkbox={{ checked: false, onToggle: () => actions.check(item) }} openFiche={actions.openFiche} />
+  ) : (
+    <Row item={item} openFiche={actions.openFiche}>
       <Stepper item={item} setQuantity={actions.setQuantity} />
       <RemoveButton item={item} actions={actions} />
     </Row>
@@ -31,44 +37,49 @@ export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActi
 export function PanierRow({
   item,
   actions,
+  mode,
 }: {
   item: ListItem;
   actions: { uncheck: (item: ListItem) => void; openFiche: (itemId: string) => void };
+  mode: Mode;
 }) {
   return (
-    <Row item={item} checked onToggle={() => actions.uncheck(item)} openFiche={actions.openFiche} />
+    <Row
+      item={item}
+      checkbox={mode === "courses" ? { checked: true, onToggle: () => actions.uncheck(item) } : undefined}
+      openFiche={actions.openFiche}
+    />
   );
 }
 
 function Row({
   item,
-  checked,
-  onToggle,
+  checkbox,
   openFiche,
   children,
 }: {
   item: ListItem;
-  checked: boolean;
-  onToggle: () => void;
+  checkbox?: { checked: boolean; onToggle: () => void } | undefined;
   openFiche: (itemId: string) => void;
   children?: ReactNode;
 }) {
   return (
     <li
-      className="flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2"
+      className={`flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2 ${checkbox ? "" : "pl-4"}`}
       style={{ viewTransitionName: moveTransitionName(item.id) }}
     >
-      {/* Only the box checks: the name opens the item sheet. */}
-      <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
-        <input
-          type="checkbox"
-          aria-label={item.name}
-          data-item-id={item.id}
-          checked={checked}
-          onChange={() => animateMove(onToggle)}
-          className="size-6 cursor-pointer accent-neutral-900"
-        />
-      </label>
+      {checkbox && (
+        <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
+          <input
+            type="checkbox"
+            aria-label={item.name}
+            data-item-id={item.id}
+            checked={checkbox.checked}
+            onChange={() => animateMove(checkbox.onToggle)}
+            className="size-6 cursor-pointer accent-neutral-900"
+          />
+        </label>
+      )}
       <span className="flex min-w-0 flex-1 items-center">
         <button
           type="button"
@@ -79,7 +90,7 @@ function Row({
         >
           {item.name}
         </button>
-        {item.quantity > 1 && (
+        {!children && item.quantity > 1 && (
           <span className="ml-1 shrink-0 text-neutral-700">×{item.quantity}</span>
         )}
       </span>

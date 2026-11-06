@@ -78,7 +78,7 @@ function sectionTitle(section: Section) {
 }
 
 const headingClassName =
-  "sticky top-14 z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
+  "sticky top-(--header-h) z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
 
 function PasVenduIci({
   magasinName,

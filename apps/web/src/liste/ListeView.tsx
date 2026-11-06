@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 import { ListeSections } from "./ListeSections";
+import type { Mode } from "./prototypeModes";
 
 type Actions = Pick<
   ReturnType<typeof useFoyer>,
@@ -16,10 +17,12 @@ export function ListeView({
   liste,
   magasinName,
   actions,
+  mode,
 }: {
   liste: Liste;
   magasinName: string;
   actions: Actions;
+  mode: Mode;
 }) {
   const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow();
   const rowActions = {
@@ -48,11 +51,11 @@ export function ListeView({
       <ListeSections
         liste={liste}
         magasinName={magasinName}
-        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} />}
+        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} mode={mode} />}
         panierRows={(items) => (
           <ul>
             {items.map((item) => (
-              <PanierRow key={item.id} item={item} actions={rowActions} />
+              <PanierRow key={item.id} item={item} actions={rowActions} mode={mode} />
             ))}
           </ul>
         )}
@@ -92,11 +95,19 @@ function useFocusNeighborOfLeavingRow() {
   };
 }
 
-function ToBuyRows({ items, actions }: { items: ReadonlyArray<ListItem>; actions: ToBuyActions }) {
+function ToBuyRows({
+  items,
+  actions,
+  mode,
+}: {
+  items: ReadonlyArray<ListItem>;
+  actions: ToBuyActions;
+  mode: Mode;
+}) {
   return (
     <ul>
       {items.map((item) => (
-        <ToBuyRow key={item.id} item={item} actions={actions} />
+        <ToBuyRow key={item.id} item={item} actions={actions} mode={mode} />
       ))}
     </ul>
   );
