@@ -1,11 +1,11 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 
-/** Throwaway: four squirrels side by side, to pick one on the phone. Never merged. */
+/** Throwaway: six squirrels side by side, to pick one on the phone. Never merged. */
 export function Mascottes() {
   const [hopKey, setHopKey] = useState(0);
   return (
     <main className="mx-auto max-w-xl bg-white p-4 text-neutral-950">
-      <h1 className="text-2xl font-semibold">Mascotte : quatre écureuils</h1>
+      <h1 className="text-2xl font-semibold">Mascotte : six écureuils</h1>
       <p className="mt-1 text-neutral-700">
         Chaque variante à 40, 72 et 120 px, puis dans l'encart « Tout est dans le panier ».
       </p>
@@ -180,9 +180,175 @@ function Trait({ size }: { size: number }) {
   );
 }
 
+/** Gradient and filter ids must be unique per instance, and valid inside `url(#…)`. */
+function useSvgId() {
+  return useId().replace(/[^a-zA-Z0-9]/g, "");
+}
+
+const queue =
+  "M52 104 C18 104 6 74 16 52 C24 34 14 20 28 12 C44 4 60 18 52 34 C46 46 58 58 62 72 C66 88 64 104 52 104 Z";
+
+/** A's pose, lit from the top left: gradients, highlights and a soft shadow. */
+function Glossy({ size }: { size: number }) {
+  const id = useSvgId();
+  const url = (name: string) => `url(#${id}${name})`;
+  return (
+    <Svg size={size}>
+      <defs>
+        <radialGradient id={`${id}fur`} cx="35%" cy="28%" r="80%">
+          <stop offset="0" stopColor="#F0A46A" />
+          <stop offset="0.5" stopColor={roux} />
+          <stop offset="1" stopColor="#7E3A12" />
+        </radialGradient>
+        <radialGradient id={`${id}belly`} cx="40%" cy="30%" r="80%">
+          <stop offset="0" stopColor="#FFF8EC" />
+          <stop offset="0.6" stopColor={creme} />
+          <stop offset="1" stopColor="#DDB98A" />
+        </radialGradient>
+        <radialGradient id={`${id}acorn`} cx="35%" cy="30%" r="75%">
+          <stop offset="0" stopColor="#E8BB78" />
+          <stop offset="0.55" stopColor={gland} />
+          <stop offset="1" stopColor="#704617" />
+        </radialGradient>
+        <radialGradient id={`${id}shadow`}>
+          <stop offset="0" stopColor="#000" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#000" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="62" cy="108" rx="46" ry="8" fill={url("shadow")} />
+      <path d={queue} fill={url("fur")} />
+      <path
+        d="M48 96 C26 94 18 74 24 58 C30 44 24 30 32 22 C26 34 34 46 40 58 C46 72 52 86 48 96 Z"
+        fill="#6B300E"
+        opacity="0.3"
+      />
+      <path
+        d="M30 16 C40 12 48 20 44 30"
+        fill="none"
+        stroke="white"
+        strokeOpacity="0.45"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <ellipse cx="70" cy="82" rx="20" ry="24" fill={url("fur")} />
+      <ellipse cx="76" cy="86" rx="11" ry="16" fill={url("belly")} />
+      <path d="M70 38 L72 20 L82 34 Z" fill={url("fur")} />
+      <path d="M72.5 34 L73.5 25 L78.5 33 Z" fill={creme} />
+      <circle cx="80" cy="50" r="17" fill={url("fur")} />
+      <ellipse
+        cx="74"
+        cy="41"
+        rx="7"
+        ry="3.5"
+        fill="white"
+        opacity="0.45"
+        transform="rotate(-30 74 41)"
+      />
+      <ellipse cx="94" cy="57" rx="9" ry="7" fill={url("belly")} />
+      <circle cx="101" cy="54" r="2.6" fill={brun} />
+      <circle cx="100.3" cy="53.2" r="0.8" fill="white" />
+      <circle cx="86" cy="46" r="3.4" fill={brun} />
+      <circle cx="87.2" cy="44.8" r="1.3" fill="white" />
+      <ellipse cx="91" cy="78" rx="6" ry="7.5" fill={url("acorn")} />
+      <ellipse cx="89" cy="78" rx="1.6" ry="3" fill="white" opacity="0.5" />
+      <path d="M84 74 Q91 66 98 74 Z" fill={chapeau} />
+      <ellipse cx="84" cy="82" rx="4" ry="3" fill={url("fur")} />
+      <ellipse cx="64" cy="105" rx="10" ry="4" fill={rouxFonce} />
+      <ellipse cx="82" cy="105" rx="8" ry="4" fill={rouxFonce} />
+    </Svg>
+  );
+}
+
+/** A's pose in plasticine: lumpy edges, a fine grain, shading inside each piece, a matte shadow. */
+function PateAModeler({ size }: { size: number }) {
+  const id = useSvgId();
+  const clay = `url(#${id}clay)`;
+  return (
+    <Svg size={size}>
+      <defs>
+        <filter id={`${id}clay`} x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.035"
+            numOctaves="1"
+            seed="4"
+            result="lumps"
+          />
+          <feDisplacementMap in="SourceGraphic" in2="lumps" scale="3" result="shape" />
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+          <feOffset in="blur" dx="-3" dy="-4" result="towardsLight" />
+          <feComposite in="SourceAlpha" in2="towardsLight" operator="out" result="darkRim" />
+          <feFlood floodColor="#5A2A0C" floodOpacity="0.45" />
+          <feComposite in2="darkRim" operator="in" result="innerShade" />
+          <feOffset in="blur" dx="3" dy="4" result="awayFromLight" />
+          <feComposite in="SourceAlpha" in2="awayFromLight" operator="out" result="lightRim" />
+          <feFlood floodColor="#FFF4E0" floodOpacity="0.45" />
+          <feComposite in2="lightRim" operator="in" result="innerLight" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="1.2"
+            numOctaves="2"
+            seed="9"
+            result="grain"
+          />
+          <feColorMatrix
+            in="grain"
+            type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.3 0"
+            result="grainAlpha"
+          />
+          <feComposite in="grainAlpha" in2="shape" operator="in" result="grainInShape" />
+          <feMerge>
+            <feMergeNode in="shape" />
+            <feMergeNode in="innerShade" />
+            <feMergeNode in="innerLight" />
+            <feMergeNode in="grainInShape" />
+          </feMerge>
+        </filter>
+      </defs>
+      <ellipse cx="62" cy="109" rx="44" ry="6" fill="#000" opacity="0.14" />
+      <g filter={clay}>
+        <path d={queue} fill="#D4703A" />
+        <path
+          d="M48 96 C26 94 18 74 24 58 C30 44 24 30 32 22 C26 34 34 46 40 58 C46 72 52 86 48 96 Z"
+          fill="#B4561F"
+        />
+        <ellipse cx="70" cy="82" rx="20" ry="24" fill="#D4703A" />
+        <ellipse cx="76" cy="86" rx="11" ry="16" fill="#F6DDB5" />
+        <path
+          d="M70 38 L72 20 L82 34 Z"
+          fill="#D4703A"
+          strokeLinejoin="round"
+          stroke="#D4703A"
+          strokeWidth="4"
+        />
+        <path d="M73 33 L73.5 26 L78 32 Z" fill="#F6DDB5" />
+        <circle cx="80" cy="50" r="17" fill="#D4703A" />
+        <ellipse cx="94" cy="57" rx="9" ry="7" fill="#F6DDB5" />
+        <circle cx="101" cy="54" r="3" fill={brun} />
+        <circle cx="86" cy="46" r="3.4" fill={brun} />
+        <ellipse cx="91" cy="78" rx="6.5" ry="8" fill="#C08A45" />
+        <path
+          d="M83 75 Q91 64 99 75 Z"
+          fill="#6E4320"
+          stroke="#6E4320"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <ellipse cx="84" cy="82" rx="4.5" ry="3.5" fill="#B4561F" />
+        <ellipse cx="64" cy="105" rx="10" ry="4.5" fill="#B4561F" />
+        <ellipse cx="82" cy="105" rx="8" ry="4.5" fill="#B4561F" />
+      </g>
+      <circle cx="87" cy="45" r="1" fill="white" />
+    </Svg>
+  );
+}
+
 const variantes = [
   { lettre: "A", nom: "De profil, gland entre les pattes", Ecureuil: Profil },
   { lettre: "B", nom: "Frimousse de face", Ecureuil: Frimousse },
   { lettre: "C", nom: "De profil, avec un cabas", Ecureuil: Cabas },
   { lettre: "D", nom: "Au trait, comme les icônes", Ecureuil: Trait },
+  { lettre: "E", nom: "La A en glossy / 3D", Ecureuil: Glossy },
+  { lettre: "F", nom: "La A en pâte à modeler", Ecureuil: PateAModeler },
 ];
