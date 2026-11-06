@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("cocher un item le met au panier, terminer les courses vide le panier", async ({ page }) => {
+test("en Courses, cocher un item le met au panier, terminer les courses vide le panier", async ({
+  page,
+}) => {
   await page.goto("/");
+  await page.getByRole("switch", { name: "Courses" }).click();
 
   await page.getByRole("checkbox", { name: "Lait", exact: true }).click();
   const panier = page.getByRole("region", { name: "Dans le panier" });
@@ -47,5 +50,5 @@ test("après un premier chargement, l'app redémarre sans réseau", async ({ pag
   await context.setOffline(true);
   await page.reload();
 
-  await expect(page.getByRole("checkbox", { name: "Lait", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Lait", exact: true })).toBeVisible();
 });
