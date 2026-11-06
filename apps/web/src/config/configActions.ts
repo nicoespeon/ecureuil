@@ -13,6 +13,16 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
     appendEvent(journal, { actor, type, magasin, payload });
 
   return {
+    /** Returns the new magasin's id, so the screen can switch to it. */
+    createMagasin: (name: string) => {
+      const magasinId = crypto.randomUUID();
+      append("MagasinCreated", magasinId, { name });
+      for (const rayonName of rayonsParDefaut)
+        append("RayonCreated", magasinId, { rayonId: crypto.randomUUID(), name: rayonName });
+      return magasinId;
+    },
+    renameMagasin: (magasinId: string, name: string) =>
+      append("MagasinRenamed", magasinId, { name }),
     createRayon: (magasinId: string, name: string) =>
       append("RayonCreated", magasinId, { rayonId: crypto.randomUUID(), name }),
     renameRayon: (magasinId: string, rayon: { rayonId: string; name: string }) =>
@@ -34,6 +44,18 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
     removeItem: (itemId: string) => append("ItemRemoved", magasinActifId, { itemId }),
   };
 }
+
+/** A new magasin starts with these, in a common walking order, to reorder or remove (ADR 1). */
+const rayonsParDefaut = [
+  "Fruits et légumes",
+  "Boulangerie",
+  "Viandes et poissons",
+  "Produits laitiers",
+  "Épicerie",
+  "Surgelés",
+  "Hygiène",
+  "Entretien",
+];
 
 export type ConfigActions = ReturnType<typeof configActions>;
 

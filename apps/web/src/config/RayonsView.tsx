@@ -17,13 +17,17 @@ import type { Magasin, State } from "@ecureuil/domain";
 import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
 import { fieldClassName, submitClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
+import { NameInput } from "./NameInput";
 import { RayonRow } from "./RayonRow";
 import { screenReaderInstructions, useRayonAnnouncements } from "./rayonAnnouncements";
 
 type Actions = Pick<
   ConfigActions,
-  "createRayon" | "renameRayon" | "reorderRayons" | "removeRayon"
-> & { readonly announce: (message: string) => void };
+  "renameMagasin" | "createRayon" | "renameRayon" | "reorderRayons" | "removeRayon"
+> & {
+  readonly createMagasin: (name: string) => void;
+  readonly announce: (message: string) => void;
+};
 
 export function RayonsView({
   magasin,
@@ -52,6 +56,11 @@ export function RayonsView({
 
   return (
     <div ref={containerRef} className="p-4">
+      <NomDuMagasin
+        key={magasin.id}
+        name={magasin.name}
+        rename={(name) => actions.renameMagasin(magasin.id, name)}
+      />
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -78,7 +87,10 @@ export function RayonsView({
           </ul>
         </SortableContext>
       </DndContext>
-      <NouveauRayon create={(name) => actions.createRayon(magasin.id, name)} />
+      <NewNameForm label="Nouveau rayon" create={(name) => actions.createRayon(magasin.id, name)} />
+      <div className="mt-6 max-w-xl border-t border-neutral-300">
+        <NewNameForm label="Nouveau magasin" create={actions.createMagasin} />
+      </div>
     </div>
   );
 }
@@ -121,7 +133,19 @@ function itemCountIn(
   }).length;
 }
 
-function NouveauRayon({ create }: { create: (name: string) => void }) {
+function NomDuMagasin({ name, rename }: { name: string; rename: (name: string) => void }) {
+  const inputId = useId();
+  return (
+    <div className="mb-4 flex max-w-xl flex-col gap-1">
+      <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+        Nom du magasin
+      </label>
+      <NameInput id={inputId} name={name} rename={rename} />
+    </div>
+  );
+}
+
+function NewNameForm({ label, create }: { label: string; create: (name: string) => void }) {
   const inputId = useId();
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -135,7 +159,7 @@ function NouveauRayon({ create }: { create: (name: string) => void }) {
     <form onSubmit={onSubmit} className="mt-4 flex max-w-xl items-end gap-2">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
-          Nouveau rayon
+          {label}
         </label>
         <input id={inputId} name="name" autoComplete="off" className={fieldClassName} />
       </div>

@@ -29,7 +29,16 @@ export function ConfigurationView({
   // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
   const sidebar = useMediaQuery("(min-width: 48rem)");
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: titleRef });
-  const actions = { ...configActions(writer, foyer.magasinActif.id), announce, openFiche };
+  const config = configActions(writer, foyer.magasinActif.id);
+  const actions = {
+    ...config,
+    announce,
+    openFiche,
+    createMagasin: (name: string) => {
+      foyer.selectMagasin(config.createMagasin(name));
+      announce(`Magasin ${name} créé.`);
+    },
+  };
 
   return (
     <div className="mx-auto min-h-dvh max-w-5xl bg-white text-neutral-950">
