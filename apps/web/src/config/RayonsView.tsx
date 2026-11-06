@@ -15,17 +15,20 @@ import {
 } from "@dnd-kit/sortable";
 import type { Magasin, State } from "@ecureuil/domain";
 import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
+import { ConfirmButton } from "./ConfirmButton";
 import { fieldClassName, submitClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
 import { NameInput } from "./NameInput";
 import { RayonRow } from "./RayonRow";
 import { screenReaderInstructions, useRayonAnnouncements } from "./rayonAnnouncements";
+import type { FocusRequest } from "./useFocusRequest";
 
 type Actions = Pick<
   ConfigActions,
   "renameMagasin" | "createRayon" | "renameRayon" | "reorderRayons" | "removeRayon"
 > & {
-  readonly createMagasin: (name: string) => void;
+  readonly removeMagasin: (magasin: Magasin) => void;
+  readonly focus: FocusRequest<"nom" | "onglet">;
   readonly announce: (message: string) => void;
 };
 
@@ -58,8 +61,14 @@ export function RayonsView({
     <div ref={containerRef} className="p-4">
       <NomDuMagasin
         key={magasin.id}
-        name={magasin.name}
-        rename={(name) => actions.renameMagasin(magasin.id, name)}
+        magasin={magasin}
+        classifiedItemCount={classifiedItemCount(items, magasin.id)}
+        actions={{
+          rename: (name) => actions.renameMagasin(magasin.id, name),
+          remove: () => actions.removeMagasin(magasin),
+          announce: actions.announce,
+          takeFocus: () => actions.focus.take("nom"),
+        }}
       />
       <DndContext
         sensors={sensors}
@@ -87,10 +96,7 @@ export function RayonsView({
           </ul>
         </SortableContext>
       </DndContext>
-      <NewNameForm label="Nouveau rayon" create={(name) => actions.createRayon(magasin.id, name)} />
-      <div className="mt-6 max-w-xl border-t border-neutral-300">
-        <NewNameForm label="Nouveau magasin" create={actions.createMagasin} />
-      </div>
+      <NouveauRayon create={(name) => actions.createRayon(magasin.id, name)} />
     </div>
   );
 }
@@ -133,19 +139,53 @@ function itemCountIn(
   }).length;
 }
 
-function NomDuMagasin({ name, rename }: { name: string; rename: (name: string) => void }) {
+function NomDuMagasin({
+  magasin,
+  classifiedItemCount,
+  actions,
+}: {
+  magasin: Magasin;
+  classifiedItemCount: number;
+  actions: {
+    rename: (name: string) => void;
+    remove: () => void;
+    announce: (message: string) => void;
+    takeFocus: () => boolean;
+  };
+}) {
   const inputId = useId();
   return (
-    <div className="mb-4 flex max-w-xl flex-col gap-1">
-      <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
-        Nom du magasin
-      </label>
-      <NameInput id={inputId} name={name} rename={rename} />
+    <div className="mb-4 flex max-w-xl items-end gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+          Nom du magasin
+        </label>
+        <NameInput
+          id={inputId}
+          name={magasin.name}
+          rename={actions.rename}
+          takeFocusOnMount={actions.takeFocus}
+        />
+      </div>
+      <ConfirmButton
+        subject={magasin.name}
+        withLabel
+        warning={{
+          announce: actions.announce,
+          message: `Supprimer ${magasin.name} ? Ses ${magasin.rayons.length} rayons et le classement de ${classifiedItemCount} items seront perdus.`,
+        }}
+        onConfirm={actions.remove}
+      />
     </div>
   );
 }
 
-function NewNameForm({ label, create }: { label: string; create: (name: string) => void }) {
+function classifiedItemCount(items: State["items"], magasinId: string) {
+  return Object.values(items).filter((item) => item.rayonParMagasin[magasinId]?._tag === "Rayon")
+    .length;
+}
+
+function NouveauRayon({ create }: { create: (name: string) => void }) {
   const inputId = useId();
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,7 +199,7 @@ function NewNameForm({ label, create }: { label: string; create: (name: string) 
     <form onSubmit={onSubmit} className="mt-4 flex max-w-xl items-end gap-2">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
-          {label}
+          Nouveau rayon
         </label>
         <input id={inputId} name="name" autoComplete="off" className={fieldClassName} />
       </div>

@@ -1,7 +1,9 @@
 import { Tabs } from "@base-ui/react/tabs";
+import type { Magasin } from "@ecureuil/domain";
+import { useState } from "react";
 import type { AccesStore } from "../acces/acces";
 import { Reglages } from "../acces/Reglages";
-import { configActions, type Writer } from "./configActions";
+import { configActions, createMagasin, type Writer } from "./configActions";
 import { type FicheFoyer, useFicheItem } from "./FicheItem";
 import { ItemsView } from "./ItemsView";
 import { MagasinTabs } from "./MagasinTabs";
@@ -9,6 +11,7 @@ import { RayonsView } from "./RayonsView";
 
 import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
+import { useFocusRequest } from "./useFocusRequest";
 import { useMediaQuery } from "./useMediaQuery";
 
 type Foyer = FicheFoyer & { readonly selectMagasin: (magasinId: string) => void };
@@ -29,15 +32,18 @@ export function ConfigurationView({
   // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
   const sidebar = useMediaQuery("(min-width: 48rem)");
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: titleRef });
-  const config = configActions(writer, foyer.magasinActif.id);
+  const [section, setSection] = useState("rayons");
+  const magasinActions = useMagasinActions({
+    foyer,
+    writer,
+    announce,
+    showRayons: () => setSection("rayons"),
+  });
   const actions = {
-    ...config,
+    ...configActions(writer, foyer.magasinActif.id),
+    ...magasinActions,
     announce,
     openFiche,
-    createMagasin: (name: string) => {
-      foyer.selectMagasin(config.createMagasin(name));
-      announce(`Magasin ${name} créé.`);
-    },
   };
 
   return (
@@ -51,7 +57,8 @@ export function ConfigurationView({
         </h1>
       </header>
       <Tabs.Root
-        defaultValue="rayons"
+        value={section}
+        onValueChange={(value) => typeof value === "string" && setSection(value)}
         orientation={sidebar ? "vertical" : "horizontal"}
         className="md:flex"
       >
@@ -66,12 +73,12 @@ export function ConfigurationView({
           ))}
         </Tabs.List>
         <Tabs.Panel value="rayons" className={panelClassName}>
-          <MagasinTabs {...foyer}>
+          <MagasinTabs {...foyer} {...magasinActions}>
             <RayonsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
           </MagasinTabs>
         </Tabs.Panel>
         <Tabs.Panel value="items" className={panelClassName}>
-          <MagasinTabs {...foyer}>
+          <MagasinTabs {...foyer} {...magasinActions}>
             <ItemsView magasin={foyer.magasinActif} items={foyer.state.items} actions={actions} />
           </MagasinTabs>
         </Tabs.Panel>
@@ -85,6 +92,38 @@ export function ConfigurationView({
       </p>
     </div>
   );
+}
+
+/**
+ * A new magasin opens on its rayons, its name field focused; a removed one hands the focus to
+ * the tab of the magasin shown next.
+ */
+function useMagasinActions({
+  foyer,
+  writer,
+  announce,
+  showRayons,
+}: {
+  foyer: Foyer;
+  writer: Writer;
+  announce: (message: string) => void;
+  showRayons: () => void;
+}) {
+  const focus = useFocusRequest<"nom" | "onglet">();
+  return {
+    focus,
+    createMagasin: (name: string) => {
+      focus.request("nom");
+      foyer.selectMagasin(createMagasin(writer, name));
+      showRayons();
+      announce(`Magasin ${name} créé.`);
+    },
+    removeMagasin: ({ id, name }: Magasin) => {
+      focus.request("onglet");
+      configActions(writer, id).removeMagasin(id);
+      announce(`Magasin ${name} supprimé.`);
+    },
+  };
 }
 
 const sections = [

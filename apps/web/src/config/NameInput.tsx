@@ -1,4 +1,4 @@
-import { type ComponentProps, useEffect, useRef } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 import { fieldClassName } from "./classNames";
 
 /**
@@ -8,12 +8,20 @@ import { fieldClassName } from "./classNames";
 export function NameInput({
   name,
   rename,
+  takeFocusOnMount,
   ...props
-}: { name: string; rename: (name: string) => void } & Pick<
-  ComponentProps<"input">,
-  "id" | "aria-label"
->) {
+}: {
+  name: string;
+  rename: (name: string) => void;
+  /** Asked once, when the field mounts. */
+  takeFocusOnMount?: () => boolean;
+} & Pick<ComponentProps<"input">, "id" | "aria-label">) {
   const ref = useRef<HTMLInputElement>(null);
+
+  const [takeFocus] = useState(() => takeFocusOnMount);
+  useEffect(() => {
+    if (takeFocus?.()) ref.current?.focus();
+  }, [takeFocus]);
 
   useEffect(() => {
     // A new name from another device replaces the field, unless someone is typing in it.

@@ -14,14 +14,9 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
     appendEvent(journal, { actor, type, magasin, payload });
 
   return {
-    /** Returns the new magasin's id, so the screen can switch to it. */
-    createMagasin: (name: string) => {
-      const { magasinId, drafts } = magasinCreation({ name, newId: () => crypto.randomUUID() });
-      for (const draft of drafts) appendEvent(journal, { actor, ...draft });
-      return magasinId;
-    },
     renameMagasin: (magasinId: string, name: string) =>
       append("MagasinRenamed", magasinId, { name }),
+    removeMagasin: (magasinId: string) => append("MagasinRemoved", magasinId, {}),
     createRayon: (magasinId: string, name: string) =>
       append("RayonCreated", magasinId, { rayonId: crypto.randomUUID(), name }),
     renameRayon: (magasinId: string, rayon: { rayonId: string; name: string }) =>
@@ -42,6 +37,13 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
         : append("ItemMarkedNotToBuy", magasinActifId, { itemId }),
     removeItem: (itemId: string) => append("ItemRemoved", magasinActifId, { itemId }),
   };
+}
+
+/** Returns the new magasin's id, so the screen can switch to it. */
+export function createMagasin({ journal, actor }: Writer, name: string) {
+  const { magasinId, drafts } = magasinCreation({ name, newId: () => crypto.randomUUID() });
+  for (const draft of drafts) appendEvent(journal, { actor, ...draft });
+  return magasinId;
 }
 
 export type ConfigActions = ReturnType<typeof configActions>;
