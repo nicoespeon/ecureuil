@@ -1,11 +1,11 @@
 import type { ListArticle } from "@ecureuil/domain";
-import { type ReactNode, useEffect, useId, useState } from "react";
+import { type ReactNode, useId } from "react";
 import { animateMove, moveTransitionName } from "./animateMove";
+import { useConfirmation } from "./useConfirmation";
 import type { Mode } from "./useMode";
 
 /** A UI ceiling: the domain allows more, the stepper stops here. */
 const MAX_QUANTITY = 10;
-const REMOVE_CONFIRMATION_MS = 3000;
 
 export type ToBuyActions = {
   readonly check: (article: ListArticle) => void;
@@ -151,23 +151,18 @@ export function Stepper({
 }
 
 function RemoveButton({ article, actions }: { article: ListArticle; actions: ToBuyActions }) {
-  const [confirming, setConfirming] = useState(false);
-
-  useEffect(() => {
-    if (!confirming) return;
-    const timeout = setTimeout(() => setConfirming(false), REMOVE_CONFIRMATION_MS);
-    return () => clearTimeout(timeout);
-  }, [confirming]);
+  const { confirming, arm, onBlur } = useConfirmation();
 
   return (
     <button
       type="button"
       data-article-id={article.id}
+      onBlur={onBlur}
       onClick={() => {
         if (confirming) {
           actions.removeFromList(article);
         } else {
-          setConfirming(true);
+          arm();
           actions.announce(`Touchez encore pour retirer ${article.name} de la liste`);
         }
       }}

@@ -240,12 +240,31 @@ describe("retirer de la liste", () => {
     expect(screen.getByRole("button", { name: "Retirer Croissants de la liste" })).toHaveFocus();
   });
 
-  it("la confirmation retombe après 3 secondes", async () => {
+  it("la confirmation tient le temps qu'un lecteur d'écran lise l'avertissement", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
 
-    await act(() => vi.advanceTimersByTimeAsync(3000));
+    await act(() => vi.advanceTimersByTimeAsync(9000));
+
+    expect(screen.getByRole("button", { name: "Retirer Babybel ?" })).toBeVisible();
+  });
+
+  it("la confirmation retombe après 10 secondes", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await act(() => vi.advanceTimersByTimeAsync(10_000));
+
+    expect(screen.getByRole("button", { name: "Retirer Babybel de la liste" })).toBeVisible();
+  });
+
+  it("la confirmation retombe quand le focus quitte la poubelle", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await user.tab();
 
     expect(screen.getByRole("button", { name: "Retirer Babybel de la liste" })).toBeVisible();
   });

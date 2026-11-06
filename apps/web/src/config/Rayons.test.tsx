@@ -96,6 +96,15 @@ describe("les rayons d'un magasin", () => {
     await backToListe(user);
     expect(section("Non classé").getByRole("button", { name: "Lait" })).toBeVisible();
   });
+
+  it("la confirmation de suppression d'un rayon retombe quand le focus quitte le bouton", async () => {
+    const { user } = await openRayons();
+    await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
+
+    await user.tab();
+
+    expect(screen.getByRole("button", { name: "Supprimer Produits laitiers" })).toBeVisible();
+  });
 });
 
 type User = ReturnType<typeof userEvent.setup>;
