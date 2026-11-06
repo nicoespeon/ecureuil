@@ -18,7 +18,7 @@ describe("la section « À valider »", () => {
 
     await user.click(screen.getByRole("button", { name: "Accepter Chocolat chaud" }));
 
-    expect(section("Non classé").getByRole("checkbox", { name: "Chocolat chaud" })).toBeVisible();
+    expect(section("Non classé").getByRole("button", { name: "Chocolat chaud" })).toBeVisible();
     expect(screen.queryByRole("region", { name: /À valider/ })).toBeNull();
   });
 
@@ -27,7 +27,7 @@ describe("la section « À valider »", () => {
 
     await user.click(screen.getByRole("button", { name: "Accepter beurre" }));
 
-    expect(screen.getAllByRole("checkbox", { name: "Beurre" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Beurre" })).toHaveLength(1);
     expect(journal.all().at(-1)).toMatchObject({
       type: "DemandeAccepted",
       payload: { itemId: "item-beurre" },
@@ -45,12 +45,14 @@ describe("la section « À valider »", () => {
 
   it("refuser retire la demande sans toucher la liste", async () => {
     const { user, journal } = renderApp();
-    const listed = screen.getAllByRole("checkbox").length;
+    const listed = screen.getAllByRole("button", { name: /^Retirer .* de la liste$/ }).length;
 
     await user.click(screen.getByRole("button", { name: "Refuser Chocolat chaud" }));
 
     expect(screen.queryByRole("region", { name: /À valider/ })).toBeNull();
-    expect(screen.getAllByRole("checkbox")).toHaveLength(listed);
+    expect(screen.getAllByRole("button", { name: /^Retirer .* de la liste$/ })).toHaveLength(
+      listed,
+    );
     expect(journal.all().at(-1)).toMatchObject({ type: "DemandeRefused", actor: "proprietaire" });
   });
 

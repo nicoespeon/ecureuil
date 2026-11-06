@@ -16,8 +16,10 @@ import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
+import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
+import { useMode } from "./liste/useMode";
 
 export function App({
   journal,
@@ -69,6 +71,7 @@ function ListeScreen({
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
+  const { mode, setMode } = useMode();
 
   return (
     <Tabs.Root
@@ -93,22 +96,33 @@ function ListeScreen({
           ))}
         </Tabs.List>
         {writer.actor === "proprietaire" && (
-          <ConfigurationButton
-            focusOnMount={configuration.focusOnMount}
-            onClick={configuration.open}
-          />
+          <div className="ml-auto flex items-center gap-1">
+            <CoursesSwitch mode={mode} setMode={setMode} />
+            <ConfigurationButton
+              focusOnMount={configuration.focusOnMount}
+              onClick={configuration.open}
+            />
+          </div>
         )}
       </header>
       {writer.actor === "invite" ? (
         <InvitePanel foyer={foyer} />
       ) : (
-        <MagasinPanel foyer={foyer} writer={writer} />
+        <MagasinPanel foyer={foyer} writer={writer} modes={{ mode, setMode }} />
       )}
     </Tabs.Root>
   );
 }
 
-function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer }) {
+function MagasinPanel({
+  foyer,
+  writer,
+  modes: { mode, setMode },
+}: {
+  foyer: FoyerWithListe;
+  writer: Writer;
+  modes: ReturnType<typeof useMode>;
+}) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
@@ -129,6 +143,7 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         <ListeView
           liste={liste}
           magasinName={magasin.name}
+          mode={mode}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -140,10 +155,14 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         />
       </Tabs.Panel>
       <BottomBar>
-        <AjoutRapide foyer={foyer} writer={writer} />
+        {mode === "preparer" && <AjoutRapide foyer={foyer} writer={writer} />}
         <TerminerLesCourses
           liste={liste}
-          finishSortie={foyer.finishSortie}
+          mode={mode}
+          finishSortie={() => {
+            foyer.finishSortie();
+            setMode("preparer");
+          }}
           focusAfterFinish={panelRef}
         />
       </BottomBar>
@@ -183,7 +202,7 @@ function ConfigurationButton({
         type="button"
         aria-label="Configuration"
         onClick={onClick}
-        className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+        className="grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
       >
         <GearIcon />
       </Tooltip.Trigger>

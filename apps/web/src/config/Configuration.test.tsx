@@ -10,7 +10,7 @@ describe("la navigation vers la configuration", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Configuration" })).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Liste" }));
-    expect(screen.getByRole("checkbox", { name: "Lait" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Lait" })).toBeVisible();
   });
 
   it("survoler l'engrenage affiche l'infobulle « Configuration »", async () => {

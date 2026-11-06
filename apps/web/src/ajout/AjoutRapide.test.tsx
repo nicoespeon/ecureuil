@@ -13,6 +13,7 @@ describe("l'ajout rapide", () => {
 
   it("propose les items achetés à la dernière sortie", async () => {
     const { user } = renderApp();
+    await user.click(screen.getByRole("switch", { name: "Courses" }));
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
     await finishSortie(user);
 
@@ -27,6 +28,7 @@ describe("l'ajout rapide", () => {
 
   it("un tap sur un fréquent le remet sur la liste", async () => {
     const { user } = renderApp();
+    await user.click(screen.getByRole("switch", { name: "Courses" }));
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
     await finishSortie(user);
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
@@ -34,7 +36,7 @@ describe("l'ajout rapide", () => {
     await user.click(screen.getByRole("button", { name: "Lait" }));
     await user.click(screen.getByRole("button", { name: "Fermer" }));
 
-    expect(listSection("Produits laitiers").getByRole("checkbox", { name: "Lait" })).toBeVisible();
+    expect(listSection("Produits laitiers").getByRole("button", { name: "Lait" })).toBeVisible();
   });
 
   it("taper « pom » trouve Pommes, qu'un tap met sur la liste", async () => {
@@ -44,9 +46,7 @@ describe("l'ajout rapide", () => {
     await user.click(screen.getByRole("button", { name: "Pommes" }));
     await user.click(screen.getByRole("button", { name: "Fermer" }));
 
-    expect(
-      listSection("Fruits et légumes").getByRole("checkbox", { name: "Pommes" }),
-    ).toBeVisible();
+    expect(listSection("Fruits et légumes").getByRole("button", { name: "Pommes" })).toBeVisible();
   });
 
   it("annonce l'item ajouté", async () => {
@@ -119,7 +119,7 @@ describe("l'ajout rapide", () => {
     await closeDialog(user, "Laitue");
     await closeDialog(user, "Ajouter à la liste");
 
-    expect(listSection("Non classé").getByRole("checkbox", { name: "Laitue" })).toBeVisible();
+    expect(listSection("Non classé").getByRole("button", { name: "Laitue" })).toBeVisible();
   });
 
   it("un item existant choisi dans les résultats n'ouvre pas de fiche", async () => {
@@ -137,7 +137,7 @@ describe("l'ajout rapide", () => {
     await user.type(searchbox(), "pomm{Enter}");
     await closeDialog(user, "Ajouter à la liste");
 
-    expect(screen.getByRole("checkbox", { name: "Pommes" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Pommes" })).toBeVisible();
   });
 
   it("Entrée sur le nom d'un item déjà sur la liste le dit, sans rien ajouter", async () => {

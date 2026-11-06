@@ -19,7 +19,7 @@ describe("tous les items", () => {
     await user.selectOptions(rayonSelect("Croissants"), "Boulangerie");
     await backToListe(user);
 
-    expect(section("Boulangerie").getByRole("checkbox", { name: "Croissants" })).toBeVisible();
+    expect(section("Boulangerie").getByRole("button", { name: "Croissants" })).toBeVisible();
   });
 
   it("« Pas chez Costco » range l'item dans le groupe replié", async () => {

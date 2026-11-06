@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
 import { ListeSections } from "./ListeSections";
+import type { Mode } from "./useMode";
 
 type Actions = Pick<
   ReturnType<typeof useFoyer>,
@@ -15,10 +16,12 @@ type Actions = Pick<
 export function ListeView({
   liste,
   magasinName,
+  mode,
   actions,
 }: {
   liste: Liste;
   magasinName: string;
+  mode: Mode;
   actions: Actions;
 }) {
   const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow();
@@ -48,11 +51,11 @@ export function ListeView({
       <ListeSections
         liste={liste}
         magasinName={magasinName}
-        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} />}
+        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} mode={mode} />}
         panierRows={(items) => (
           <ul>
             {items.map((item) => (
-              <PanierRow key={item.id} item={item} actions={rowActions} />
+              <PanierRow key={item.id} item={item} actions={rowActions} mode={mode} />
             ))}
           </ul>
         )}
@@ -63,21 +66,20 @@ export function ListeView({
 
 /**
  * A row that leaves its place (checked, unchecked, removed) would take the keyboard focus with
- * it: the focus goes to the next row instead, or the previous one, without scrolling.
+ * it: the focus goes to the same control of the next row instead (its box in Courses, its
+ * trash in Préparer), or the previous one, without scrolling.
  */
 function useFocusNeighborOfLeavingRow() {
   const containerRef = useRef<HTMLDivElement>(null);
   const neighborId = useRef<string | undefined>(undefined);
 
-  const checkboxes = () => [
-    ...(containerRef.current?.querySelectorAll<HTMLInputElement>("input[data-item-id]") ?? []),
+  const rowControls = () => [
+    ...(containerRef.current?.querySelectorAll<HTMLElement>("[data-item-id]") ?? []),
   ];
 
   useLayoutEffect(() => {
     if (neighborId.current === undefined) return;
-    const neighbor = checkboxes().find(
-      (checkbox) => checkbox.dataset.itemId === neighborId.current,
-    );
+    const neighbor = rowControls().find((control) => control.dataset.itemId === neighborId.current);
     neighborId.current = undefined;
     neighbor?.focus({ preventScroll: true });
   });
@@ -85,18 +87,26 @@ function useFocusNeighborOfLeavingRow() {
   return {
     containerRef,
     focusNeighborOf: (itemId: string) => {
-      const all = checkboxes();
-      const index = all.findIndex((checkbox) => checkbox.dataset.itemId === itemId);
+      const all = rowControls();
+      const index = all.findIndex((control) => control.dataset.itemId === itemId);
       neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.itemId;
     },
   };
 }
 
-function ToBuyRows({ items, actions }: { items: ReadonlyArray<ListItem>; actions: ToBuyActions }) {
+function ToBuyRows({
+  items,
+  actions,
+  mode,
+}: {
+  items: ReadonlyArray<ListItem>;
+  actions: ToBuyActions;
+  mode: Mode;
+}) {
   return (
     <ul>
       {items.map((item) => (
-        <ToBuyRow key={item.id} item={item} actions={actions} />
+        <ToBuyRow key={item.id} item={item} actions={actions} mode={mode} />
       ))}
     </ul>
   );

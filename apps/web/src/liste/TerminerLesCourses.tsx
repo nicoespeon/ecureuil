@@ -1,13 +1,17 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import type { Liste } from "@ecureuil/domain";
 import type { RefObject } from "react";
+import type { Mode } from "./useMode";
 
+/** Offered in Courses only, but mounted in both modes: finishing leaves Courses while it closes. */
 export function TerminerLesCourses({
   liste,
+  mode,
   finishSortie,
   focusAfterFinish,
 }: {
   liste: Liste;
+  mode: Mode;
   finishSortie: () => void;
   /** The trigger disappears once the panier is empty, so focus goes here instead. */
   focusAfterFinish: RefObject<HTMLElement | null>;
@@ -19,7 +23,7 @@ export function TerminerLesCourses({
 
   return (
     <AlertDialog.Root>
-      {inPanier > 0 && (
+      {mode === "courses" && inPanier > 0 && (
         <AlertDialog.Trigger
           className={`${buttonClassName} grow whitespace-nowrap bg-neutral-900 text-white`}
         >

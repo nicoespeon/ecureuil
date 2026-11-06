@@ -1,6 +1,7 @@
 import type { ListItem } from "@ecureuil/domain";
 import { type ReactNode, useEffect, useState } from "react";
 import { animateMove, moveTransitionName } from "./animateMove";
+import type { Mode } from "./useMode";
 
 /** A UI ceiling: the domain allows more, the stepper stops here. */
 const MAX_QUANTITY = 10;
@@ -14,61 +15,74 @@ export type ToBuyActions = {
   readonly openFiche: (itemId: string) => void;
 };
 
-export function ToBuyRow({ item, actions }: { item: ListItem; actions: ToBuyActions }) {
-  return (
+export function ToBuyRow({
+  item,
+  actions,
+  mode,
+}: {
+  item: ListItem;
+  actions: ToBuyActions;
+  mode: Mode;
+}) {
+  return mode === "courses" ? (
     <Row
       item={item}
-      checked={false}
-      onToggle={() => actions.check(item)}
+      checkbox={{ checked: false, onToggle: () => actions.check(item) }}
       openFiche={actions.openFiche}
-    >
+    />
+  ) : (
+    <Row item={item} openFiche={actions.openFiche}>
       <Stepper item={item} setQuantity={actions.setQuantity} />
       <RemoveButton item={item} actions={actions} />
     </Row>
   );
 }
 
+/** Unchecked only in the magasin: at home the panier is read, not touched. */
 export function PanierRow({
   item,
   actions,
+  mode,
 }: {
   item: ListItem;
   actions: { uncheck: (item: ListItem) => void; openFiche: (itemId: string) => void };
+  mode: Mode;
 }) {
-  return (
-    <Row item={item} checked onToggle={() => actions.uncheck(item)} openFiche={actions.openFiche} />
-  );
+  const checkbox =
+    mode === "courses" ? { checked: true, onToggle: () => actions.uncheck(item) } : undefined;
+  return <Row item={item} checkbox={checkbox} openFiche={actions.openFiche} />;
 }
 
 function Row({
   item,
-  checked,
-  onToggle,
+  checkbox,
   openFiche,
   children,
 }: {
   item: ListItem;
-  checked: boolean;
-  onToggle: () => void;
+  checkbox?: { checked: boolean; onToggle: () => void } | undefined;
   openFiche: (itemId: string) => void;
+  /** The controls that edit the item; a row without them reads its quantity as ×N. */
   children?: ReactNode;
 }) {
   return (
     <li
-      className="flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2"
+      className={`flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2 ${checkbox ? "" : "pl-4"}`}
       style={{ viewTransitionName: moveTransitionName(item.id) }}
     >
-      {/* Only the box checks: the name opens the item sheet. */}
-      <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
-        <input
-          type="checkbox"
-          aria-label={item.name}
-          data-item-id={item.id}
-          checked={checked}
-          onChange={() => animateMove(onToggle)}
-          className="size-6 cursor-pointer accent-neutral-900"
-        />
-      </label>
+      {checkbox && (
+        // Only the box checks: the name opens the item sheet.
+        <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
+          <input
+            type="checkbox"
+            aria-label={item.name}
+            data-item-id={item.id}
+            checked={checkbox.checked}
+            onChange={() => animateMove(checkbox.onToggle)}
+            className="size-6 cursor-pointer accent-neutral-900"
+          />
+        </label>
+      )}
       <span className="flex min-w-0 flex-1 items-center">
         <button
           type="button"
@@ -79,7 +93,7 @@ function Row({
         >
           {item.name}
         </button>
-        {item.quantity > 1 && (
+        {children === undefined && item.quantity > 1 && (
           <span className="ml-1 shrink-0 text-neutral-700">×{item.quantity}</span>
         )}
       </span>
@@ -135,6 +149,7 @@ function RemoveButton({ item, actions }: { item: ListItem; actions: ToBuyActions
   return (
     <button
       type="button"
+      data-item-id={item.id}
       onClick={() => {
         if (confirming) {
           actions.removeFromList(item);

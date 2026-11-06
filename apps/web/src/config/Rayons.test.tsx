@@ -94,7 +94,7 @@ describe("les rayons d'un magasin", () => {
 
     expect(rayonNames()).not.toContain("Produits laitiers");
     await backToListe(user);
-    expect(section("Non classé").getByRole("checkbox", { name: "Lait" })).toBeVisible();
+    expect(section("Non classé").getByRole("button", { name: "Lait" })).toBeVisible();
   });
 });
 
