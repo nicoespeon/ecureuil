@@ -82,6 +82,31 @@ describe("ajouter une demande", () => {
   });
 });
 
+describe("une demande en double", () => {
+  it.each([
+    ["lait", "Déjà sur la liste"],
+    ["chocolat chaud", "Déjà demandé"],
+  ])("« %s » n'envoie rien et affiche « %s »", async (name, message) => {
+    const { user, journal } = renderApp({ role: "invite" });
+    const before = journal.all().length;
+
+    await user.type(screen.getByRole("textbox", { name: "Nom" }), `${name}{Enter}`);
+
+    expect(journal.all()).toHaveLength(before);
+    expect(screen.getByRole("status")).toHaveTextContent(message);
+    expect(screen.getByRole("status")).toBeVisible();
+  });
+
+  it("vide le champ", async () => {
+    const { user } = renderApp({ role: "invite" });
+    const field = screen.getByRole("textbox", { name: "Nom" });
+
+    await user.type(field, "lait{Enter}");
+
+    expect(field).toHaveValue("");
+  });
+});
+
 describe("mes demandes", () => {
   it("dit ce que le propriétaire a fait de chaque demande, la plus récente d'abord", () => {
     const journal = inMemoryJournal(seed);

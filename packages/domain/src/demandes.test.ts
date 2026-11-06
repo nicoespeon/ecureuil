@@ -1,7 +1,7 @@
 import { Event } from "@ecureuil/wire";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { itemNamed, latestDemandes, pendingDemandes } from "./demandes";
+import { duplicateOf, itemNamed, latestDemandes, pendingDemandes } from "./demandes";
 import { fold } from "./reducer";
 
 const decode = Schema.decodeUnknownSync(Event);
@@ -63,5 +63,30 @@ describe("l'item d'une demande", () => {
 
   it("ne retrouve rien pour un nom absent du catalogue", () => {
     expect(itemNamed(state, "Pâté")).toBeUndefined();
+  });
+});
+
+describe("ce qu'une demande ferait en double", () => {
+  const state = fold([
+    item("lait", "Lait"),
+    item("pain", "Pain"),
+    item("cafe", "Café"),
+    event("ItemMarkedToBuy", { itemId: "lait" }),
+    event("ItemMarkedToBuy", { itemId: "pain" }),
+    event("ItemChecked", { itemId: "pain" }),
+    demande("d1", "Thé"),
+    demande("d2", "Chips"),
+    event("DemandeRefused", { demandeId: "d2" }),
+  ]);
+
+  it.each([
+    ["lait", "Liste"],
+    ["Pain", "Liste"],
+    ["the", "Demande"],
+    ["Café", undefined],
+    ["Chips", undefined],
+    ["Bière", undefined],
+  ])("« %s » → %s", (name, duplicate) => {
+    expect(duplicateOf(state, name)).toBe(duplicate);
   });
 });

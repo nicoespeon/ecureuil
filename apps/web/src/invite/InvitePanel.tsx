@@ -1,5 +1,11 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { type Demande, type DemandeStatus, type ListItem, latestDemandes } from "@ecureuil/domain";
+import {
+  type Demande,
+  type DemandeStatus,
+  duplicateOf,
+  type ListItem,
+  latestDemandes,
+} from "@ecureuil/domain";
 import { useId, useRef } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { FoyerWithListe } from "../journal/useFoyer";
@@ -14,65 +20,73 @@ export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
   const { magasinActif: magasin, liste } = foyer;
 
   return (
-    <>
-      <Tabs.Panel value={magasin.id} className="pb-24 outline-none">
-        <AjouterDemande
-          askFor={(name) => {
-            foyer.askFor(name);
-            announce(`${name} demandé`);
-          }}
-        />
-        <MesDemandes demandes={latestDemandes(foyer.state, MES_DEMANDES_COUNT)} />
-        <ListeSections
-          liste={liste}
-          magasinName={magasin.name}
-          toBuyRows={readOnlyRows}
-          panierRows={readOnlyRows}
-        />
-      </Tabs.Panel>
-      <p role="status" className="sr-only">
-        {announcement}
-      </p>
-    </>
+    <Tabs.Panel value={magasin.id} className="pb-24 outline-none">
+      <AjouterDemande
+        askFor={(name) => {
+          const duplicate = duplicateOf(foyer.state, name);
+          if (duplicate === undefined) foyer.askFor(name);
+          announce(duplicate === undefined ? `${name} demandé` : duplicateMessages[duplicate]);
+        }}
+        message={announcement}
+      />
+      <MesDemandes demandes={latestDemandes(foyer.state, MES_DEMANDES_COUNT)} />
+      <ListeSections
+        liste={liste}
+        magasinName={magasin.name}
+        toBuyRows={readOnlyRows}
+        panierRows={readOnlyRows}
+      />
+    </Tabs.Panel>
   );
 }
 
-function AjouterDemande({ askFor }: { askFor: (name: string) => void }) {
+/** Why nothing was sent, shown under the field. */
+const duplicateMessages = {
+  Liste: "Déjà sur la liste",
+  Demande: "Déjà demandé",
+} satisfies Record<NonNullable<ReturnType<typeof duplicateOf>>, string>;
+
+function AjouterDemande({ askFor, message }: { askFor: (name: string) => void; message: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        const input = inputRef.current;
-        const name = input?.value.trim();
-        if (!input || !name) return;
-        askFor(name);
-        input.value = "";
-        // Back to the field, keyboard still open, for the next demande.
-        input.focus();
-      }}
-      className="flex gap-2 border-b border-neutral-200 p-4"
-    >
-      <label htmlFor={inputId} className="sr-only">
-        Nom
-      </label>
-      <input
-        ref={inputRef}
-        id={inputId}
-        autoComplete="off"
-        enterKeyHint="send"
-        placeholder="Ce qu'il faut acheter"
-        className="min-h-11 min-w-0 flex-1 rounded-md border border-neutral-400 px-3 text-base focus-visible:outline-2 focus-visible:outline-blue-700"
-      />
-      <button
-        type="submit"
-        className="min-h-11 shrink-0 rounded-md bg-neutral-900 px-4 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+    <div className="border-b border-neutral-200 p-4">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          const input = inputRef.current;
+          const name = input?.value.trim();
+          if (!input || !name) return;
+          askFor(name);
+          input.value = "";
+          // Back to the field, keyboard still open, for the next demande.
+          input.focus();
+        }}
+        className="flex gap-2"
       >
-        Ajouter
-      </button>
-    </form>
+        <label htmlFor={inputId} className="sr-only">
+          Nom
+        </label>
+        <input
+          ref={inputRef}
+          id={inputId}
+          autoComplete="off"
+          enterKeyHint="send"
+          placeholder="Ce qu'il faut acheter"
+          className="min-h-11 min-w-0 flex-1 rounded-md border border-neutral-400 px-3 text-base focus-visible:outline-2 focus-visible:outline-blue-700"
+        />
+        <button
+          type="submit"
+          className="min-h-11 shrink-0 rounded-md bg-neutral-900 px-4 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        >
+          Ajouter
+        </button>
+      </form>
+      <p role="status" className="mt-2 text-sm text-neutral-700 empty:hidden">
+        {message}
+      </p>
+    </div>
   );
 }
 
