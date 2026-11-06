@@ -43,8 +43,8 @@ const encodePush = Schema.encodeSync(Schema.fromJsonString(PushRequest));
 
 const BATCH_SIZE = 50;
 
-function inBatches<T>(items: ReadonlyArray<T>) {
-  return Array.from({ length: Math.ceil(items.length / BATCH_SIZE) }, (_, index) =>
-    items.slice(index * BATCH_SIZE, (index + 1) * BATCH_SIZE),
+function inBatches<T>(articles: ReadonlyArray<T>) {
+  return Array.from({ length: Math.ceil(articles.length / BATCH_SIZE) }, (_, index) =>
+    articles.slice(index * BATCH_SIZE, (index + 1) * BATCH_SIZE),
   );
 }

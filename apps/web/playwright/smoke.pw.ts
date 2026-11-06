@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("en Courses, cocher un item le met au panier, terminer les courses vide le panier", async ({
+test("en Courses, cocher un article le met au panier, terminer les courses vide le panier", async ({
   page,
 }) => {
   await page.goto("/");

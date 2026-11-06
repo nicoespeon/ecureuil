@@ -1,7 +1,7 @@
-import { type Actor, Event, ItemRayon } from "@ecureuil/wire";
+import { type Actor, ArticleRayon, Event } from "@ecureuil/wire";
 import { Schema } from "effect";
 
-const items = {
+const articles = {
   babybel: "Babybel",
   champignons: "Champignons",
   lait: "Lait",
@@ -24,11 +24,11 @@ const items = {
   "petits-pois": "Petits pois surgelés",
 } as const;
 
-type ItemSlug = keyof typeof items;
+type ArticleSlug = keyof typeof articles;
 
-const quantities: Partial<Record<ItemSlug, number>> = { lait: 3 };
+const quantities: Partial<Record<ArticleSlug, number>> = { lait: 3 };
 
-const onTheList: ReadonlyArray<ItemSlug> = [
+const onTheList: ReadonlyArray<ArticleSlug> = [
   "babybel",
   "champignons",
   "lait",
@@ -42,13 +42,13 @@ const onTheList: ReadonlyArray<ItemSlug> = [
 ];
 
 /**
- * Rayons in walking order. An item missing from `placements` stays NonClasse in that magasin.
+ * Rayons in walking order. An article missing from `placements` stays NonClasse in that magasin.
  */
 type MagasinSeed<RayonSlug extends string> = {
   readonly slug: string;
   readonly name: string;
   readonly rayons: Readonly<Record<RayonSlug, string>>;
-  readonly placements: Partial<Record<ItemSlug, NoInfer<RayonSlug> | "PasVenduIci">>;
+  readonly placements: Partial<Record<ArticleSlug, NoInfer<RayonSlug> | "PasVenduIci">>;
 };
 
 const costco = magasin({
@@ -133,15 +133,15 @@ export const seed: ReadonlyArray<Event> = toEvents(
   [
     ...magasinCreation(costco),
     ...magasinCreation(maxi),
-    ...Object.entries(items).map(([slug, name]) =>
-      draft("ItemCreated", null, { itemId: itemId(slug), name }),
+    ...Object.entries(articles).map(([slug, name]) =>
+      draft("ArticleCreated", null, { articleId: articleId(slug), name }),
     ),
     ...Object.entries(quantities).map(([slug, quantity]) =>
-      draft("ItemQuantitySet", null, { itemId: itemId(slug), quantity }),
+      draft("ArticleQuantitySet", null, { articleId: articleId(slug), quantity }),
     ),
-    ...itemPlacement(costco),
-    ...itemPlacement(maxi),
-    ...onTheList.map((slug) => draft("ItemMarkedToBuy", null, { itemId: itemId(slug) })),
+    ...articlePlacement(costco),
+    ...articlePlacement(maxi),
+    ...onTheList.map((slug) => draft("ArticleMarkedToBuy", null, { articleId: articleId(slug) })),
     byInvite(
       draft("DemandeCreated", null, {
         demandeId: "demande-chocolat-chaud",
@@ -154,7 +154,7 @@ export const seed: ReadonlyArray<Event> = toEvents(
 
 /**
  * Past sorties, for the fréquents in dev only: kept out of `seed`, which the API's `seed`
- * command pushes to production. Their items are off the list, so the list of `seed` holds.
+ * command pushes to production. Their articles are off the list, so the list of `seed` holds.
  */
 export const seedSorties: ReadonlyArray<Event> = toEvents(
   [
@@ -167,11 +167,11 @@ export const seedSorties: ReadonlyArray<Event> = toEvents(
   { idPrefix: "seed-sortie", startAt: seed.length },
 );
 
-function sortie({ slug }: MagasinSeed<string>, achats: ReadonlyArray<ItemSlug>) {
+function sortie({ slug }: MagasinSeed<string>, achats: ReadonlyArray<ArticleSlug>) {
   return [
-    ...achats.flatMap((item) => [
-      draft("ItemMarkedToBuy", null, { itemId: itemId(item) }),
-      draft("ItemChecked", null, { itemId: itemId(item) }),
+    ...achats.flatMap((article) => [
+      draft("ArticleMarkedToBuy", null, { articleId: articleId(article) }),
+      draft("ArticleChecked", null, { articleId: articleId(article) }),
     ]),
     draft("SortieFinished", magasinId(slug), {}),
   ];
@@ -194,14 +194,14 @@ function magasinCreation({ slug, name, rayons }: MagasinSeed<string>) {
   ];
 }
 
-function itemPlacement({ slug, placements }: MagasinSeed<string>) {
-  return Object.entries(placements).map(([itemSlug, placement]) =>
-    draft("ItemRayonSet", magasinId(slug), {
-      itemId: itemId(itemSlug),
+function articlePlacement({ slug, placements }: MagasinSeed<string>) {
+  return Object.entries(placements).map(([articleSlug, placement]) =>
+    draft("ArticleRayonSet", magasinId(slug), {
+      articleId: articleId(articleSlug),
       rayon:
         placement === "PasVenduIci"
-          ? ItemRayon.cases.PasVenduIci.make({})
-          : ItemRayon.cases.Rayon.make({ rayonId: rayonId(slug, placement) }),
+          ? ArticleRayon.cases.PasVenduIci.make({})
+          : ArticleRayon.cases.Rayon.make({ rayonId: rayonId(slug, placement) }),
     }),
   );
 }
@@ -214,8 +214,8 @@ function rayonId(magasinSlug: string, rayonSlug: string) {
   return `rayon-${magasinSlug}-${rayonSlug}`;
 }
 
-function itemId(slug: string) {
-  return `item-${slug}`;
+function articleId(slug: string) {
+  return `article-${slug}`;
 }
 
 type Draft = { type: Event["type"]; magasin: string | null; payload: unknown; actor: Actor };

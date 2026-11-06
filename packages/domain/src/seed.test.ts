@@ -37,8 +37,8 @@ describe("le seed de dev", () => {
     });
   });
 
-  it("a une vingtaine d'items, dont ceux de la liste Cookidoo", () => {
-    const names = Object.values(state.items).map((item) => item.name);
+  it("a une vingtaine d'articles, dont ceux de la liste Cookidoo", () => {
+    const names = Object.values(state.articles).map((article) => article.name);
 
     expect(names).toHaveLength(20);
     expect(names).toEqual(
@@ -56,11 +56,11 @@ describe("le seed de dev", () => {
   });
 
   it("achète trois Lait", () => {
-    expect(state.items["item-lait"]).toMatchObject({ name: "Lait", quantity: 3 });
+    expect(state.articles["article-lait"]).toMatchObject({ name: "Lait", quantity: 3 });
   });
 
   it("ne vend pas le pyjama chez Maxi", () => {
-    expect(state.items["item-pyjama-polaire-gabriel"]?.rayonParMagasin).toMatchObject({
+    expect(state.articles["article-pyjama-polaire-gabriel"]?.rayonParMagasin).toMatchObject({
       "magasin-maxi": { _tag: "PasVenduIci" },
     });
   });
@@ -82,7 +82,7 @@ describe("le seed de dev", () => {
   });
 
   it("met la moitié du catalogue sur la liste", () => {
-    const toBuy = Object.values(state.items).filter((item) => item.status === "toBuy");
+    const toBuy = Object.values(state.articles).filter((article) => article.status === "toBuy");
 
     expect(toBuy).toHaveLength(10);
   });

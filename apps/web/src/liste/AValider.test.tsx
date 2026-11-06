@@ -22,7 +22,7 @@ describe("la section « À valider »", () => {
     expect(screen.queryByRole("region", { name: /À valider/ })).toBeNull();
   });
 
-  it("accepter « beurre » réutilise l'item Beurre du catalogue", async () => {
+  it("accepter « beurre » réutilise l'article Beurre du catalogue", async () => {
     const { user, journal } = renderApp({ journal: withDemande("beurre") });
 
     await user.click(screen.getByRole("button", { name: "Accepter beurre" }));
@@ -30,7 +30,7 @@ describe("la section « À valider »", () => {
     expect(screen.getAllByRole("button", { name: "Beurre" })).toHaveLength(1);
     expect(journal.all().at(-1)).toMatchObject({
       type: "DemandeAccepted",
-      payload: { itemId: "item-beurre" },
+      payload: { articleId: "article-beurre" },
     });
   });
 
@@ -38,9 +38,9 @@ describe("la section « À valider »", () => {
     const phone = await acceptChocolatChaudOn(inMemoryJournal(seed));
     const mac = await acceptChocolatChaudOn(inMemoryJournal(seed));
 
-    const catalogue = Object.values(fold([...phone.all(), ...mac.all()]).items);
+    const catalogue = Object.values(fold([...phone.all(), ...mac.all()]).articles);
 
-    expect(catalogue.filter((item) => item.name === "Chocolat chaud")).toHaveLength(1);
+    expect(catalogue.filter((article) => article.name === "Chocolat chaud")).toHaveLength(1);
   });
 
   it("refuser retire la demande sans toucher la liste", async () => {

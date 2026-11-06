@@ -1,28 +1,28 @@
-import type { Item, Magasin } from "@ecureuil/domain";
+import type { Article, Magasin } from "@ecureuil/domain";
 import { fieldClassName } from "./classNames";
 import { currentRayonChoice, NON_CLASSE, PAS_VENDU_ICI, rayonChoiceOf } from "./rayonChoice";
 
 /** A native select: the phone's own picker, and type-ahead on a keyboard. */
 export function RayonSelect({
   id,
-  item,
+  article,
   magasin,
   label,
-  setItemRayon,
+  setArticleRayon,
 }: {
   id?: string;
-  item: Item;
+  article: Article;
   magasin: Magasin;
   label: string;
-  setItemRayon: (magasinId: string, placement: { itemId: string; choice: string }) => void;
+  setArticleRayon: (magasinId: string, placement: { articleId: string; choice: string }) => void;
 }) {
   return (
     <select
       id={id}
       aria-label={label}
-      value={currentRayonChoice(item, magasin.id)}
+      value={currentRayonChoice(article, magasin.id)}
       onChange={(event) =>
-        setItemRayon(magasin.id, { itemId: item.id, choice: event.currentTarget.value })
+        setArticleRayon(magasin.id, { articleId: article.id, choice: event.currentTarget.value })
       }
       className={fieldClassName}
     >

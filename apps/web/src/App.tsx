@@ -9,7 +9,7 @@ import { CollerLeLien } from "./acces/CollerLeLien";
 import { AjoutRapide } from "./ajout/AjoutRapide";
 import { ConfigurationView } from "./config/ConfigurationView";
 import { createMagasin, type Writer } from "./config/configActions";
-import { useFicheItem } from "./config/FicheItem";
+import { useFicheArticle } from "./config/FicheArticle";
 import { NouveauMagasin } from "./config/NouveauMagasin";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
@@ -148,7 +148,7 @@ function MagasinPanel({
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
-  const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
+  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: panelRef });
   const { magasinActif: magasin, liste } = foyer;
 
   return (

@@ -1,7 +1,7 @@
-import type { Liste, ListItem } from "@ecureuil/domain";
+import type { ListArticle, Liste } from "@ecureuil/domain";
 import { useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
-import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
+import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { ListeSections } from "./ListeSections";
 import type { Mode } from "./useMode";
 
@@ -10,7 +10,7 @@ type Actions = Pick<
   "check" | "uncheck" | "setQuantity" | "removeFromList"
 > & {
   readonly announce: (message: string) => void;
-  readonly openFiche: (itemId: string) => void;
+  readonly openFiche: (articleId: string) => void;
 };
 
 export function ListeView({
@@ -29,20 +29,20 @@ export function ListeView({
     setQuantity: actions.setQuantity,
     announce: actions.announce,
     openFiche: actions.openFiche,
-    check: (item: ListItem) => {
-      focusNeighborOf(item.id);
-      actions.check(item.id);
-      actions.announce(`${item.name} dans le panier`);
+    check: (article: ListArticle) => {
+      focusNeighborOf(article.id);
+      actions.check(article.id);
+      actions.announce(`${article.name} dans le panier`);
     },
-    uncheck: (item: ListItem) => {
-      focusNeighborOf(item.id);
-      actions.uncheck(item.id);
-      actions.announce(`${item.name} retiré du panier`);
+    uncheck: (article: ListArticle) => {
+      focusNeighborOf(article.id);
+      actions.uncheck(article.id);
+      actions.announce(`${article.name} retiré du panier`);
     },
-    removeFromList: (item: ListItem) => {
-      focusNeighborOf(item.id);
-      actions.removeFromList(item.id);
-      actions.announce(`${item.name} retiré de la liste`);
+    removeFromList: (article: ListArticle) => {
+      focusNeighborOf(article.id);
+      actions.removeFromList(article.id);
+      actions.announce(`${article.name} retiré de la liste`);
     },
   };
 
@@ -51,11 +51,11 @@ export function ListeView({
       <ListeSections
         liste={liste}
         magasinName={magasinName}
-        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} mode={mode} />}
-        panierRows={(items) => (
+        toBuyRows={(articles) => <ToBuyRows articles={articles} actions={rowActions} mode={mode} />}
+        panierRows={(articles) => (
           <ul>
-            {items.map((item) => (
-              <PanierRow key={item.id} item={item} actions={rowActions} mode={mode} />
+            {articles.map((article) => (
+              <PanierRow key={article.id} article={article} actions={rowActions} mode={mode} />
             ))}
           </ul>
         )}
@@ -74,39 +74,41 @@ function useFocusNeighborOfLeavingRow() {
   const neighborId = useRef<string | undefined>(undefined);
 
   const rowControls = () => [
-    ...(containerRef.current?.querySelectorAll<HTMLElement>("[data-item-id]") ?? []),
+    ...(containerRef.current?.querySelectorAll<HTMLElement>("[data-article-id]") ?? []),
   ];
 
   useLayoutEffect(() => {
     if (neighborId.current === undefined) return;
-    const neighbor = rowControls().find((control) => control.dataset.itemId === neighborId.current);
+    const neighbor = rowControls().find(
+      (control) => control.dataset.articleId === neighborId.current,
+    );
     neighborId.current = undefined;
     neighbor?.focus({ preventScroll: true });
   });
 
   return {
     containerRef,
-    focusNeighborOf: (itemId: string) => {
+    focusNeighborOf: (articleId: string) => {
       const all = rowControls();
-      const index = all.findIndex((control) => control.dataset.itemId === itemId);
-      neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.itemId;
+      const index = all.findIndex((control) => control.dataset.articleId === articleId);
+      neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.articleId;
     },
   };
 }
 
 function ToBuyRows({
-  items,
+  articles,
   actions,
   mode,
 }: {
-  items: ReadonlyArray<ListItem>;
+  articles: ReadonlyArray<ListArticle>;
   actions: ToBuyActions;
   mode: Mode;
 }) {
   return (
     <ul>
-      {items.map((item) => (
-        <ToBuyRow key={item.id} item={item} actions={actions} mode={mode} />
+      {articles.map((article) => (
+        <ToBuyRow key={article.id} article={article} actions={actions} mode={mode} />
       ))}
     </ul>
   );

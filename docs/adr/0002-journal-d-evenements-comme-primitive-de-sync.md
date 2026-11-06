@@ -8,13 +8,13 @@ Accepté. Étendu par l'[ADR 4](0004-enveloppe-du-journal-et-ordre-de-relecture.
 
 ## Contexte
 
-La liste doit être réactive et entièrement utilisable hors ligne sur le téléphone du propriétaire en magasin, pendant qu'une deuxième personne ajoute des items depuis un autre appareil et que le propriétaire configure aussi depuis un Mac. On veut une synchronisation multi-appareils sans tordre un framework généraliste, et une trace de ce qui s'est passé (qui a ajouté quoi, dans quel magasin, quand) pour nourrir des analyses futures comme les suggestions de récurrence.
+La liste doit être réactive et entièrement utilisable hors ligne sur le téléphone du propriétaire en magasin, pendant qu'une deuxième personne ajoute des articles depuis un autre appareil et que le propriétaire configure aussi depuis un Mac. On veut une synchronisation multi-appareils sans tordre un framework généraliste, et une trace de ce qui s'est passé (qui a ajouté quoi, dans quel magasin, quand) pour nourrir des analyses futures comme les suggestions de récurrence.
 
 ## Décision
 
 La source de vérité est un **journal d'événements générique, append-only et horodaté** (le « Journal » du glossaire). Chaque événement enregistre qui a agi et le contexte de magasin. L'état de l'application n'est jamais stocké en tant que tel : c'est la **relecture du journal par un reducer pur** (`packages/domain`).
 
-La synchronisation est faite maison et petite : chaque appareil garde son journal local (IndexedDB), pousse ses nouveaux événements vers le serveur et tire ceux des autres par curseur. Les conflits se résolvent par la sémantique de chaque événement : cocher un item est idempotent, une quantité est « dernier écrit gagne », l'arbitrage d'une demande est « premier gagne ».
+La synchronisation est faite maison et petite : chaque appareil garde son journal local (IndexedDB), pousse ses nouveaux événements vers le serveur et tire ceux des autres par curseur. Les conflits se résolvent par la sémantique de chaque événement : cocher un article est idempotent, une quantité est « dernier écrit gagne », l'arbitrage d'une demande est « premier gagne ».
 
 Le domaine ne voit que trois ports, modélisés comme services Effect : `EventStore` (journal local), `SyncTransport` (push/pull par curseur) et `Clock`. N'importe quel framework de synchronisation peut remplacer le fait maison derrière ces ports.
 

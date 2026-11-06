@@ -26,7 +26,7 @@ Amorcer le foyer, une fois, dans cet ordre :
    pnpm --filter api liens --remote --app-url https://<app>
    ```
 
-3. Seed : pousse les magasins et items du foyer (le `seed` de `@ecureuil/domain`) dans le journal, avec le secret du lien propriétaire :
+3. Seed : pousse les magasins et articles du foyer (le `seed` de `@ecureuil/domain`) dans le journal, avec le secret du lien propriétaire :
 
    ```sh
    API_URL=https://<api> LIEN_SECRET=<secret-proprietaire> pnpm --filter api seed --remote
@@ -53,7 +53,7 @@ curl -X POST http://localhost:8787/lien/invite -H "Authorization: Bearer <secret
 ```sh
 curl -i -X POST http://localhost:8787/journal \
   -H "Authorization: Bearer <secret-proprietaire>" \
-  -d '{"events":[{"id":"e1","at":1762300000000,"actor":"proprietaire","device":"iphone","magasin":null,"type":"ItemCreated","payload":{"itemId":"lait","name":"Lait"}}]}'
+  -d '{"events":[{"id":"e1","at":1762300000000,"actor":"proprietaire","device":"iphone","magasin":null,"type":"ArticleCreated","payload":{"articleId":"lait","name":"Lait"}}]}'
 # 204, et 204 encore si on rejoue : l'id e1 est déjà là
 
 curl http://localhost:8787/journal -H "Authorization: Bearer <secret-proprietaire>"

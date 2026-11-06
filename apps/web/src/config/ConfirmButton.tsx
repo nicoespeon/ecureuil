@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrashIcon } from "../liste/ItemRow";
+import { TrashIcon } from "../liste/ArticleRow";
 
 const CONFIRMATION_MS = 3000;
 

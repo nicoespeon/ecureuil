@@ -8,10 +8,10 @@ describe("l'ajout rapide", () => {
 
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
 
-    expect(screen.getByRole("searchbox", { name: "Item à ajouter" })).toHaveFocus();
+    expect(screen.getByRole("searchbox", { name: "Article à ajouter" })).toHaveFocus();
   });
 
-  it("propose les items achetés à la dernière sortie", async () => {
+  it("propose les articles achetés à la dernière sortie", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("switch", { name: "Courses" }));
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
@@ -49,7 +49,7 @@ describe("l'ajout rapide", () => {
     expect(listSection("Fruits et légumes").getByRole("button", { name: "Pommes" })).toBeVisible();
   });
 
-  it("annonce l'item ajouté", async () => {
+  it("annonce l'article ajouté", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "pom");
@@ -70,7 +70,7 @@ describe("l'ajout rapide", () => {
     expect(searchbox()).toHaveFocus();
   });
 
-  it("un item déjà sur la liste l'indique, sans bouton", async () => {
+  it("un article déjà sur la liste l'indique, sans bouton", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "lait");
@@ -79,7 +79,7 @@ describe("l'ajout rapide", () => {
     expect(resultRow("Lait")).toHaveTextContent("Sur la liste");
   });
 
-  it("un item pas vendu dans ce magasin le dit", async () => {
+  it("un article pas vendu dans ce magasin le dit", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("tab", { name: "Maxi" }));
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
@@ -89,7 +89,7 @@ describe("l'ajout rapide", () => {
     expect(resultRow("Pyjama polaire Gabriel")).toHaveTextContent("Pas chez Maxi");
   });
 
-  it("« Créer « Laitue » » ouvre sa fiche, l'item déjà à acheter", async () => {
+  it("« Créer « Laitue » » ouvre sa fiche, l'article déjà à acheter", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "Laitue");
@@ -102,7 +102,7 @@ describe("l'ajout rapide", () => {
     ).toBeChecked();
   });
 
-  it("fermer la fiche de l'item créé ramène au champ, vide, avec le focus", async () => {
+  it("fermer la fiche de l'article créé ramène au champ, vide, avec le focus", async () => {
     const { user } = await openAjout();
     await user.type(searchbox(), "Laitue{Enter}");
 
@@ -112,7 +112,7 @@ describe("l'ajout rapide", () => {
     expect(searchbox()).toHaveFocus();
   });
 
-  it("l'item créé arrive dans « Non classé »", async () => {
+  it("l'article créé arrive dans « Non classé »", async () => {
     const { user } = await openAjout();
     await user.type(searchbox(), "Laitue{Enter}");
 
@@ -122,7 +122,7 @@ describe("l'ajout rapide", () => {
     expect(listSection("Non classé").getByRole("button", { name: "Laitue" })).toBeVisible();
   });
 
-  it("un item existant choisi dans les résultats n'ouvre pas de fiche", async () => {
+  it("un article existant choisi dans les résultats n'ouvre pas de fiche", async () => {
     const { user } = await openAjout();
 
     await user.type(searchbox(), "pom");
@@ -140,7 +140,7 @@ describe("l'ajout rapide", () => {
     expect(screen.getByRole("button", { name: "Pommes" })).toBeVisible();
   });
 
-  it("Entrée sur le nom d'un item déjà sur la liste le dit, sans rien ajouter", async () => {
+  it("Entrée sur le nom d'un article déjà sur la liste le dit, sans rien ajouter", async () => {
     const { user, journal } = await openAjout();
     const before = journal.all().length;
 
@@ -153,9 +153,9 @@ describe("l'ajout rapide", () => {
   });
 
   it.each([
-    ["pom", "1 item trouvé"],
-    ["lai", "2 items trouvés"],
-    ["kiwi", "Aucun item trouvé"],
+    ["pom", "1 article trouvé"],
+    ["lai", "2 articles trouvés"],
+    ["kiwi", "Aucun article trouvé"],
   ])("taper « %s » annonce « %s »", async (query, announcement) => {
     const { user } = await openAjout();
 
@@ -169,7 +169,7 @@ describe("l'ajout rapide", () => {
 
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
 
-    expect(screen.queryByRole("searchbox", { name: "Item à ajouter" })).toBeNull();
+    expect(screen.queryByRole("searchbox", { name: "Article à ajouter" })).toBeNull();
   });
 });
 
@@ -193,14 +193,14 @@ async function closeDialog(user: User, name: string) {
 }
 
 function searchbox() {
-  return screen.getByRole("searchbox", { name: "Item à ajouter" });
+  return screen.getByRole("searchbox", { name: "Article à ajouter" });
 }
 
 /** A row of the search results, whether it can be added or not. */
 function resultRow(name: string) {
   const row = within(screen.getByRole("list", { name: "Résultats" }))
     .getAllByRole("listitem")
-    .find((item) => item.textContent?.startsWith(name));
+    .find((article) => article.textContent?.startsWith(name));
   if (!row) throw new Error(`No result for ${name}`);
   return row;
 }

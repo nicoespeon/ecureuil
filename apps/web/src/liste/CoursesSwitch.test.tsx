@@ -167,8 +167,8 @@ function section(name: string) {
   return within(screen.getByRole("region", { name }));
 }
 
-function row(itemName: string) {
-  return screen.getByRole("button", { name: itemName }).closest("li");
+function row(articleName: string) {
+  return screen.getByRole("button", { name: articleName }).closest("li");
 }
 
 /** What a browser hands out when site storage is disabled: every access throws. */

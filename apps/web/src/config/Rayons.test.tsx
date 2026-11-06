@@ -83,12 +83,12 @@ describe("les rayons d'un magasin", () => {
     expect(screen.getByRole("textbox", { name: "Nouveau rayon" })).toHaveValue("");
   });
 
-  it("supprimer un rayon demande confirmation et dit combien d'items passent en Non classé", async () => {
+  it("supprimer un rayon demande confirmation et dit combien d'articles passent en Non classé", async () => {
     const { user } = await openRayons();
 
     await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
     expect(
-      screen.getByText("Supprimer Produits laitiers ? 5 items passeront en Non classé."),
+      screen.getByText("Supprimer Produits laitiers ? 5 articles passeront en Non classé."),
     ).toHaveRole("status");
     await user.click(screen.getByRole("button", { name: /Confirmer/ }));
 

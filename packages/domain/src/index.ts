@@ -1,13 +1,13 @@
-export { duplicateOf, itemNamed, pendingDemandes } from "./demandes";
-export { type Liste, type ListItem, listForMagasin, type Section } from "./list";
+export { articleNamed, duplicateOf, pendingDemandes } from "./demandes";
+export { type ListArticle, type Liste, listForMagasin, type Section } from "./list";
 export { magasinCreation } from "./magasin";
 export { Clock, type Cursor, EventStore, SyncTransport, TransportError } from "./ports";
 export {
+  type Article,
+  type ArticleStatus,
   type Demande,
   type DemandeStatus,
   fold,
-  type Item,
-  type ItemStatus,
   initialState,
   type Magasin,
   type Rayon,

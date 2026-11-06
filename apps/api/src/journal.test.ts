@@ -8,7 +8,7 @@ import { app } from "./index";
 beforeEach(resetFoyer);
 
 it("un pull renvoie ce qu'un push a envoyé, avec un cursor", async () => {
-  const events = [itemCreated("e1"), itemCreated("e2")];
+  const events = [articleCreated("e1"), articleCreated("e2")];
 
   const pushed = await push({ events });
 
@@ -17,7 +17,7 @@ it("un pull renvoie ce qu'un push a envoyé, avec un cursor", async () => {
 });
 
 it("ignore les événements déjà reçus : un push rejoué ne crée rien", async () => {
-  const event = itemCreated("e1");
+  const event = articleCreated("e1");
   await push({ events: [event] });
 
   const replayed = await push({ events: [event] });
@@ -27,16 +27,16 @@ it("ignore les événements déjà reçus : un push rejoué ne crée rien", asyn
 });
 
 it("un pull ne renvoie que ce qui suit le cursor", async () => {
-  await push({ events: [itemCreated("e1")] });
+  await push({ events: [articleCreated("e1")] });
   const { cursor } = await pullJournal();
-  const newer = itemCreated("e2");
+  const newer = articleCreated("e2");
   await push({ events: [newer] });
 
   expect(await pullJournal(cursor)).toEqual({ events: [newer], cursor: expect.any(String) });
 });
 
 it("garde le cursor quand rien n'est nouveau", async () => {
-  await push({ events: [itemCreated("e1")] });
+  await push({ events: [articleCreated("e1")] });
   const { cursor } = await pullJournal();
 
   expect(await pullJournal(cursor)).toEqual({ events: [], cursor });
@@ -47,7 +47,7 @@ it("un journal vide commence au cursor 0", async () => {
 });
 
 it("accepte le push de l'invite pour ses propres événements", async () => {
-  const event = itemCreated("e1", "invite");
+  const event = articleCreated("e1", "invite");
 
   const pushed = await push({ events: [event] }, secrets.invite);
 
@@ -57,7 +57,7 @@ it("accepte le push de l'invite pour ses propres événements", async () => {
 
 it("refuse tout le push quand l'actor d'un événement n'est pas le rôle du lien", async () => {
   const pushed = await push(
-    { events: [itemCreated("e1", "invite"), itemCreated("e2", "proprietaire")] },
+    { events: [articleCreated("e1", "invite"), articleCreated("e2", "proprietaire")] },
     secrets.invite,
   );
 
@@ -128,15 +128,15 @@ it("laisse l'app lire le pull depuis une autre origine", async () => {
   expect(pulled.headers.get("Access-Control-Allow-Origin")).toBe("*");
 });
 
-function itemCreated(id: string, actor = "proprietaire") {
+function articleCreated(id: string, actor = "proprietaire") {
   return Schema.decodeUnknownSync(Event)({
     id,
     at: 1_000,
     actor,
     device: `device-${actor}`,
     magasin: null,
-    type: "ItemCreated",
-    payload: { itemId: `item-${id}`, name: "Lait" },
+    type: "ArticleCreated",
+    payload: { articleId: `article-${id}`, name: "Lait" },
   });
 }
 

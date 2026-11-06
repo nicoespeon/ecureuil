@@ -1,9 +1,9 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { type Demande, duplicateOf, type ListItem, pendingDemandes } from "@ecureuil/domain";
+import { type Demande, duplicateOf, type ListArticle, pendingDemandes } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { FoyerWithListe } from "../journal/useFoyer";
-import { TrashIcon } from "../liste/ItemRow";
+import { TrashIcon } from "../liste/ArticleRow";
 import { ListeSections } from "../liste/ListeSections";
 import { useFocusNextDemande } from "../liste/useFocusNextDemande";
 
@@ -158,13 +158,18 @@ function MesDemandes({
   );
 }
 
-function readOnlyRows(items: ReadonlyArray<ListItem>) {
+function readOnlyRows(articles: ReadonlyArray<ListArticle>) {
   return (
     <ul>
-      {items.map((item) => (
-        <li key={item.id} className="flex min-h-11 items-center border-b border-neutral-200 px-4">
-          <span className="min-w-0 truncate">{item.name}</span>
-          {item.quantity > 1 && <span className="ml-1 text-neutral-700">×{item.quantity}</span>}
+      {articles.map((article) => (
+        <li
+          key={article.id}
+          className="flex min-h-11 items-center border-b border-neutral-200 px-4"
+        >
+          <span className="min-w-0 truncate">{article.name}</span>
+          {article.quantity > 1 && (
+            <span className="ml-1 text-neutral-700">×{article.quantity}</span>
+          )}
         </li>
       ))}
     </ul>
