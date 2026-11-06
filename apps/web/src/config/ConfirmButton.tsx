@@ -1,7 +1,10 @@
 import { TrashIcon } from "../liste/ArticleRow";
 import { useConfirmation } from "../liste/useConfirmation";
 
-/** A delete that takes two taps, the first says what follows. One button for both steps, so the keyboard focus stays on it. */
+/**
+ * A delete that takes two taps: the first arms it and says what follows, until the focus leaves
+ * or time runs out. One button for both steps, so the keyboard focus stays on it.
+ */
 export function ConfirmButton({
   subject,
   warning,

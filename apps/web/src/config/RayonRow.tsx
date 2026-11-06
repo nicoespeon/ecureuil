@@ -56,7 +56,7 @@ export function RayonRow({
   );
 }
 
-export type Direction = "up" | "down";
+type Direction = "up" | "down";
 
 /**
  * Dragging is not for everyone: a screen reader's double tap is a click, not a key. At the end of

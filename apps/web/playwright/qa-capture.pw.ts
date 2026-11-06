@@ -216,6 +216,17 @@ test("vidéo : réordonner un rayon au clavier", async ({ page }) => {
   await saveVideo(page, "rayons-clavier");
 });
 
+test("vidéo : monter et descendre un rayon au bouton", async ({ page }) => {
+  await openRayons(page);
+  await page.getByRole("button", { name: "Descendre Hygiène" }).click();
+  await expect(page.getByText("Hygiène en position 3 sur 8.")).toBeAttached();
+  await pause(page);
+  await page.getByRole("button", { name: "Descendre Hygiène" }).click();
+  await expect(page.getByText("Hygiène en position 4 sur 8.")).toBeAttached();
+  await expectHygieneMovedDown(page);
+  await saveVideo(page, "rayons-boutons");
+});
+
 test("vidéo : réordonner un rayon à la souris", async ({ page }) => {
   await openRayons(page);
   const { from, to } = await dragPath(page);

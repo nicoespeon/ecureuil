@@ -8,5 +8,6 @@ export function useAnnouncer() {
     announce: (message: string) =>
       // A live region only speaks when its text changes: repeat with a nbsp.
       setAnnouncement((previous) => (previous === message ? `${message}\u00a0` : message)),
+    clear: () => setAnnouncement(""),
   };
 }

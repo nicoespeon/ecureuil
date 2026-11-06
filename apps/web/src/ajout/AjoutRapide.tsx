@@ -27,7 +27,8 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
   });
 
   return (
-    <Dialog.Root>
+    // The panel's live region opens silent, not with the last opening's words.
+    <Dialog.Root onOpenChange={(open) => open && announcer.clear()}>
       <Dialog.Trigger
         className={`${buttonClassName} grow whitespace-nowrap border border-neutral-400 bg-white`}
       >
@@ -127,12 +128,16 @@ function useAjout(
   const result = searchArticles(foyer.state, query);
   const countAnnouncement = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(countAnnouncement.current), []);
+  // An answer to a gesture wins over the count still waiting for the typing to pause.
+  const say = (message: string) => {
+    clearTimeout(countAnnouncement.current);
+    announce(message);
+  };
 
   // The tapped row disappears: the focus goes back to the field, ready for the next article.
   const added = (name: string) => {
-    clearTimeout(countAnnouncement.current);
     setQuery("");
-    announce(`Sur la liste : ${name}`);
+    say(`Sur la liste : ${name}`);
     searchRef.current?.focus();
   };
   const add = (article: Article) => {
@@ -165,7 +170,7 @@ function useAjout(
       const { articles, exactMatch, nameToCreate } = result;
       const choice = exactMatch ?? articles.find((article) => article.status === "notToBuy");
       if (choice?.status === "notToBuy") add(choice);
-      else if (choice) announce(`Déjà sur la liste : ${choice.name}`);
+      else if (choice) say(`Déjà sur la liste : ${choice.name}`);
       else if (nameToCreate !== null) create(nameToCreate);
     },
   };

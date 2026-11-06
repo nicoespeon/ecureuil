@@ -95,14 +95,19 @@ function Row({
           aria-haspopup="dialog"
           data-fiche-article-id={article.id}
           onClick={() => openFiche(article.id)}
-          className="min-h-11 min-w-11 truncate rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
+          className="flex min-h-11 min-w-11 items-center rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
         >
-          {article.name}
+          <span className="truncate">{article.name}</span>
+          {/* Inside the button, out of its name: the quantity widens a short name's target. */}
+          {quantityShown && (
+            <span aria-hidden="true" className="ml-1 shrink-0 text-neutral-700">
+              ×{article.quantity}
+            </span>
+          )}
         </button>
         {quantityShown && (
-          <span id={quantityId} className="ml-1 shrink-0 text-neutral-700">
-            <span aria-hidden="true">×{article.quantity}</span>
-            <span className="sr-only">quantité {article.quantity}</span>
+          <span id={quantityId} className="sr-only">
+            quantité {article.quantity}
           </span>
         )}
       </span>
