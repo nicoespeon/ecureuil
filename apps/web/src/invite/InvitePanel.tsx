@@ -1,26 +1,30 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { type Demande, duplicateOf, type ListItem, pendingDemandes } from "@ecureuil/domain";
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { FoyerWithListe } from "../journal/useFoyer";
-import { ListeSection, ListeSections } from "../liste/ListeSections";
+import { ListeSections } from "../liste/ListeSections";
 
 /** What the invite sees: the list to read, a field to ask for more, and what still waits. */
 export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
   const { announcement, announce } = useAnnouncer();
+  const [duplicate, setDuplicate] = useState<Duplicate>();
   const { magasinActif: magasin, liste } = foyer;
 
   return (
     <Tabs.Panel value={magasin.id} className="pb-24 outline-none">
       <AjouterDemande
         askFor={(name) => {
-          const duplicate = duplicateOf(foyer.state, name);
-          if (duplicate === undefined) foyer.askFor(name);
-          announce(duplicate === undefined ? `${name} demandé` : duplicateMessages[duplicate]);
+          const found = duplicateOf(foyer.state, name);
+          setDuplicate(found);
+          if (found === undefined) foyer.askFor(name);
+          announce(found === undefined ? `${name} demandé` : duplicateMessages[found]);
         }}
         message={announcement}
+        // The new demande at the top of "Mes demandes" says it all; only a refusal needs words.
+        showMessage={duplicate !== undefined}
       />
-      <MesDemandes demandes={pendingDemandes(foyer.state)} />
+      <MesDemandes demandes={pendingDemandes(foyer.state).toReversed()} />
       <ListeSections
         liste={liste}
         magasinName={magasin.name}
@@ -31,13 +35,23 @@ export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
   );
 }
 
+type Duplicate = NonNullable<ReturnType<typeof duplicateOf>>;
+
 /** Why nothing was sent, shown under the field. */
 const duplicateMessages = {
   Liste: "Déjà sur la liste",
   Demande: "Déjà demandé",
-} satisfies Record<NonNullable<ReturnType<typeof duplicateOf>>, string>;
+} satisfies Record<Duplicate, string>;
 
-function AjouterDemande({ askFor, message }: { askFor: (name: string) => void; message: string }) {
+function AjouterDemande({
+  askFor,
+  message,
+  showMessage,
+}: {
+  askFor: (name: string) => void;
+  message: string;
+  showMessage: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
@@ -74,26 +88,39 @@ function AjouterDemande({ askFor, message }: { askFor: (name: string) => void; m
           Ajouter
         </button>
       </form>
-      <p role="status" className="mt-2 text-sm text-neutral-700 empty:hidden">
+      <p role="status" className={showMessage ? "mt-2 text-sm text-neutral-700" : "sr-only"}>
         {message}
       </p>
     </div>
   );
 }
 
-/** Only what still waits: a verdict is said out loud, not shown. */
+/**
+ * Only what still waits: a verdict is said out loud, not shown. A tinted card, newest first, so
+ * it does not read as one more rayon of the list.
+ */
 function MesDemandes({ demandes }: { demandes: ReadonlyArray<Demande> }) {
+  const headingId = useId();
   if (demandes.length === 0) return null;
   return (
-    <ListeSection id="mes-demandes" title="Mes demandes">
+    <section
+      aria-labelledby={headingId}
+      className="mx-4 my-4 rounded-lg border border-amber-300 bg-amber-50"
+    >
+      <h2 id={headingId} className="px-4 pt-3 pb-1 font-semibold text-amber-900">
+        Mes demandes
+      </h2>
       <ul>
         {demandes.map(({ id, name }) => (
-          <li key={id} className="flex min-h-11 items-center border-b border-neutral-200 px-4">
+          <li
+            key={id}
+            className="flex min-h-11 items-center border-t border-amber-200 px-4 first:border-t-0"
+          >
             <span className="min-w-0 truncate">{name}</span>
           </li>
         ))}
       </ul>
-    </ListeSection>
+    </section>
   );
 }
 

@@ -43,13 +43,13 @@ describe("ajouter une demande", () => {
     });
   });
 
-  it("la demande apparaît dans « Mes demandes », après celles qui attendent déjà", async () => {
+  it("la demande apparaît en haut de « Mes demandes »", async () => {
     const { user } = renderApp({ role: "invite" });
 
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café");
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
 
-    expect(demandeNames()).toEqual(["Chocolat chaud", "Café"]);
+    expect(demandeNames()).toEqual(["Café", "Chocolat chaud"]);
   });
 
   it("vide le champ et y laisse le focus pour la demande suivante", async () => {
