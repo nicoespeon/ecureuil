@@ -23,10 +23,14 @@ test.describe("captures", () => {
     await page.getByRole("tab", { name: "Maxi" }).click();
     await expect(page.getByRole("tab", { name: "Maxi" })).toHaveAttribute("aria-selected", "true");
     await screenshot(page, "maxi");
+
+    await startCourses(page);
+    await screenshot(page, "maxi-courses");
   });
 
   test("panier et terminer les courses", async ({ page }) => {
     await page.goto("/");
+    await startCourses(page);
     await checkLaitAndBabybel(page);
     await screenshot(page, "panier");
 
@@ -94,6 +98,36 @@ test.describe("vidéo des magasins à 375 px", () => {
   });
 });
 
+test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  test("liste, panier, fréquents et recherche", async ({ page }) => {
+    await page.goto("/");
+    await screenshot(page, "liste-375");
+    await startCourses(page);
+    await screenshot(page, "liste-courses-375");
+    await checkLaitAndBabybel(page);
+    await screenshot(page, "panier-375", { fullPage: false });
+
+    await page.getByRole("switch", { name: "Courses" }).click();
+    await expect(page.getByRole("switch", { name: "Courses" })).not.toBeChecked();
+    await page.getByRole("region", { name: "Dans le panier" }).scrollIntoViewIfNeeded();
+    await screenshot(page, "panier-preparer-375", { fullPage: false });
+
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await expect(page.getByRole("region", { name: "Fréquents" })).toBeVisible();
+    await screenshot(page, "ajout-frequents", { fullPage: false });
+
+    await searchbox(page).fill("lai");
+    await expect(page.getByRole("button", { name: "Créer « lai »" })).toBeVisible();
+    await screenshot(page, "ajout-recherche", { fullPage: false });
+
+    await page.getByRole("button", { name: "Créer « lai »" }).click();
+    await expect(page.getByRole("dialog", { name: "lai" })).toBeVisible();
+    await screenshot(page, "ajout-fiche", { fullPage: false });
+  });
+});
+
 test.describe("vidéo de l'ajout rapide à 375 px", () => {
   test.use({ viewport: narrowPhone });
 
@@ -129,7 +163,7 @@ test.describe("vidéo de l'ajout rapide à 375 px", () => {
       .click();
     const laitue = page
       .getByRole("region", { name: "Fruits et légumes" })
-      .getByRole("checkbox", { name: "Laitue" });
+      .getByRole("button", { name: "Laitue", exact: true });
     await laitue.scrollIntoViewIfNeeded();
     await expect(laitue).toBeVisible();
     await saveVideo(page, "ajout");
@@ -146,8 +180,10 @@ test.describe("captures sur desktop", () => {
   });
 });
 
-test("vidéo : cocher puis terminer les courses", async ({ page }) => {
+test("vidéo : passer en Courses, cocher puis terminer les courses", async ({ page }) => {
   await page.goto("/");
+  await pause(page);
+  await startCourses(page);
   await pause(page);
   await checkLaitAndBabybel(page);
 
@@ -155,6 +191,7 @@ test("vidéo : cocher puis terminer les courses", async ({ page }) => {
   await pause(page);
   await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
   await expect(page.getByRole("region", { name: "Dans le panier" })).toBeHidden();
+  await expect(page.getByRole("switch", { name: "Courses" })).not.toBeChecked();
   await pause(page);
 
   // The video is only written once the page closes.
@@ -343,6 +380,11 @@ async function saveVideo(page: Page, name: string) {
 
 function searchbox(page: Page) {
   return page.getByRole("searchbox", { name: "Item à ajouter" });
+}
+
+async function startCourses(page: Page) {
+  await page.getByRole("switch", { name: "Courses" }).click();
+  await expect(page.getByRole("checkbox", { name: "Lait", exact: true })).toBeVisible();
 }
 
 async function checkLaitAndBabybel(page: Page) {

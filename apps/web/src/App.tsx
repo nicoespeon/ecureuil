@@ -17,8 +17,10 @@ import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
+import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
+import { type Mode, useMode } from "./liste/useMode";
 
 export function App({
   journal,
@@ -34,6 +36,8 @@ export function App({
   const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
     "liste",
   );
+  // Held above the screens: with storage blocked, a trip to the configuration keeps the mode.
+  const { mode, setMode } = useMode();
   const writer = { journal, actor: role };
   const { magasinActif, liste } = foyer;
 
@@ -65,6 +69,8 @@ export function App({
     <ListeScreen
       foyer={{ ...foyer, magasinActif, liste }}
       writer={writer}
+      mode={mode}
+      setMode={setMode}
       configuration={{
         focusOnMount: screen === "backFromConfiguration",
         open: () => setScreen("configuration"),
@@ -76,10 +82,14 @@ export function App({
 function ListeScreen({
   foyer,
   writer,
+  mode,
+  setMode,
   configuration,
 }: {
   foyer: FoyerWithListe;
   writer: Writer;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
@@ -95,34 +105,47 @@ function ListeScreen({
         className="sticky top-0 z-20 flex h-14 items-center border-b border-neutral-300 bg-white px-2"
       >
         <h1 className="sr-only">Écureuil</h1>
-        <Tabs.List aria-label="Magasin" className="flex h-full gap-1">
+        <Tabs.List aria-label="Magasin" className="flex h-full min-w-0 gap-1 overflow-x-auto">
           {magasins.map((magasin) => (
             <Tabs.Tab
               key={magasin.id}
               value={magasin.id}
-              className="h-full border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
+              className="h-full shrink-0 whitespace-nowrap border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
             >
               {magasin.name}
             </Tabs.Tab>
           ))}
         </Tabs.List>
         {writer.actor === "proprietaire" && (
-          <ConfigurationButton
-            focusOnMount={configuration.focusOnMount}
-            onClick={configuration.open}
-          />
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <CoursesSwitch mode={mode} setMode={setMode} />
+            <ConfigurationButton
+              focusOnMount={configuration.focusOnMount}
+              onClick={configuration.open}
+            />
+          </div>
         )}
       </header>
       {writer.actor === "invite" ? (
         <InvitePanel foyer={foyer} />
       ) : (
-        <MagasinPanel foyer={foyer} writer={writer} />
+        <MagasinPanel foyer={foyer} writer={writer} mode={mode} setMode={setMode} />
       )}
     </Tabs.Root>
   );
 }
 
-function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer }) {
+function MagasinPanel({
+  foyer,
+  writer,
+  mode,
+  setMode,
+}: {
+  foyer: FoyerWithListe;
+  writer: Writer;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
+}) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
   const { openFiche, fiche } = useFicheItem({ foyer, writer, focusAfterRemove: panelRef });
@@ -143,6 +166,7 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         <ListeView
           liste={liste}
           magasinName={magasin.name}
+          mode={mode}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -154,10 +178,14 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         />
       </Tabs.Panel>
       <BottomBar>
-        <AjoutRapide foyer={foyer} writer={writer} />
+        {mode === "preparer" && <AjoutRapide foyer={foyer} writer={writer} />}
         <TerminerLesCourses
           liste={liste}
-          finishSortie={foyer.finishSortie}
+          mode={mode}
+          finishSortie={() => {
+            foyer.finishSortie();
+            setMode("preparer");
+          }}
           focusAfterFinish={panelRef}
         />
       </BottomBar>
@@ -197,7 +225,7 @@ function ConfigurationButton({
         type="button"
         aria-label="Configuration"
         onClick={onClick}
-        className="ml-auto grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+        className="grid size-11 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700"
       >
         <GearIcon />
       </Tooltip.Trigger>

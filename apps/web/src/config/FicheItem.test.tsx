@@ -38,7 +38,7 @@ describe("la fiche d'un item", () => {
     await user.type(name, "Lait d'avoine{Enter}");
     await user.click(screen.getByRole("button", { name: "Fermer" }));
 
-    expect(screen.getByRole("checkbox", { name: "Lait d'avoine" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Lait d'avoine" })).toBeVisible();
   });
 
   it("décocher « À acheter » retire l'item de la liste", async () => {
@@ -48,7 +48,7 @@ describe("la fiche d'un item", () => {
     await user.click(fiche("Lait").getByRole("checkbox", { name: "À acheter" }));
     await user.click(screen.getByRole("button", { name: "Fermer" }));
 
-    expect(screen.queryByRole("checkbox", { name: "Lait" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Lait" })).not.toBeInTheDocument();
   });
 
   it("la quantité se règle depuis la fiche", async () => {
@@ -58,7 +58,7 @@ describe("la fiche d'un item", () => {
     await user.click(fiche("Babybel").getByRole("button", { name: /Augmenter/ }));
     await user.click(screen.getByRole("button", { name: "Fermer" }));
 
-    expect(row("Babybel")).toHaveTextContent("×2");
+    expect(screen.getByRole("group", { name: "Quantité de Babybel" })).toHaveTextContent("2");
   });
 
   it("le rayon chez Maxi se choisit sans quitter Costco", async () => {
@@ -72,7 +72,7 @@ describe("la fiche d'un item", () => {
     await user.click(screen.getByRole("button", { name: "Fermer" }));
     await user.click(screen.getByRole("tab", { name: "Maxi" }));
 
-    expect(section("Épicerie").getByRole("checkbox", { name: "Croissants" })).toBeVisible();
+    expect(section("Épicerie").getByRole("button", { name: "Croissants" })).toBeVisible();
   });
 
   it("fermer la fiche rend le focus au nom de l'item, même rangé ailleurs", async () => {
@@ -106,16 +106,12 @@ describe("la fiche d'un item", () => {
     await user.click(fiche("Lait").getByRole("button", { name: /Confirmer/ }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: "Lait" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Lait" })).not.toBeInTheDocument();
   });
 });
 
 function fiche(name: string) {
   return within(screen.getByRole("dialog", { name }));
-}
-
-function row(itemName: string) {
-  return screen.getByRole("checkbox", { name: itemName }).closest("li");
 }
 
 function section(name: string) {

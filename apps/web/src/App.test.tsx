@@ -50,7 +50,7 @@ describe("la liste d'un magasin", () => {
     await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
 
     expect(
-      section("Pas chez Maxi (1)").getByRole("checkbox", { name: "Pyjama polaire Gabriel" }),
+      section("Pas chez Maxi (1)").getByRole("button", { name: "Pyjama polaire Gabriel" }),
     ).toBeVisible();
   });
 
@@ -76,6 +76,7 @@ describe("la liste d'un magasin", () => {
 describe("le panier", () => {
   it("cocher Lait le met dans le panier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
@@ -84,6 +85,7 @@ describe("le panier", () => {
 
   it("cocher Lait le retire de son rayon", async () => {
     const { user } = renderApp();
+    await startCourses(user);
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
@@ -92,6 +94,7 @@ describe("le panier", () => {
 
   it("décocher Lait le renvoie dans son rayon", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
     await user.click(section("Dans le panier").getByRole("checkbox", { name: "Lait" }));
@@ -101,6 +104,7 @@ describe("le panier", () => {
 
   it("annonce que Lait est dans le panier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
@@ -109,6 +113,7 @@ describe("le panier", () => {
 
   it("cocher Lait donne le focus à l'item suivant", async () => {
     const { user } = renderApp();
+    await startCourses(user);
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
@@ -117,6 +122,7 @@ describe("le panier", () => {
 
   it("décocher Babybel donne le focus à l'item suivant du panier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await user.click(section("Dans le panier").getByRole("checkbox", { name: "Babybel" }));
@@ -130,6 +136,7 @@ describe("le panier", () => {
       .mockReturnValueOnce("bbbbbbbb-0000-0000-0000-000000000000")
       .mockReturnValueOnce("aaaaaaaa-0000-0000-0000-000000000000");
     const { user } = renderApp();
+    await startCourses(user);
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
     await user.click(section("Dans le panier").getByRole("checkbox", { name: "Lait" }));
@@ -139,14 +146,10 @@ describe("le panier", () => {
 });
 
 describe("la quantité", () => {
-  it("affiche ×3 à côté de Lait", () => {
-    renderApp();
+  it("en Courses, n'affiche pas de multiplicateur pour un seul Babybel", async () => {
+    const { user } = renderApp();
 
-    expect(row("Lait")).toHaveTextContent("Lait×3");
-  });
-
-  it("n'affiche pas de multiplicateur pour un seul Babybel", () => {
-    renderApp();
+    await startCourses(user);
 
     expect(row("Babybel")).not.toHaveTextContent("×");
   });
@@ -198,25 +201,25 @@ describe("retirer de la liste", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
 
-    expect(screen.queryByRole("checkbox", { name: "Babybel" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Babybel" })).toBeNull();
   });
 
-  it("donne le focus à l'item suivant après le retrait de Babybel", async () => {
+  it("donne le focus à la poubelle de l'item suivant après le retrait de Babybel", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
 
     await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
 
-    expect(screen.getByRole("checkbox", { name: "Lait" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Retirer Lait de la liste" })).toHaveFocus();
   });
 
-  it("donne le focus à l'item précédent après le retrait du dernier de la liste", async () => {
+  it("donne le focus à la poubelle de l'item précédent après le retrait du dernier de la liste", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Fromage râpé de la liste" }));
 
     await user.click(screen.getByRole("button", { name: "Retirer Fromage râpé ?" }));
 
-    expect(screen.getByRole("checkbox", { name: "Croissants" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Retirer Croissants de la liste" })).toHaveFocus();
   });
 
   it("la confirmation retombe après 3 secondes", async () => {
@@ -231,14 +234,16 @@ describe("retirer de la liste", () => {
 });
 
 describe("terminer les courses", () => {
-  it("est caché quand le panier est vide", () => {
-    renderApp();
+  it("est caché quand le panier est vide", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
 
     expect(screen.queryByRole("button", { name: "Terminer les courses" })).toBeNull();
   });
 
   it("compte le panier et ce qui reste à acheter avant de terminer", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
@@ -250,6 +255,7 @@ describe("terminer les courses", () => {
 
   it("accorde un panier d'un seul item au singulier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
     await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
@@ -259,6 +265,7 @@ describe("terminer les courses", () => {
 
   it("vide le panier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await finishSortie(user);
@@ -268,6 +275,7 @@ describe("terminer les courses", () => {
 
   it("laisse les autres items à acheter", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await finishSortie(user);
@@ -286,6 +294,7 @@ describe("terminer les courses", () => {
 
   it("rend le focus à la liste une fois les courses terminées", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
 
     await finishSortie(user);
@@ -295,6 +304,7 @@ describe("terminer les courses", () => {
 
   it("« Annuler » garde le panier", async () => {
     const { user } = renderApp();
+    await startCourses(user);
     await checkLaitAndBabybel(user);
     await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
 
@@ -332,6 +342,10 @@ describe("un appareil sans magasin", () => {
 
 type User = ReturnType<typeof userEvent.setup>;
 
+async function startCourses(user: User) {
+  await user.click(screen.getByRole("switch", { name: "Courses" }));
+}
+
 async function checkLaitAndBabybel(user: User) {
   await user.click(screen.getByRole("checkbox", { name: "Lait" }));
   await user.click(screen.getByRole("checkbox", { name: "Babybel" }));
@@ -359,11 +373,11 @@ function sectionTitles() {
   return screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
 }
 
-/** Every item on the list, sorted so a different grouping compares equal. */
+/** Every item to buy, by its trash in Préparer, sorted so a different grouping compares equal. */
 function itemNames() {
   return screen
-    .getAllByRole("checkbox")
-    .map((checkbox) => checkbox.getAttribute("aria-label"))
+    .getAllByRole("button", { name: /^Retirer .+ de la liste$/ })
+    .map((trash) => trash.textContent?.replace(/^Retirer (.+) de la liste$/, "$1"))
     .sort();
 }
 
@@ -372,7 +386,7 @@ function section(name: string) {
 }
 
 function row(itemName: string) {
-  return screen.getByRole("checkbox", { name: itemName }).closest("li");
+  return screen.getByRole("button", { name: itemName }).closest("li");
 }
 
 /** What a browser hands out when site storage is disabled: every access throws. */

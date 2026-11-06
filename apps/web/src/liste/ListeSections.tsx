@@ -32,7 +32,7 @@ export function ListeSections({
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (
-        <ListeSection id="panier" title="Dans le panier">
+        <ListeSection id="panier" title="Dans le panier" tone="panier">
           {panierRows(liste.panier)}
         </ListeSection>
       )}
@@ -48,19 +48,25 @@ export function ListeSections({
 export function ListeSection({
   id,
   title,
+  tone = "rayon",
   children,
 }: {
   id: string;
   title: string;
+  /** The panier is not a rayon of the magasin: the whole block is tinted, rows included. */
+  tone?: "rayon" | "panier";
   children: ReactNode;
 }) {
   const headingId = useId();
   return (
-    <section aria-labelledby={headingId}>
+    <section
+      aria-labelledby={headingId}
+      className={tone === "panier" ? panierClassName : undefined}
+    >
       <h2
         id={headingId}
         style={{ viewTransitionName: headingTransitionName(id) }}
-        className={headingClassName}
+        className={tone === "panier" ? panierHeadingClassName : headingClassName}
       >
         {title}
       </h2>
@@ -79,6 +85,12 @@ function sectionTitle(section: Section) {
 
 const headingClassName =
   "sticky top-14 z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
+
+/** Rows carry the tint too: a row moving in or out keeps it in its view transition. */
+const panierClassName = "bg-emerald-50 [&_li]:border-emerald-200 [&_li]:bg-emerald-50";
+
+const panierHeadingClassName =
+  "sticky top-14 z-10 border-b border-emerald-200 bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-900";
 
 function PasVenduIci({
   magasinName,
