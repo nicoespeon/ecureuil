@@ -2,9 +2,6 @@
   "name": "ecureuil",
   "private": true,
   "packageManager": "pnpm@12.17.0",
-  "engines": {
-    "node": "v26.13.0"
-  },
   "scripts": {
     "prepare": "lefthook install",
     "build": "turbo run build",
