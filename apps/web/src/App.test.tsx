@@ -170,6 +170,24 @@ describe("la quantité", () => {
     expect(screen.getByRole("group", { name: "Quantité de Lait" })).toHaveTextContent("2");
   });
 
+  it("annonce la nouvelle quantité de Babybel", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Augmenter la quantité de Babybel" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Babybel : 2");
+  });
+
+  it("en Courses, la case de Lait dit sa quantité", async () => {
+    const { user } = renderApp();
+
+    await startCourses(user);
+
+    expect(screen.getByRole("checkbox", { name: "Lait" })).toHaveAccessibleDescription(
+      "quantité 3",
+    );
+  });
+
   it("« − » est désactivé à 1", () => {
     renderApp();
 

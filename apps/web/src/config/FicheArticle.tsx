@@ -113,7 +113,7 @@ function FicheContent({
             />
             À acheter
           </label>
-          <Stepper article={article} setQuantity={actions.setQuantity} />
+          <Stepper article={article} actions={{ setQuantity: actions.setQuantity, announce }} />
         </div>
         <fieldset className="flex flex-col gap-3">
           <legend className={`${labelClassName} mb-1`}>Rayon par magasin</legend>
