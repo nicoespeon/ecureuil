@@ -129,22 +129,53 @@ const decodeEvent = Schema.decodeUnknownSync(Event);
  * A populated foyer as a journal: replay it with `fold(seed)`. Deterministic (fixed ids,
  * epoch and device) so tests and agents get the same state on every run.
  */
-export const seed: ReadonlyArray<Event> = [
-  ...magasinCreation(costco),
-  ...magasinCreation(maxi),
-  ...Object.entries(items).map(([slug, name]) =>
-    draft("ItemCreated", null, { itemId: itemId(slug), name }),
-  ),
-  ...Object.entries(quantities).map(([slug, quantity]) =>
-    draft("ItemQuantitySet", null, { itemId: itemId(slug), quantity }),
-  ),
-  ...itemPlacement(costco),
-  ...itemPlacement(maxi),
-  ...onTheList.map((slug) => draft("ItemMarkedToBuy", null, { itemId: itemId(slug) })),
-  byInvite(
-    draft("DemandeCreated", null, { demandeId: "demande-chocolat-chaud", name: "Chocolat chaud" }),
-  ),
-].map(toEvent);
+export const seed: ReadonlyArray<Event> = toEvents(
+  [
+    ...magasinCreation(costco),
+    ...magasinCreation(maxi),
+    ...Object.entries(items).map(([slug, name]) =>
+      draft("ItemCreated", null, { itemId: itemId(slug), name }),
+    ),
+    ...Object.entries(quantities).map(([slug, quantity]) =>
+      draft("ItemQuantitySet", null, { itemId: itemId(slug), quantity }),
+    ),
+    ...itemPlacement(costco),
+    ...itemPlacement(maxi),
+    ...onTheList.map((slug) => draft("ItemMarkedToBuy", null, { itemId: itemId(slug) })),
+    byInvite(
+      draft("DemandeCreated", null, {
+        demandeId: "demande-chocolat-chaud",
+        name: "Chocolat chaud",
+      }),
+    ),
+  ],
+  { idPrefix: "seed", startAt: 0 },
+);
+
+/**
+ * Past sorties, for the fréquents in dev only: kept out of `seed`, which the API's `seed`
+ * command pushes to production. Their items are off the list, so the list of `seed` holds.
+ */
+export const seedSorties: ReadonlyArray<Event> = toEvents(
+  [
+    ...sortie(costco, ["bananes", "oeufs", "cafe", "papier-toilette"]),
+    ...sortie(costco, ["bananes", "oeufs", "pates"]),
+    ...sortie(costco, ["bananes", "riz"]),
+    ...sortie(maxi, ["pain", "pommes", "beurre"]),
+    ...sortie(maxi, ["pain", "pommes"]),
+  ],
+  { idPrefix: "seed-sortie", startAt: seed.length },
+);
+
+function sortie({ slug }: MagasinSeed<string>, achats: ReadonlyArray<ItemSlug>) {
+  return [
+    ...achats.flatMap((item) => [
+      draft("ItemMarkedToBuy", null, { itemId: itemId(item) }),
+      draft("ItemChecked", null, { itemId: itemId(item) }),
+    ]),
+    draft("SortieFinished", magasinId(slug), {}),
+  ];
+}
 
 /** Ties `placements` to the magasin's own rayon slugs at compile time. */
 function magasin<RayonSlug extends string>(definition: MagasinSeed<RayonSlug>) {
@@ -197,12 +228,20 @@ function byInvite(fields: Draft) {
   return { ...fields, actor: "invite" } satisfies Draft;
 }
 
-/** Decoding through the wire contract keeps the fixture valid as the schema evolves. */
-function toEvent(fields: Draft, index: number) {
-  return decodeEvent({
-    id: `seed-${String(index + 1).padStart(3, "0")}`,
-    at: SEED_EPOCH + index * MINUTE,
-    device: "seed",
-    ...fields,
-  });
+/**
+ * Decoding through the wire contract keeps the fixture valid as the schema evolves. Each list
+ * has its own id prefix, so a growing `seed` never collides with `seedSorties`.
+ */
+function toEvents(
+  drafts: ReadonlyArray<Draft>,
+  { idPrefix, startAt }: { idPrefix: string; startAt: number },
+) {
+  return drafts.map((fields, index) =>
+    decodeEvent({
+      id: `${idPrefix}-${String(index + 1).padStart(3, "0")}`,
+      at: SEED_EPOCH + (startAt + index) * MINUTE,
+      device: "seed",
+      ...fields,
+    }),
+  );
 }

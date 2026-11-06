@@ -1,7 +1,7 @@
-import type { Actor } from "@ecureuil/wire";
+import type { Actor, LienResponse } from "@ecureuil/wire";
 import { Data } from "effect";
 import { rememberLienSecret, rememberRole, storedRole } from "../journal/device";
-import { fetchNewInviteSecret, fetchRole } from "./lienApi";
+import { fetchLien, fetchNewInviteSecret } from "./lienApi";
 
 /** Where this device stands with the foyer: whether it may write, and as whom. */
 export type Acces = Data.TaggedEnum<{
@@ -10,7 +10,11 @@ export type Acces = Data.TaggedEnum<{
   /** A lien whose role is not known yet: nothing can be written until it is. */
   Verification: Record<never, never>;
   HorsLigne: Record<never, never>;
-  Connecte: { readonly role: Actor };
+  Connecte: {
+    readonly role: Actor;
+    /** Mariane's lien; `undefined` while the API has not answered since launch. */
+    readonly invite: LienResponse["invite"] | undefined;
+  };
   /** The API refuses the secret: the lien was replaced. */
   Invalide: Record<never, never>;
 }>;
@@ -65,17 +69,21 @@ export function accesStore({
     /** The full lien to hand to the invite, built on this app's own address. */
     newInviteLien: async () => {
       if (connexion === undefined) throw new Error("No lien on this device");
-      return `${location.origin}/#${await fetchNewInviteSecret(connexion)}`;
+      const secret = await fetchNewInviteSecret(connexion);
+      if (state._tag === "Connecte") {
+        set(Acces.Connecte({ role: state.role, invite: { createdAt: Date.now() } }));
+      }
+      return `${location.origin}/#${secret}`;
     },
   };
 }
 
 async function checkedAcces(connexion: { apiUrl: string; secret: string }) {
   try {
-    const role = await fetchRole(connexion);
-    if (role === undefined) return Acces.Invalide();
-    rememberRole(role);
-    return Acces.Connecte({ role });
+    const lien = await fetchLien(connexion);
+    if (lien === undefined) return Acces.Invalide();
+    rememberRole(lien.role);
+    return Acces.Connecte(lien);
   } catch {
     return Acces.HorsLigne();
   }
@@ -84,7 +92,7 @@ async function checkedAcces(connexion: { apiUrl: string; secret: string }) {
 function initialAcces(hasLien: boolean) {
   if (!hasLien) return Acces.SansLien();
   const role = storedRole();
-  return role === null ? Acces.Verification() : Acces.Connecte({ role });
+  return role === null ? Acces.Verification() : Acces.Connecte({ role, invite: undefined });
 }
 
 /** The whole lien as copied, or its secret alone. */

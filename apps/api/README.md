@@ -38,7 +38,7 @@ Amorcer le foyer, une fois, dans cet ordre :
 
 ```sh
 curl http://localhost:8787/lien -H "Authorization: Bearer <secret-invite>"
-# {"role":"invite"}
+# {"role":"invite","invite":{"createdAt":1762300000000}} ; "invite":null tant que l'invité n'a pas de lien
 
 curl -X POST http://localhost:8787/lien/invite -H "Authorization: Bearer <secret-proprietaire>"
 # {"secret":"…"} : le nouveau secret de l'invité, l'ancien répond 401 dès maintenant
