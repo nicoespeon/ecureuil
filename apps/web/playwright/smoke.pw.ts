@@ -41,6 +41,16 @@ test("réordonner un rayon au clavier change l'ordre de la liste", async ({ page
   ]);
 });
 
+test("le retour du navigateur ramène de la configuration à la liste", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Configuration" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Configuration" })).toBeVisible();
+
+  await page.goBack();
+
+  await expect(page.getByRole("button", { name: "Configuration" })).toBeFocused();
+});
+
 test("après un premier chargement, l'app redémarre sans réseau", async ({ page, context }) => {
   await page.goto("/");
   await expect
