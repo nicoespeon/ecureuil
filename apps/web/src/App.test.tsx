@@ -54,6 +54,14 @@ describe("la liste d'un magasin", () => {
     ).toBeVisible();
   });
 
+  it("le header prend la teinte du magasin actif", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+
+    expect(screen.getByRole("banner")).toHaveAttribute("data-tint", "indigo");
+  });
+
   it("s'affiche quand le stockage de l'appareil est bloqué", () => {
     vi.stubGlobal("localStorage", blockedStorage());
 
