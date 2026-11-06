@@ -33,15 +33,16 @@ The API (`/journal` push and pull, curl examples) is documented in [`apps/api/RE
 
 ## Toolchain gotchas
 
-Versions pinned in `.tool-versions` (asdf): `nodejs 24.21.0`, `pnpm 12.16.1`.
+Node and pnpm versions live in `.tool-versions` (asdf) and `packageManager`, nowhere else; Renovate bumps them.
 
 - **asdf is not initialized in non-interactive shells.** Prefix commands with:
 
   ```sh
   export PATH="$HOME/.asdf/shims:$PATH"
-  export ASDF_NODEJS_VERSION=24.21.0 ASDF_PNPM_VERSION=12.16.1
   ```
-- `git commit` runs `pnpm check` through lefthook, so the same env must be exported before committing.
+
+  The shims read `.tool-versions` from the current directory. If a command answers `No version is set`, the version is not installed yet: run `asdf install nodejs` then `asdf install pnpm` (in that order: the pnpm plugin needs a working `npm`).
+- `git commit` runs `pnpm check` through lefthook, so the same `PATH` is needed before committing.
 - **`git push` must be its own command** (network/SSH; the sandbox denies it when bundled). Prefer `git -C <repo>` over a bundled `cd … || exit 1`.
 - pnpm 12 refuses to install when a dependency's build script is not allowed: add it to `allowBuilds` in `pnpm-workspace.yaml`.
 - pnpm 12 also refuses packages published less than a day ago, and the local cache hides it: a same-day version passes `pnpm add -E` locally but breaks `pnpm install --frozen-lockfile` in CI until the next day. Don't bypass it with `minimumReleaseAgeExclude`; wait or take the previous version (details in [`docs/research/ci-cd.md`](docs/research/ci-cd.md)).
