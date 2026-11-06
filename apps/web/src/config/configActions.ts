@@ -1,19 +1,8 @@
+import { magasinCreation } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import type { Journal } from "../journal/journal";
 import { itemRayonOf } from "./rayonChoice";
-
-/** A new magasin starts with these, in a common walking order, to reorder or remove (ADR 1). */
-const rayonsParDefaut = [
-  "Fruits et légumes",
-  "Boulangerie",
-  "Viandes et poissons",
-  "Produits laitiers",
-  "Épicerie",
-  "Surgelés",
-  "Hygiène",
-  "Entretien",
-];
 
 /**
  * What the configuration writes to the journal. Unlike the list, it targets a magasin by id:
@@ -27,10 +16,8 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
   return {
     /** Returns the new magasin's id, so the screen can switch to it. */
     createMagasin: (name: string) => {
-      const magasinId = crypto.randomUUID();
-      append("MagasinCreated", magasinId, { name });
-      for (const rayonName of rayonsParDefaut)
-        append("RayonCreated", magasinId, { rayonId: crypto.randomUUID(), name: rayonName });
+      const { magasinId, drafts } = magasinCreation({ name, newId: () => crypto.randomUUID() });
+      for (const draft of drafts) appendEvent(journal, { actor, ...draft });
       return magasinId;
     },
     renameMagasin: (magasinId: string, name: string) =>
