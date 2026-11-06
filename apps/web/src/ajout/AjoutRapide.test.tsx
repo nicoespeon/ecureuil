@@ -164,10 +164,12 @@ describe("l'ajout rapide", () => {
     expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(announcement);
   });
 
-  it("n'est pas proposé à l'invité", () => {
-    renderApp({ role: "invite" });
+  it("n'est pas proposé à l'invité : son « Ajouter » envoie une demande", async () => {
+    const { user } = renderApp({ role: "invite" });
 
-    expect(screen.queryByRole("button", { name: "Ajouter" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+
+    expect(screen.queryByRole("searchbox", { name: "Item à ajouter" })).toBeNull();
   });
 });
 
