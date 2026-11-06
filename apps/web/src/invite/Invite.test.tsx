@@ -43,15 +43,13 @@ describe("ajouter une demande", () => {
     });
   });
 
-  it("la demande apparaît en attente dans « Mes demandes »", async () => {
+  it("la demande apparaît dans « Mes demandes », après celles qui attendent déjà", async () => {
     const { user } = renderApp({ role: "invite" });
 
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café");
     await user.click(screen.getByRole("button", { name: "Ajouter" }));
 
-    expect(section("Mes demandes").getAllByRole("listitem")[0]).toHaveTextContent(
-      "Café, en attente",
-    );
+    expect(demandeNames()).toEqual(["Chocolat chaud", "Café"]);
   });
 
   it("vide le champ et y laisse le focus pour la demande suivante", async () => {
@@ -108,7 +106,7 @@ describe("une demande en double", () => {
 });
 
 describe("mes demandes", () => {
-  it("dit ce que le propriétaire a fait de chaque demande, la plus récente d'abord", () => {
+  it("ne montre que les demandes en attente", () => {
     const journal = inMemoryJournal(seed);
     appendEvent(
       journal,
@@ -136,11 +134,19 @@ describe("mes demandes", () => {
 
     renderApp({ role: "invite", journal });
 
-    expect(statuses()).toEqual([
-      "Thé, en attente",
-      "Café, dans la liste",
-      "Chocolat chaud, pas cette fois",
-    ]);
+    expect(demandeNames()).toEqual(["Thé"]);
+  });
+
+  it("disparaît quand plus rien n'attend", () => {
+    const journal = inMemoryJournal(seed);
+    appendEvent(
+      journal,
+      written("proprietaire", "DemandeRefused", { demandeId: "demande-chocolat-chaud" }),
+    );
+
+    renderApp({ role: "invite", journal });
+
+    expect(screen.queryByRole("region", { name: "Mes demandes" })).toBeNull();
   });
 });
 
@@ -148,7 +154,7 @@ function written<T extends EventType>(actor: Actor, type: T, payload: PayloadOf<
   return { actor, type, magasin: "magasin-costco", payload };
 }
 
-function statuses() {
+function demandeNames() {
   return section("Mes demandes")
     .getAllByRole("listitem")
     .map((item) => item.textContent);

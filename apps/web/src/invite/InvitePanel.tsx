@@ -1,20 +1,11 @@
 import { Tabs } from "@base-ui/react/tabs";
-import {
-  type Demande,
-  type DemandeStatus,
-  duplicateOf,
-  type ListItem,
-  latestDemandes,
-} from "@ecureuil/domain";
+import { type Demande, duplicateOf, type ListItem, pendingDemandes } from "@ecureuil/domain";
 import { useId, useRef } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { FoyerWithListe } from "../journal/useFoyer";
 import { ListeSection, ListeSections } from "../liste/ListeSections";
 
-/** Enough to see what became of this week's demandes without scrolling past the list. */
-const MES_DEMANDES_COUNT = 10;
-
-/** What the invite sees: the list to read, a field to ask for more, and the fate of each demande. */
+/** What the invite sees: the list to read, a field to ask for more, and what still waits. */
 export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
   const { announcement, announce } = useAnnouncer();
   const { magasinActif: magasin, liste } = foyer;
@@ -29,7 +20,7 @@ export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
         }}
         message={announcement}
       />
-      <MesDemandes demandes={latestDemandes(foyer.state, MES_DEMANDES_COUNT)} />
+      <MesDemandes demandes={pendingDemandes(foyer.state)} />
       <ListeSections
         liste={liste}
         magasinName={magasin.name}
@@ -90,35 +81,15 @@ function AjouterDemande({ askFor, message }: { askFor: (name: string) => void; m
   );
 }
 
-const statusLabels = {
-  Pending: "en attente",
-  Accepted: "dans la liste",
-  Refused: "pas cette fois",
-} satisfies Record<DemandeStatus["_tag"], string>;
-
-const statusClassNames = {
-  Pending: "bg-amber-100 text-amber-900",
-  Accepted: "bg-green-100 text-green-900",
-  Refused: "bg-neutral-100 text-neutral-700",
-} satisfies Record<DemandeStatus["_tag"], string>;
-
+/** Only what still waits: a verdict is said out loud, not shown. */
 function MesDemandes({ demandes }: { demandes: ReadonlyArray<Demande> }) {
   if (demandes.length === 0) return null;
   return (
     <ListeSection id="mes-demandes" title="Mes demandes">
       <ul>
-        {demandes.map(({ id, name, status }) => (
-          <li
-            key={id}
-            className="flex min-h-11 items-center justify-between gap-2 border-b border-neutral-200 px-4"
-          >
+        {demandes.map(({ id, name }) => (
+          <li key={id} className="flex min-h-11 items-center border-b border-neutral-200 px-4">
             <span className="min-w-0 truncate">{name}</span>
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-sm ${statusClassNames[status._tag]}`}
-            >
-              <span className="sr-only">, </span>
-              {statusLabels[status._tag]}
-            </span>
           </li>
         ))}
       </ul>

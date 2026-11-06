@@ -236,7 +236,9 @@ async function walkDemandes(page: Page, capture: (name: string) => Promise<unkno
   await capture("a-valider-apres");
 
   await enterAs(page, "invite");
-  await expect(page.getByRole("region", { name: "Mes demandes" })).toContainText("pas cette fois");
+  await expect(page.getByRole("region", { name: "Mes demandes" }).getByRole("listitem")).toHaveText(
+    ["Chocolat chaud"],
+  );
   await capture("invite-verdicts");
 }
 

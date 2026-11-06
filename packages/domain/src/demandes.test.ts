@@ -1,7 +1,7 @@
 import { Event } from "@ecureuil/wire";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { duplicateOf, itemNamed, latestDemandes, pendingDemandes } from "./demandes";
+import { duplicateOf, itemNamed, pendingDemandes } from "./demandes";
 import { fold } from "./reducer";
 
 const decode = Schema.decodeUnknownSync(Event);
@@ -35,22 +35,6 @@ describe("les demandes en attente", () => {
     ]);
 
     expect(pendingDemandes(state).map(({ name }) => name)).toEqual(["Café", "Thé"]);
-  });
-});
-
-describe("les dernières demandes", () => {
-  it("rend les plus récentes d'abord, quel que soit leur statut, dans la limite demandée", () => {
-    const state = fold([
-      demande("d1", "Chips"),
-      demande("d2", "Café"),
-      event("DemandeRefused", { demandeId: "d2" }),
-      demande("d3", "Thé"),
-    ]);
-
-    expect(latestDemandes(state, 2)).toMatchObject([
-      { name: "Thé", status: { _tag: "Pending" } },
-      { name: "Café", status: { _tag: "Refused" } },
-    ]);
   });
 });
 
