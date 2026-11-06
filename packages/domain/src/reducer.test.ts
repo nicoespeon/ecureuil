@@ -273,6 +273,8 @@ const requested = event({
 const accepted = () =>
   event({ type: "DemandeAccepted", payload: { demandeId: "r1", itemId: "chips" } });
 const refused = () => event({ type: "DemandeRefused", payload: { demandeId: "r1" } });
+const withdrawn = () =>
+  event({ type: "DemandeWithdrawn", actor: "invite", payload: { demandeId: "r1" } });
 
 describe("demandes", () => {
   it("enregistre la demande de l'invite en attente", () => {
@@ -295,9 +297,16 @@ describe("demandes", () => {
     });
   });
 
+  it("l'invité retire une demande en attente", () => {
+    expect(fold([requested, withdrawn()]).demandes.r1?.status).toEqual({ _tag: "Withdrawn" });
+  });
+
   it.each([
     ["acceptée", [accepted(), refused()], "Accepted", "toBuy"],
     ["refusée", [refused(), accepted()], "Refused", "notToBuy"],
+    ["acceptée", [accepted(), withdrawn()], "Accepted", "toBuy"],
+    ["retirée", [withdrawn(), accepted()], "Withdrawn", "notToBuy"],
+    ["retirée", [withdrawn(), refused()], "Withdrawn", "notToBuy"],
   ] as const)("le premier arbitrage gagne : %s puis l'autre", (_, arbitrations, tag, status) => {
     expect(fold([requested, chips, ...arbitrations])).toMatchObject({
       demandes: { r1: { status: { _tag: tag } } },
