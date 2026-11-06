@@ -161,7 +161,37 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), query);
 
-    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(announcement);
+    expect(await within(screen.getByRole("dialog")).findByText(announcement)).toHaveRole("status");
+  });
+
+  it("« Déjà sur la liste » n'est pas couvert par le compte des résultats", async () => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), "lait{Enter}");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(
+      "Déjà sur la liste : Lait",
+    );
+  });
+
+  it("rouvert, ne répète pas la dernière annonce", async () => {
+    const { user } = await openAjout();
+    await user.type(searchbox(), "pom");
+    await user.click(screen.getByRole("button", { name: "Pommes" }));
+    await user.click(screen.getByRole("button", { name: "Fermer" }));
+
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("ne compte les résultats qu'une fois la frappe posée, pour ne pas couvrir l'écho du clavier", async () => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), "lai");
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("n'est pas proposé à l'invité : son « Ajouter » envoie une demande", async () => {

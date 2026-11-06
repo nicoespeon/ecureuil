@@ -21,11 +21,14 @@ export type FicheFoyer = {
 export function useFicheArticle({
   foyer,
   writer,
+  announce,
   focusAfterRemove,
   focusAfterClose,
 }: {
   foyer: FicheFoyer;
   writer: Writer;
+  /** The opener's live region: the sheet's own leaves with it once the article is removed. */
+  announce: (message: string) => void;
   focusAfterRemove: RefObject<HTMLElement | null>;
   /** Where the focus goes on close, whatever became of the article, when the opener is not a row. */
   focusAfterClose?: RefObject<HTMLElement | null>;
@@ -53,7 +56,17 @@ export function useFicheArticle({
             className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
           >
             {article && (
-              <FicheContent article={article} magasins={foyer.magasins} actions={actions} />
+              <FicheContent
+                article={article}
+                magasins={foyer.magasins}
+                actions={{
+                  ...actions,
+                  removeArticle: (articleId) => {
+                    actions.removeArticle(articleId);
+                    announce(`${article.name} supprimé`);
+                  },
+                }}
+              />
             )}
           </Dialog.Popup>
         </Dialog.Portal>
@@ -113,7 +126,7 @@ function FicheContent({
             />
             À acheter
           </label>
-          <Stepper article={article} setQuantity={actions.setQuantity} />
+          <Stepper article={article} actions={{ setQuantity: actions.setQuantity, announce }} />
         </div>
         <fieldset className="flex flex-col gap-3">
           <legend className={`${labelClassName} mb-1`}>Rayon par magasin</legend>

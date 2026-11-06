@@ -1,11 +1,11 @@
 import type { ListArticle } from "@ecureuil/domain";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useId } from "react";
 import { animateMove, moveTransitionName } from "./animateMove";
+import { useConfirmation } from "./useConfirmation";
 import type { Mode } from "./useMode";
 
 /** A UI ceiling: the domain allows more, the stepper stops here. */
 const MAX_QUANTITY = 10;
-const REMOVE_CONFIRMATION_MS = 3000;
 
 export type ToBuyActions = {
   readonly check: (article: ListArticle) => void;
@@ -33,7 +33,7 @@ export function ToBuyRow({
     />
   ) : (
     <Row article={article} showsQuantity={false} openFiche={actions.openFiche}>
-      <Stepper article={article} setQuantity={actions.setQuantity} />
+      <Stepper article={article} actions={actions} />
       <RemoveButton article={article} actions={actions} />
     </Row>
   );
@@ -68,21 +68,24 @@ function Row({
   openFiche: (articleId: string) => void;
   children?: ReactNode;
 }) {
+  const quantityId = useId();
+  const quantityShown = showsQuantity && article.quantity > 1;
   return (
     <li
-      className={`flex min-h-14 items-center gap-1 border-b border-neutral-200 pr-2 ${checkbox ? "" : "pl-4"}`}
+      className={`flex min-h-14 items-center border-b border-neutral-200 pr-2 ${checkbox ? "gap-2" : "gap-1 pl-4"}`}
       style={{ viewTransitionName: moveTransitionName(article.id) }}
     >
       {checkbox && (
-        // Only the box checks: the name opens the article sheet.
-        <label className="grid size-11 shrink-0 cursor-pointer place-items-center">
+        // Only the box checks: the name opens the article sheet. The whole row height, for gloves.
+        <label className="grid size-14 shrink-0 cursor-pointer place-items-center">
           <input
             type="checkbox"
             aria-label={article.name}
+            aria-describedby={quantityShown ? quantityId : undefined}
             data-article-id={article.id}
             checked={checkbox.checked}
             onChange={() => animateMove(checkbox.onToggle)}
-            className="size-6 cursor-pointer accent-neutral-900"
+            className="size-7 cursor-pointer accent-neutral-900"
           />
         </label>
       )}
@@ -92,12 +95,20 @@ function Row({
           aria-haspopup="dialog"
           data-fiche-article-id={article.id}
           onClick={() => openFiche(article.id)}
-          className="min-h-11 min-w-0 truncate rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
+          className="flex min-h-11 min-w-11 items-center rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
         >
-          {article.name}
+          <span className="truncate">{article.name}</span>
+          {/* Inside the button, out of its name: the quantity widens a short name's target. */}
+          {quantityShown && (
+            <span aria-hidden="true" className="ml-1 shrink-0 text-neutral-700">
+              ×{article.quantity}
+            </span>
+          )}
         </button>
-        {showsQuantity && article.quantity > 1 && (
-          <span className="ml-1 shrink-0 text-neutral-700">×{article.quantity}</span>
+        {quantityShown && (
+          <span id={quantityId} className="sr-only">
+            quantité {article.quantity}
+          </span>
         )}
       </span>
       {children}
@@ -110,18 +121,22 @@ const iconButtonClassName =
 
 export function Stepper({
   article,
-  setQuantity,
+  actions,
 }: {
   article: ListArticle;
-  setQuantity: ToBuyActions["setQuantity"];
+  actions: Pick<ToBuyActions, "setQuantity" | "announce">;
 }) {
+  const setQuantity = (quantity: number) => {
+    actions.setQuantity(article.id, quantity);
+    actions.announce(`${article.name} : ${quantity}`);
+  };
   return (
     <fieldset aria-label={`Quantité de ${article.name}`} className="flex shrink-0 items-center">
       <button
         type="button"
         aria-label={`Diminuer la quantité de ${article.name}`}
         disabled={article.quantity <= 1}
-        onClick={() => setQuantity(article.id, article.quantity - 1)}
+        onClick={() => setQuantity(article.quantity - 1)}
         className={iconButtonClassName}
       >
         −
@@ -131,7 +146,7 @@ export function Stepper({
         type="button"
         aria-label={`Augmenter la quantité de ${article.name}`}
         disabled={article.quantity >= MAX_QUANTITY}
-        onClick={() => setQuantity(article.id, article.quantity + 1)}
+        onClick={() => setQuantity(article.quantity + 1)}
         className={iconButtonClassName}
       >
         +
@@ -141,23 +156,18 @@ export function Stepper({
 }
 
 function RemoveButton({ article, actions }: { article: ListArticle; actions: ToBuyActions }) {
-  const [confirming, setConfirming] = useState(false);
-
-  useEffect(() => {
-    if (!confirming) return;
-    const timeout = setTimeout(() => setConfirming(false), REMOVE_CONFIRMATION_MS);
-    return () => clearTimeout(timeout);
-  }, [confirming]);
+  const { confirming, arm, onBlur } = useConfirmation();
 
   return (
     <button
       type="button"
       data-article-id={article.id}
+      onBlur={onBlur}
       onClick={() => {
         if (confirming) {
           actions.removeFromList(article);
         } else {
-          setConfirming(true);
+          arm();
           actions.announce(`Touchez encore pour retirer ${article.name} de la liste`);
         }
       }}

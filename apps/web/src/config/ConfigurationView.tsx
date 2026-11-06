@@ -31,7 +31,12 @@ export function ConfigurationView({
   const { announcement, announce } = useAnnouncer();
   // The sections become a sidebar at the `md` breakpoint: arrow keys follow the layout.
   const sidebar = useMediaQuery("(min-width: 48rem)");
-  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: titleRef });
+  const { openFiche, fiche } = useFicheArticle({
+    foyer,
+    writer,
+    announce,
+    focusAfterRemove: titleRef,
+  });
   const [section, setSection] = useState("rayons");
   const config = configActions(writer, foyer.magasinActif.id);
   const magasinActions = useMagasinActions({
@@ -62,6 +67,7 @@ export function ConfigurationView({
         value={section}
         onValueChange={(value) => typeof value === "string" && setSection(value)}
         orientation={sidebar ? "vertical" : "horizontal"}
+        render={<main />}
         className="md:flex"
       >
         <Tabs.List

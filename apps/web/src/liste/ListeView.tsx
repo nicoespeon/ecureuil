@@ -1,5 +1,5 @@
 import type { ListArticle, Liste } from "@ecureuil/domain";
-import { useLayoutEffect, useRef } from "react";
+import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { ListeSections } from "./ListeSections";
@@ -18,13 +18,16 @@ export function ListeView({
   magasinName,
   mode,
   actions,
+  focusWhenEmpty,
 }: {
   liste: Liste;
   magasinName: string;
   mode: Mode;
   actions: Actions;
+  /** Where the focus goes when the leaving row was the last one. */
+  focusWhenEmpty: RefObject<HTMLElement | null>;
 }) {
-  const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow();
+  const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow(focusWhenEmpty);
   const rowActions = {
     setQuantity: actions.setQuantity,
     announce: actions.announce,
@@ -69,9 +72,10 @@ export function ListeView({
  * it: the focus goes to the same control of the next row instead (its box in Courses, its
  * trash in Préparer), or the previous one, without scrolling.
  */
-function useFocusNeighborOfLeavingRow() {
+function useFocusNeighborOfLeavingRow(focusWhenEmpty: RefObject<HTMLElement | null>) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const neighborId = useRef<string | undefined>(undefined);
+  /** Null once no row is left to take it. */
+  const neighborId = useRef<string | null | undefined>(undefined);
 
   const rowControls = () => [
     ...(containerRef.current?.querySelectorAll<HTMLElement>("[data-article-id]") ?? []),
@@ -79,9 +83,10 @@ function useFocusNeighborOfLeavingRow() {
 
   useLayoutEffect(() => {
     if (neighborId.current === undefined) return;
-    const neighbor = rowControls().find(
-      (control) => control.dataset.articleId === neighborId.current,
-    );
+    const neighbor =
+      neighborId.current === null
+        ? focusWhenEmpty.current
+        : rowControls().find((control) => control.dataset.articleId === neighborId.current);
     neighborId.current = undefined;
     neighbor?.focus({ preventScroll: true });
   });
@@ -91,7 +96,7 @@ function useFocusNeighborOfLeavingRow() {
     focusNeighborOf: (articleId: string) => {
       const all = rowControls();
       const index = all.findIndex((control) => control.dataset.articleId === articleId);
-      neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.articleId;
+      neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.articleId ?? null;
     },
   };
 }

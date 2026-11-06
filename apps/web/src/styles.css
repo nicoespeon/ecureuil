@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Whatever gets the keyboard focus scrolls clear of the sticky header and rayon heading, and of the bottom bar. */
+html {
+  scroll-padding-top: 6rem;
+  scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+
 ::view-transition-group(*) {
   animation-duration: 180ms;
 }

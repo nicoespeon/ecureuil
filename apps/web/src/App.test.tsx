@@ -170,6 +170,24 @@ describe("la quantité", () => {
     expect(screen.getByRole("group", { name: "Quantité de Lait" })).toHaveTextContent("2");
   });
 
+  it("annonce la nouvelle quantité de Babybel", async () => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("button", { name: "Augmenter la quantité de Babybel" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Babybel : 2");
+  });
+
+  it("en Courses, la case de Lait dit sa quantité", async () => {
+    const { user } = renderApp();
+
+    await startCourses(user);
+
+    expect(screen.getByRole("checkbox", { name: "Lait" })).toHaveAccessibleDescription(
+      "quantité 3",
+    );
+  });
+
   it("« − » est désactivé à 1", () => {
     renderApp();
 
@@ -222,12 +240,42 @@ describe("retirer de la liste", () => {
     expect(screen.getByRole("button", { name: "Retirer Croissants de la liste" })).toHaveFocus();
   });
 
-  it("la confirmation retombe après 3 secondes", async () => {
+  it("rend le focus à la liste quand le dernier article à acheter en est retiré", async () => {
+    const { user } = renderApp();
+
+    for (const trash of screen.getAllByRole("button", { name: /^Retirer .* de la liste$/ })) {
+      await user.click(trash);
+      await user.click(trash);
+    }
+
+    expect(screen.getByRole("tabpanel", { name: "Costco" })).toHaveFocus();
+  });
+
+  it("la confirmation tient le temps qu'un lecteur d'écran lise l'avertissement", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
 
-    await act(() => vi.advanceTimersByTimeAsync(3000));
+    await act(() => vi.advanceTimersByTimeAsync(9000));
+
+    expect(screen.getByRole("button", { name: "Retirer Babybel ?" })).toBeVisible();
+  });
+
+  it("la confirmation retombe après 10 secondes", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await act(() => vi.advanceTimersByTimeAsync(10_000));
+
+    expect(screen.getByRole("button", { name: "Retirer Babybel de la liste" })).toBeVisible();
+  });
+
+  it("la confirmation retombe quand le focus quitte la poubelle", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await user.tab();
 
     expect(screen.getByRole("button", { name: "Retirer Babybel de la liste" })).toBeVisible();
   });
@@ -271,6 +319,16 @@ describe("terminer les courses", () => {
     await finishSortie(user);
 
     expect(screen.queryByRole("region", { name: "Dans le panier" })).toBeNull();
+  });
+
+  it("annonce la fin des courses", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
+    await checkLaitAndBabybel(user);
+
+    await finishSortie(user);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Courses terminées");
   });
 
   it("laisse les autres articles à acheter", async () => {

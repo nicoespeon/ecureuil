@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
 import { TrashIcon } from "../liste/ArticleRow";
-
-const CONFIRMATION_MS = 3000;
+import { useConfirmation } from "../liste/useConfirmation";
 
 /**
- * A delete that takes two taps: the first one arms it for a few seconds and says what follows.
- * One button for both steps, so the keyboard focus stays on it.
+ * A delete that takes two taps: the first arms it and says what follows, until the focus leaves
+ * or time runs out. One button for both steps, so the keyboard focus stays on it.
  */
 export function ConfirmButton({
   subject,
@@ -18,20 +16,15 @@ export function ConfirmButton({
   onConfirm: () => void;
   withLabel?: boolean;
 }) {
-  const [confirming, setConfirming] = useState(false);
-
-  useEffect(() => {
-    if (!confirming) return;
-    const timeout = setTimeout(() => setConfirming(false), CONFIRMATION_MS);
-    return () => clearTimeout(timeout);
-  }, [confirming]);
+  const { confirming, arm, onBlur } = useConfirmation();
 
   return (
     <button
       type="button"
+      onBlur={onBlur}
       onClick={() => {
         if (confirming) return onConfirm();
-        setConfirming(true);
+        arm();
         warning.announce(warning.message);
       }}
       className={idleOrConfirmClassName({ confirming, withLabel })}
