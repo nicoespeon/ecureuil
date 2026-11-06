@@ -32,6 +32,7 @@ Du foyer (`magasin` est un contexte, `null` permis) :
 - `DemandeCreated { demandeId, name }`
 - `DemandeAccepted { demandeId, itemId }`
 - `DemandeRefused { demandeId }`
+- `DemandeWithdrawn { demandeId }` : l'invité retire sa demande
 
 ## `State`
 
@@ -43,7 +44,7 @@ type State = {
     status: "notToBuy" | "toBuy" | "inCart";
     rayonParMagasin: Record<magasinId, Rayon { rayonId } | PasVenduIci>; // absent = NonClasse
   }>;
-  demandes: Record<string, { id; name; requestedAt; status: Pending | Accepted { itemId } | Refused }>;
+  demandes: Record<string, { id; name; requestedAt; status: Pending | Accepted { itemId } | Refused | Withdrawn }>;
   sorties: { id; magasin; at; achats: { itemId; quantity }[] }[]; // id = id du SortieFinished
 };
 ```
@@ -76,7 +77,13 @@ type ListItem = { id; name; quantity };
 - `panier` : les items `inCart`, quel que soit leur rayon.
 - Dans chaque groupe, les items sont triés par nom (`localeCompare` en `fr`).
 
-Changer de magasin retrie les mêmes items, sans en changer le contenu. Les demandes en attente n'en font pas partie : filtrer `state.demandes` sur `status._tag === "Pending"`.
+Changer de magasin retrie les mêmes items, sans en changer le contenu. Les demandes en attente n'en font pas partie.
+
+## Les demandes
+
+- `pendingDemandes(state)` : les demandes `Pending`, la plus ancienne d'abord : la section « À valider » du propriétaire, et « Mes demandes » de l'invité.
+- `duplicateOf(state, name)` : `"Liste"` si un item de ce nom est déjà sur la liste (à acheter ou dans le panier), `"Demande"` si une demande de ce nom attend encore, sinon `undefined`. L'invité ne redemande pas ce qui est déjà là.
+- `itemNamed(state, name)` : l'item du catalogue qui porte ce nom, sans tenir compte des espaces autour, de la casse ni des accents (« pates » trouve « Pâtes »). Accepter une demande réutilise cet item plutôt que d'en créer un second.
 
 ## Règles du domaine
 
@@ -85,6 +92,7 @@ Les règles de conflit générales viennent de l'ordre de relecture (ADR 4) : de
 - `ItemRayonSet` vers un magasin inconnu, ou vers un rayon absent de ce magasin, est ignoré. `ItemRayonSet` avec `NonClasse` retire l'entrée du magasin.
 - `RayonRemoved` renvoie ses items à `NonClasse` dans ce magasin.
 - `RayonsReordered` élimine les ids en double et ignore les ids inconnus ; les rayons non mentionnés (créés en parallèle sur un autre appareil) gardent leur ordre, après ceux qui le sont.
+- Une demande n'est décidée qu'une fois : le premier de `DemandeAccepted`, `DemandeRefused` ou `DemandeWithdrawn` gagne, les suivants sont ignorés.
 - `DemandeAccepted` vers un item inconnu laisse la demande `Pending`. Acceptée, elle met l'item sur la liste.
 - `ItemChecked` sur un item `notToBuy` est ignoré ; `ItemUnchecked` ne fait revenir à `toBuy` qu'un item `inCart`. `ItemMarkedToBuy` laisse dans le panier un item déjà `inCart`.
 - `SortieFinished` enregistre une `Sortie` dont les achats sont les items `inCart` avec leur quantité, puis les repasse à `notToBuy`. La quantité de l'item survit à la sortie.

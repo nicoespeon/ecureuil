@@ -22,7 +22,8 @@ export default defineConfig({
   /** A build, so the service worker runs as in production; a development build keeps the seed. */
   webServer: {
     command: `pnpm exec vite build --outDir dist-playwright && pnpm exec vite preview --outDir dist-playwright --port ${port} --strictPort`,
-    env: { NODE_ENV: "development" },
+    /** An API that never answers: the QA captures stand in for it to open the app as the invite. */
+    env: { NODE_ENV: "development", VITE_API_URL: "http://api.qa.test" },
     url: `http://localhost:${port}`,
     reuseExistingServer: false,
   },

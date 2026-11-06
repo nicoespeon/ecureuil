@@ -38,7 +38,8 @@ export type Sortie = {
 };
 
 /**
- * An item the guest asks for; the owner's first arbitration is final.
+ * An item the guest asks for; the first decision is final, the owner's verdict or the guest
+ * withdrawing it.
  */
 export type Demande = {
   readonly id: string;
@@ -51,6 +52,8 @@ export type DemandeStatus = Data.TaggedEnum<{
   Pending: Record<never, never>;
   Accepted: { readonly itemId: string };
   Refused: Record<never, never>;
+  /** Taken back by the invite while still pending. */
+  Withdrawn: Record<never, never>;
 }>;
 const DemandeStatus = Data.taggedEnum<DemandeStatus>();
 
@@ -208,6 +211,12 @@ const applyEvent = Match.type<Event>().pipe(
     DemandeRefused: (event) => (state: State) => {
       const demande = pendingDemande(state, event.payload.demandeId);
       return demande ? withDemande(state, { ...demande, status: DemandeStatus.Refused() }) : state;
+    },
+    DemandeWithdrawn: (event) => (state: State) => {
+      const demande = pendingDemande(state, event.payload.demandeId);
+      return demande
+        ? withDemande(state, { ...demande, status: DemandeStatus.Withdrawn() })
+        : state;
     },
   }),
 );

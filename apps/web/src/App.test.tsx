@@ -12,6 +12,7 @@ describe("la liste d'un magasin", () => {
     renderApp();
 
     expect(sectionTitles()).toEqual([
+      "À valider (1)",
       "Vêtements",
       "Hygiène",
       "Épicerie",
@@ -30,6 +31,7 @@ describe("la liste d'un magasin", () => {
     await user.click(screen.getByRole("button", { name: /Pas chez Maxi/ }));
 
     expect(sectionTitles()).toEqual([
+      "À valider (1)",
       "Fruits et légumes",
       "Boulangerie",
       "Épicerie",
@@ -325,17 +327,6 @@ describe("un appareil sans magasin", () => {
     });
 
     expect(screen.getByRole("tab", { name: "Costco" })).toHaveAttribute("aria-selected", "true");
-  });
-});
-
-describe("l'appareil", () => {
-  it("écrit les gestes au nom de son rôle", async () => {
-    const journal = inMemoryJournal(seed);
-    const { user } = renderApp({ journal, role: "invite" });
-
-    await user.click(screen.getByRole("checkbox", { name: "Lait" }));
-
-    expect(journal.all().at(-1)).toMatchObject({ type: "ItemChecked", actor: "invite" });
   });
 });
 

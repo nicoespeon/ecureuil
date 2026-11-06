@@ -1,9 +1,8 @@
-import { Collapsible } from "@base-ui/react/collapsible";
-import type { Liste, ListItem, Section } from "@ecureuil/domain";
-import { type ReactNode, useId, useLayoutEffect, useRef } from "react";
+import type { Liste, ListItem } from "@ecureuil/domain";
+import { useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
-import { headingTransitionName } from "./animateMove";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ItemRow";
+import { ListeSections } from "./ListeSections";
 
 type Actions = Pick<
   ReturnType<typeof useFoyer>,
@@ -46,27 +45,18 @@ export function ListeView({
 
   return (
     <div ref={containerRef} className="pb-24">
-      {liste.sections.map((section) => (
-        <ListeSection
-          key={sectionKey(section)}
-          id={sectionKey(section)}
-          title={sectionTitle(section)}
-        >
-          <ToBuyRows items={section.items} actions={rowActions} />
-        </ListeSection>
-      ))}
-      {liste.panier.length > 0 && (
-        <ListeSection id="panier" title="Dans le panier">
+      <ListeSections
+        liste={liste}
+        magasinName={magasinName}
+        toBuyRows={(items) => <ToBuyRows items={items} actions={rowActions} />}
+        panierRows={(items) => (
           <ul>
-            {liste.panier.map((item) => (
+            {items.map((item) => (
               <PanierRow key={item.id} item={item} actions={rowActions} />
             ))}
           </ul>
-        </ListeSection>
-      )}
-      {liste.pasVenduIci.length > 0 && (
-        <PasVenduIci magasinName={magasinName} items={liste.pasVenduIci} actions={rowActions} />
-      )}
+        )}
+      />
     </div>
   );
 }
@@ -100,71 +90,6 @@ function useFocusNeighborOfLeavingRow() {
       neighborId.current = (all[index + 1] ?? all[index - 1])?.dataset.itemId;
     },
   };
-}
-
-function sectionKey(section: Section) {
-  return section._tag === "Rayon" ? `rayon-${section.rayonId}` : "non-classe";
-}
-
-function sectionTitle(section: Section) {
-  return section._tag === "Rayon" ? section.name : "Non classé";
-}
-
-const headingClassName =
-  "sticky top-14 z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
-
-function ListeSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  const headingId = useId();
-  return (
-    <section aria-labelledby={headingId}>
-      <h2
-        id={headingId}
-        style={{ viewTransitionName: headingTransitionName(id) }}
-        className={headingClassName}
-      >
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-function PasVenduIci({
-  magasinName,
-  items,
-  actions,
-}: {
-  magasinName: string;
-  items: ReadonlyArray<ListItem>;
-  actions: ToBuyActions;
-}) {
-  const headingId = useId();
-  return (
-    <Collapsible.Root render={<section aria-labelledby={headingId} />}>
-      <h2
-        id={headingId}
-        style={{ viewTransitionName: headingTransitionName("pas-vendu-ici") }}
-        className={headingClassName}
-      >
-        <Collapsible.Trigger className="group flex w-full items-center gap-2 text-left">
-          <svg
-            aria-hidden="true"
-            width="12"
-            height="12"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-            className="motion-safe:transition-transform group-data-panel-open:rotate-90"
-          >
-            <path d="M6 12V4l4.5 4z" />
-          </svg>
-          Pas chez {magasinName} ({items.length})
-        </Collapsible.Trigger>
-      </h2>
-      <Collapsible.Panel>
-        <ToBuyRows items={items} actions={actions} />
-      </Collapsible.Panel>
-    </Collapsible.Root>
-  );
 }
 
 function ToBuyRows({ items, actions }: { items: ReadonlyArray<ListItem>; actions: ToBuyActions }) {

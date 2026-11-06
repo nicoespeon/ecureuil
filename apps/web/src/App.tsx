@@ -1,6 +1,6 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
-import type { Liste, Magasin } from "@ecureuil/domain";
+import { pendingDemandes } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { type ReactNode, useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
@@ -12,8 +12,10 @@ import type { Writer } from "./config/configActions";
 import { useFicheItem } from "./config/FicheItem";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
+import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
-import { type Foyer, useFoyer } from "./journal/useFoyer";
+import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
+import { AValider } from "./liste/AValider";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 
@@ -57,8 +59,6 @@ export function App({
   );
 }
 
-type FoyerWithListe = Foyer & { magasinActif: Magasin; liste: Liste };
-
 function ListeScreen({
   foyer,
   writer,
@@ -92,12 +92,18 @@ function ListeScreen({
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        <ConfigurationButton
-          focusOnMount={configuration.focusOnMount}
-          onClick={configuration.open}
-        />
+        {writer.actor === "proprietaire" && (
+          <ConfigurationButton
+            focusOnMount={configuration.focusOnMount}
+            onClick={configuration.open}
+          />
+        )}
       </header>
-      <MagasinPanel foyer={foyer} writer={writer} />
+      {writer.actor === "invite" ? (
+        <InvitePanel foyer={foyer} />
+      ) : (
+        <MagasinPanel foyer={foyer} writer={writer} />
+      )}
     </Tabs.Root>
   );
 }
@@ -111,6 +117,15 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
   return (
     <>
       <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
+        <AValider
+          demandes={pendingDemandes(foyer.state)}
+          actions={{
+            acceptDemande: foyer.acceptDemande,
+            refuseDemande: foyer.refuseDemande,
+            announce,
+          }}
+          focusAfterLast={panelRef}
+        />
         <ListeView
           liste={liste}
           magasinName={magasin.name}
@@ -125,7 +140,7 @@ function MagasinPanel({ foyer, writer }: { foyer: FoyerWithListe; writer: Writer
         />
       </Tabs.Panel>
       <BottomBar>
-        {writer.actor === "proprietaire" && <AjoutRapide foyer={foyer} writer={writer} />}
+        <AjoutRapide foyer={foyer} writer={writer} />
         <TerminerLesCourses
           liste={liste}
           finishSortie={foyer.finishSortie}

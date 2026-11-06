@@ -77,5 +77,6 @@ export const Event = Schema.Union([
   foyerEvent("DemandeCreated", { demandeId: id, name }),
   foyerEvent("DemandeAccepted", { demandeId: id, itemId: id }),
   foyerEvent("DemandeRefused", { demandeId: id }),
+  foyerEvent("DemandeWithdrawn", { demandeId: id }),
 ]);
 export type Event = Schema.Schema.Type<typeof Event>;

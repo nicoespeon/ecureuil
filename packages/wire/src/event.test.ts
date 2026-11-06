@@ -35,6 +35,17 @@ describe("le schéma wire Event", () => {
     expect(decode(raw)).toEqual(raw);
   });
 
+  it("décode le retrait d'une demande par l'invité", () => {
+    const raw = {
+      ...envelope,
+      actor: "invite",
+      type: "DemandeWithdrawn",
+      payload: { demandeId: "r1" },
+    };
+
+    expect(decode(raw)).toEqual(raw);
+  });
+
   it("rejette un événement qui ne dit pas quel device l'a écrit", () => {
     const { device: _device, ...withoutDevice } = envelope;
 

@@ -1,3 +1,4 @@
+export { duplicateOf, itemNamed, pendingDemandes } from "./demandes";
 export { type Liste, type ListItem, listForMagasin, type Section } from "./list";
 export { Clock, type Cursor, EventStore, SyncTransport, TransportError } from "./ports";
 export {

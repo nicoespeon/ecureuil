@@ -27,6 +27,7 @@ test("réordonner un rayon au clavier change l'ordre de la liste", async ({ page
   await page.getByRole("button", { name: "Liste" }).click();
 
   await expect(page.getByRole("heading", { level: 2 })).toHaveText([
+    "À valider (1)",
     "Vêtements",
     "Épicerie",
     "Hygiène",
