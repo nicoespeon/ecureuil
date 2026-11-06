@@ -2,7 +2,7 @@ import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { pendingDemandes } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
-import { type ReactNode, useRef, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useRef, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
 import type { AccesStore } from "./acces/acces";
 import { CollerLeLien } from "./acces/CollerLeLien";
@@ -21,6 +21,7 @@ import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
+import { useHistoryScreen } from "./useHistoryScreen";
 
 export function App({
   journal,
@@ -33,9 +34,7 @@ export function App({
   acces: AccesStore;
 }) {
   const foyer = useFoyer(journal, role);
-  const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
-    "liste",
-  );
+  const { screen, openConfiguration, closeConfiguration } = useHistoryScreen();
   // Held above the screens: with storage blocked, a trip to the configuration keeps the mode.
   const { mode, setMode } = useMode();
   const writer = { journal, actor: role };
@@ -49,7 +48,7 @@ export function App({
           role === "proprietaire"
             ? (name) => {
                 foyer.selectMagasin(createMagasin(writer, name));
-                setScreen("configuration");
+                openConfiguration();
               }
             : undefined
         }
@@ -61,7 +60,7 @@ export function App({
         foyer={{ ...foyer, magasinActif }}
         writer={writer}
         acces={acces}
-        onClose={() => setScreen("backFromConfiguration")}
+        onClose={closeConfiguration}
       />
     );
 
@@ -73,7 +72,7 @@ export function App({
       setMode={setMode}
       configuration={{
         focusOnMount: screen === "backFromConfiguration",
-        open: () => setScreen("configuration"),
+        open: openConfiguration,
       }}
     />
   );

@@ -1,6 +1,9 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderApp } from "./renderApp";
+
+/** happy-dom keeps one history for the whole file: each test marks the entry it starts from. */
+const LISTE_ENTRY = "liste entry";
 
 describe("la navigation vers la configuration", () => {
   it("le bouton Configuration ouvre la configuration, « Liste » ramène à la liste", async () => {
@@ -11,6 +14,41 @@ describe("la navigation vers la configuration", () => {
 
     await user.click(screen.getByRole("button", { name: "Liste" }));
     expect(screen.getByRole("button", { name: "Lait" })).toBeVisible();
+  });
+
+  it("ouvrir la configuration ajoute une entrée à l'historique, sans changer l'adresse", async () => {
+    const { user } = renderApp();
+    history.replaceState(LISTE_ENTRY, "");
+    const address = location.href;
+
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    expect(history.state).not.toBe(LISTE_ENTRY);
+    expect(location.href).toBe(address);
+  });
+
+  it("le retour du navigateur ramène de la configuration à la liste, le focus sur l'engrenage", async () => {
+    const { user } = renderApp();
+    history.replaceState(LISTE_ENTRY, "");
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    history.back();
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Configuration" })).toHaveFocus(),
+    );
+    expect(history.state).toBe(LISTE_ENTRY);
+  });
+
+  it("fermer par « Liste » retire aussi l'entrée de l'historique", async () => {
+    const { user } = renderApp();
+    history.replaceState(LISTE_ENTRY, "");
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+
+    await user.click(screen.getByRole("button", { name: "Liste" }));
+
+    await waitFor(() => expect(history.state).toBe(LISTE_ENTRY));
+    expect(screen.getByRole("button", { name: "Configuration" })).toHaveFocus();
   });
 
   it("survoler l'engrenage affiche l'infobulle « Configuration »", async () => {
