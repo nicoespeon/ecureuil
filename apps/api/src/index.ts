@@ -15,7 +15,7 @@ import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { cors } from "hono/cors";
 import { appendEvents, eventsAfter, seqOfCursor } from "./journal";
-import { replaceLien, roleOfSecret } from "./lien";
+import { lienCreatedAt, replaceLien, roleOfSecret } from "./lien";
 import { newSecret } from "./secret";
 
 type Bindings = {
@@ -53,7 +53,13 @@ const authorized = [
 ];
 for (const path of [journalPath, lienPath, inviteLienPath]) app.use(path, ...authorized);
 
-app.get(lienPath, (c) => c.json({ role: c.get("role") } satisfies LienResponse));
+app.get(lienPath, async (c) => {
+  const createdAt = await lienCreatedAt(c.env.DB, "invite");
+  return c.json({
+    role: c.get("role"),
+    invite: createdAt === null ? null : { createdAt },
+  } satisfies LienResponse);
+});
 
 app.post(inviteLienPath, async (c) => {
   if (c.get("role") !== "proprietaire") {

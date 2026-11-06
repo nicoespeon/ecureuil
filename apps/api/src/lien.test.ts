@@ -13,9 +13,18 @@ describe("le rôle du lien", () => {
     async (role) => {
       const response = await getLien(secrets[role]);
 
-      expect(await response.json()).toEqual({ role });
+      expect(await response.json()).toEqual({ role, invite: { createdAt: 0 } });
     },
   );
+
+  it("dit quand l'invite n'a pas de lien", async () => {
+    await env.DB.prepare("DELETE FROM lien WHERE role = 'invite'").run();
+
+    expect(await (await getLien(secrets.proprietaire)).json()).toEqual({
+      role: "proprietaire",
+      invite: null,
+    });
+  });
 
   it("répond 401 à un secret inconnu", async () => {
     expect((await getLien("pas-un-secret")).status).toBe(401);
@@ -40,9 +49,19 @@ describe("un nouveau lien pour l'invite", () => {
     const regenerated = await regenerateInvite(secrets.proprietaire);
     const { secret } = Schema.decodeUnknownSync(NewLienResponse)(await regenerated.json());
 
-    expect(await (await getLien(secret)).json()).toEqual({ role: "invite" });
+    expect(await (await getLien(secret)).json()).toMatchObject({ role: "invite" });
     expect((await getLien(secrets.invite)).status).toBe(401);
     expect((await getLien(secrets.proprietaire)).status).toBe(200);
+  });
+
+  it("date le nouveau lien de l'invite", async () => {
+    const before = Date.now();
+
+    await regenerateInvite(secrets.proprietaire);
+
+    expect(await (await getLien(secrets.proprietaire)).json()).toMatchObject({
+      invite: { createdAt: expect.toSatisfy((at: number) => at >= before && at <= Date.now()) },
+    });
   });
 
   it("refuse l'invite, dont le lien continue de marcher", async () => {

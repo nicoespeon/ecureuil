@@ -37,5 +37,5 @@ Toutes les routes sont authentifiées par l'en-tête `authorizationHeader` (`Aut
 
 `Cursor` est une `NonEmptyString` opaque : le serveur la fabrique, le client la renvoie telle quelle au pull suivant.
 
-- **Rôle du lien** : `GET /lien` (`lienPath`), réponse `LienResponse` (`{ role }`) : le rôle du secret présenté.
+- **Rôle du lien** : `GET /lien` (`lienPath`), réponse `LienResponse` (`{ role, invite }`) : le rôle du secret présenté, et `invite` vaut `{ createdAt }` (epoch ms) quand l'invité a un lien, `null` sinon.
 - **Nouveau lien de l'invité** : `POST /lien/invite` (`inviteLienPath`), sans corps, réponse `NewLienResponse` (`{ secret }`). Réservé au propriétaire (`403` pour l'invité) ; l'ancien secret de l'invité cesse de marcher.

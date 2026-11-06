@@ -1,4 +1,5 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
+import type { LienResponse } from "@ecureuil/wire";
 import { useEffect, useId, useRef, useState } from "react";
 import { buttonClassName, inputClassName, secondaryButtonClassName } from "./Accueil";
 
@@ -9,10 +10,16 @@ type Creation =
   | { readonly step: "failed" };
 
 /**
- * Replaces Mariane's lien: her old one stops working at once, so it asks first, and shows the
- * new one only this time.
+ * Creates Mariane's lien and shows it only this time. Replacing one asks first: her old one
+ * stops working at once.
  */
-export function NouveauLienMariane({ newInviteLien }: { newInviteLien: () => Promise<string> }) {
+export function NouveauLienMariane({
+  invite,
+  newInviteLien,
+}: {
+  invite: LienResponse["invite"];
+  newInviteLien: () => Promise<string>;
+}) {
   const [creation, setCreation] = useState<Creation>({ step: "idle" });
 
   const create = () => {
@@ -25,32 +32,21 @@ export function NouveauLienMariane({ newInviteLien }: { newInviteLien: () => Pro
 
   return (
     <div className="flex flex-col gap-3">
-      <AlertDialog.Root>
-        <AlertDialog.Trigger
+      {invite === null ? (
+        <button
+          type="button"
           disabled={creation.step === "creating"}
+          onClick={create}
           className={secondaryButtonClassName}
         >
-          Nouveau lien pour Mariane
-        </AlertDialog.Trigger>
-        <AlertDialog.Portal>
-          <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
-          <AlertDialog.Popup className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl">
-            <AlertDialog.Title className="text-lg font-semibold">
-              Remplacer le lien de Mariane ?
-            </AlertDialog.Title>
-            <AlertDialog.Description className="text-neutral-800">
-              Son lien actuel cessera de marcher sur tous ses appareils. Il faudra lui donner le
-              nouveau.
-            </AlertDialog.Description>
-            <div className="flex justify-end gap-3">
-              <AlertDialog.Close className={secondaryButtonClassName}>Annuler</AlertDialog.Close>
-              <AlertDialog.Close onClick={create} className={buttonClassName}>
-                Remplacer le lien
-              </AlertDialog.Close>
-            </div>
-          </AlertDialog.Popup>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+          Créer le lien pour Mariane
+        </button>
+      ) : (
+        <>
+          <p>Un lien existe pour Mariane, créé le {createdOn(invite.createdAt)}</p>
+          <RemplacerLeLien disabled={creation.step === "creating"} onConfirm={create} />
+        </>
+      )}
       <p role="status" className="text-sm">
         {creation.step === "creating" ? "Création du lien…" : ""}
       </p>
@@ -64,17 +60,55 @@ export function NouveauLienMariane({ newInviteLien }: { newInviteLien: () => Pro
   );
 }
 
+function createdOn(at: number) {
+  const date = new Date(at);
+  const thisYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString("fr-CA", {
+    day: "numeric",
+    month: "short",
+    year: thisYear ? undefined : "numeric",
+  });
+}
+
+function RemplacerLeLien({ disabled, onConfirm }: { disabled: boolean; onConfirm: () => void }) {
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger disabled={disabled} className={secondaryButtonClassName}>
+        Nouveau lien pour Mariane
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
+        <AlertDialog.Popup className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl">
+          <AlertDialog.Title className="text-lg font-semibold">
+            Remplacer le lien de Mariane ?
+          </AlertDialog.Title>
+          <AlertDialog.Description className="text-neutral-800">
+            L'ancien cessera de marcher sur tous ses appareils.
+          </AlertDialog.Description>
+          <div className="flex justify-end gap-3">
+            <AlertDialog.Close className={secondaryButtonClassName}>Annuler</AlertDialog.Close>
+            <AlertDialog.Close onClick={onConfirm} className={buttonClassName}>
+              Remplacer le lien
+            </AlertDialog.Close>
+          </div>
+        </AlertDialog.Popup>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  );
+}
+
 function LienCree({ lien }: { lien: string }) {
   const [copy, setCopy] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
-  useEffect(() => inputRef.current?.select(), []);
+  // Focus, not only select: the button that created the lien may have just left the page.
+  useEffect(() => inputRef.current?.focus(), []);
 
   return (
     <div className="flex flex-col gap-2 rounded-md border border-neutral-300 p-3">
       <label htmlFor={inputId} className="font-medium">
-        Nouveau lien de Mariane
+        Lien de Mariane
       </label>
       <input
         ref={inputRef}
@@ -99,10 +133,7 @@ function LienCree({ lien }: { lien: string }) {
       <p role="status" className="text-sm">
         {copy}
       </p>
-      <p className="text-neutral-700">
-        L'ancien lien de Mariane ne marche plus. Rangez celui-ci dans votre 1Password partagé : il
-        ne s'affichera plus.
-      </p>
+      <p className="text-neutral-700">Gardez-le quelque part : il ne sera plus affiché.</p>
     </div>
   );
 }
