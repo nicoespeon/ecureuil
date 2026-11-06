@@ -8,8 +8,9 @@ import type { AccesStore } from "./acces/acces";
 import { CollerLeLien } from "./acces/CollerLeLien";
 import { AjoutRapide } from "./ajout/AjoutRapide";
 import { ConfigurationView } from "./config/ConfigurationView";
-import type { Writer } from "./config/configActions";
+import { createMagasin, type Writer } from "./config/configActions";
 import { useFicheItem } from "./config/FicheItem";
+import { NouveauMagasin } from "./config/NouveauMagasin";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { useFocusOnMount } from "./config/useFocusOnMount";
 import { InvitePanel } from "./invite/InvitePanel";
@@ -40,7 +41,20 @@ export function App({
   const writer = { journal, actor: role };
   const { magasinActif, liste } = foyer;
 
-  if (!magasinActif || !liste) return <SansMagasin acces={acces} />;
+  if (!magasinActif || !liste)
+    return (
+      <SansMagasin
+        acces={acces}
+        create={
+          role === "proprietaire"
+            ? (name) => {
+                foyer.selectMagasin(createMagasin(writer, name));
+                setScreen("configuration");
+              }
+            : undefined
+        }
+      />
+    );
   if (screen === "configuration")
     return (
       <ConfigurationView
@@ -246,7 +260,14 @@ function GearIcon() {
 }
 
 /** A new device, or one whose first sync has not brought a magasin yet. */
-function SansMagasin({ acces }: { acces: AccesStore }) {
+function SansMagasin({
+  acces,
+  create,
+}: {
+  acces: AccesStore;
+  /** Only the proprietaire configures the foyer. */
+  create: ((name: string) => void) | undefined;
+}) {
   const state = useSyncExternalStore(acces.subscribe, acces.get);
 
   return (
@@ -257,6 +278,15 @@ function SansMagasin({ acces }: { acces: AccesStore }) {
         synchronisation.
       </p>
       {state._tag === "SansLien" && <CollerLeLien openLien={acces.openLien} />}
+      {create && (
+        <NouveauMagasin
+          create={create}
+          trigger={{ className: creerClassName, label: "Créer un magasin" }}
+        />
+      )}
     </Accueil>
   );
 }
+
+const creerClassName =
+  "h-12 self-start rounded-md border border-neutral-400 px-4 text-base font-semibold text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";

@@ -192,6 +192,24 @@ describe("catalogue", () => {
 
     expect(state.items.milk?.rayonParMagasin).toEqual({});
   });
+
+  it("retire un magasin, et le rayon de ses items dans ce magasin seulement", () => {
+    const maxi = event({ type: "MagasinCreated", magasin: "maxi", payload: { name: "Maxi" } });
+    const removed = event({ type: "MagasinRemoved", magasin: "costco", payload: {} });
+
+    const state = fold([
+      costco,
+      maxi,
+      rayon("dairy", "Laitier"),
+      milk,
+      rayonSet("milk", "costco", inRayon("dairy")),
+      rayonSet("milk", "maxi", { _tag: "PasVenduIci" }),
+      removed,
+    ]);
+
+    expect(Object.keys(state.magasins)).toEqual(["maxi"]);
+    expect(state.items.milk?.rayonParMagasin).toEqual({ maxi: { _tag: "PasVenduIci" } });
+  });
 });
 
 const bread = event({ type: "ItemCreated", payload: { itemId: "bread", name: "Pain" } });

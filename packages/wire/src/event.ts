@@ -60,6 +60,7 @@ const name = Schema.NonEmptyString;
 export const Event = Schema.Union([
   magasinEvent("MagasinCreated", { name }),
   magasinEvent("MagasinRenamed", { name }),
+  magasinEvent("MagasinRemoved", {}),
   magasinEvent("RayonCreated", { rayonId: id, name }),
   magasinEvent("RayonRenamed", { rayonId: id, name }),
   magasinEvent("RayonsReordered", { rayonIds: Schema.Array(Schema.String) }),

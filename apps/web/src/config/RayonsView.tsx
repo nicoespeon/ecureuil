@@ -15,15 +15,22 @@ import {
 } from "@dnd-kit/sortable";
 import type { Magasin, State } from "@ecureuil/domain";
 import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
+import { ConfirmButton } from "./ConfirmButton";
 import { fieldClassName, submitClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
+import { NameInput } from "./NameInput";
 import { RayonRow } from "./RayonRow";
 import { screenReaderInstructions, useRayonAnnouncements } from "./rayonAnnouncements";
+import type { FocusRequest } from "./useFocusRequest";
 
 type Actions = Pick<
   ConfigActions,
-  "createRayon" | "renameRayon" | "reorderRayons" | "removeRayon"
-> & { readonly announce: (message: string) => void };
+  "renameMagasin" | "createRayon" | "renameRayon" | "reorderRayons" | "removeRayon"
+> & {
+  readonly removeMagasin: (magasin: Magasin) => void;
+  readonly focus: FocusRequest<"nom" | "onglet">;
+  readonly announce: (message: string) => void;
+};
 
 export function RayonsView({
   magasin,
@@ -52,6 +59,17 @@ export function RayonsView({
 
   return (
     <div ref={containerRef} className="p-4">
+      <NomDuMagasin
+        key={magasin.id}
+        magasin={magasin}
+        classifiedItemCount={classifiedItemCount(items, magasin.id)}
+        actions={{
+          rename: (name) => actions.renameMagasin(magasin.id, name),
+          remove: () => actions.removeMagasin(magasin),
+          announce: actions.announce,
+          takeFocus: () => actions.focus.take("nom"),
+        }}
+      />
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -119,6 +137,60 @@ function itemCountIn(
     const itemRayon = item.rayonParMagasin[magasinId];
     return itemRayon?._tag === "Rayon" && itemRayon.rayonId === rayonId;
   }).length;
+}
+
+function NomDuMagasin({
+  magasin,
+  classifiedItemCount,
+  actions,
+}: {
+  magasin: Magasin;
+  classifiedItemCount: number;
+  actions: {
+    rename: (name: string) => void;
+    remove: () => void;
+    announce: (message: string) => void;
+    takeFocus: () => boolean;
+  };
+}) {
+  const inputId = useId();
+  return (
+    <div className="mb-4 flex max-w-xl items-end gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+          Nom du magasin
+        </label>
+        <NameInput
+          id={inputId}
+          name={magasin.name}
+          rename={actions.rename}
+          takeFocusOnMount={actions.takeFocus}
+        />
+      </div>
+      <ConfirmButton
+        subject={magasin.name}
+        withLabel
+        warning={{
+          announce: actions.announce,
+          message: removalWarning(magasin, classifiedItemCount),
+        }}
+        onConfirm={actions.remove}
+      />
+    </div>
+  );
+}
+
+const plural = new Intl.PluralRules("fr");
+
+function removalWarning(magasin: Magasin, classifiedItemCount: number) {
+  const count = (n: number, noun: string) =>
+    plural.select(n) === "one" ? `${n} ${noun}` : `${n} ${noun}s`;
+  return `Supprimer ${magasin.name} ? Seront perdus : ${count(magasin.rayons.length, "rayon")} et le classement de ${count(classifiedItemCount, "item")}.`;
+}
+
+function classifiedItemCount(items: State["items"], magasinId: string) {
+  return Object.values(items).filter((item) => item.rayonParMagasin[magasinId]?._tag === "Rayon")
+    .length;
 }
 
 function NouveauRayon({ create }: { create: (name: string) => void }) {

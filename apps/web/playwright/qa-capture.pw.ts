@@ -54,6 +54,48 @@ test.describe("captures de la configuration à 375 px", () => {
   test("rayons, items et fiche", async ({ page }) => {
     await captureConfiguration(page, "375");
   });
+
+  test("nouveau magasin, puis plus aucun magasin", async ({ page }) => {
+    await openRayons(page);
+    await openNouveauMagasin(page);
+    await page.getByRole("textbox", { name: "Nom" }).fill("IGA");
+    await screenshot(page, "nouveau-magasin-fenetre-375", { fullPage: false });
+    await page.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByRole("tab", { name: "IGA" })).toHaveAttribute("aria-selected", "true");
+    await screenshot(page, "nouveau-magasin-375");
+
+    await page.getByRole("button", { name: "Supprimer IGA" }).click();
+    await screenshot(page, "supprimer-magasin-375", { fullPage: false });
+    await page.getByRole("button", { name: "Confirmer la suppression de IGA" }).click();
+    for (const name of ["Costco", "Maxi"]) await removeMagasin(page, name);
+    await expect(page.getByRole("button", { name: "Créer un magasin" })).toBeVisible();
+    await screenshot(page, "sans-magasin-375");
+  });
+});
+
+test.describe("vidéo des magasins à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : créer un magasin, le renommer, le supprimer", async ({ page }) => {
+    await openRayons(page);
+    await openNouveauMagasin(page);
+    await page.getByRole("textbox", { name: "Nom" }).pressSequentially("IGA", { delay: 200 });
+    await pause(page);
+    await page.keyboard.press("Enter");
+    const nom = page.getByRole("textbox", { name: "Nom du magasin" });
+    await expect(nom).toBeFocused();
+    await pause(page);
+    await nom.fill("");
+    await nom.pressSequentially("IGA Extra", { delay: 200 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab", { name: "IGA Extra" })).toBeVisible();
+    await pause(page);
+    await page.getByRole("button", { name: "Supprimer IGA Extra" }).click();
+    await pause(page);
+    await page.getByRole("button", { name: "Confirmer la suppression de IGA Extra" }).click();
+    await expect(page.getByRole("tab", { name: "IGA Extra" })).toBeHidden();
+    await saveVideo(page, "magasins");
+  });
 });
 
 test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
@@ -297,6 +339,17 @@ async function openRayons(page: Page) {
   await page.getByRole("button", { name: "Configuration" }).click();
   await expect(page.getByRole("list", { name: "Rayons" })).toBeVisible();
   await pause(page);
+}
+
+async function openNouveauMagasin(page: Page) {
+  await page.getByRole("button", { name: "Nouveau magasin" }).click();
+  await expect(page.getByRole("dialog", { name: "Nouveau magasin" })).toBeVisible();
+  await pause(page);
+}
+
+async function removeMagasin(page: Page, name: string) {
+  await page.getByRole("button", { name: `Supprimer ${name}` }).click();
+  await page.getByRole("button", { name: `Confirmer la suppression de ${name}` }).click();
 }
 
 /** From the handle of Hygiène to two rows below. */
