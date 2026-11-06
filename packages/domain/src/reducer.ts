@@ -96,6 +96,10 @@ const applyEvent = Match.type<Event>().pipe(
         : withMagasin(state, { id: event.magasin, name: event.payload.name, rayons: [] }),
     MagasinRenamed: (event) => (state: State) =>
       updateMagasin(state, event.magasin, (magasin) => ({ ...magasin, name: event.payload.name })),
+    MagasinRemoved: (event) => (state: State) => {
+      const { [event.magasin]: _removed, ...magasins } = state.magasins;
+      return updateItems({ ...state, magasins }, (item) => unsetRayon(item, event.magasin));
+    },
     RayonCreated: (event) => (state: State) =>
       updateMagasin(state, event.magasin, (magasin) =>
         magasin.rayons.some((rayon) => rayon.id === event.payload.rayonId)
