@@ -50,6 +50,35 @@ test.describe("captures de la configuration à 375 px", () => {
   test("rayons, items et fiche", async ({ page }) => {
     await captureConfiguration(page, "375");
   });
+
+  test("nouveau magasin", async ({ page }) => {
+    await openRayons(page);
+    await createIga(page);
+    await screenshot(page, "nouveau-magasin-375");
+  });
+});
+
+test.describe("vidéo de la création d'un magasin à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : créer un magasin, le renommer, le retrouver dans la liste", async ({ page }) => {
+    await openRayons(page);
+    await createIga(page);
+    const nom = page.getByRole("textbox", { name: "Nom du magasin" });
+    await nom.scrollIntoViewIfNeeded();
+    await pause(page);
+    await nom.fill("");
+    await nom.pressSequentially("IGA Extra", { delay: 200 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab", { name: "IGA Extra" })).toBeVisible();
+    await pause(page);
+    await page.getByRole("button", { name: "Liste" }).click();
+    await expect(page.getByRole("tab", { name: "IGA Extra" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await saveVideo(page, "nouveau-magasin");
+  });
 });
 
 test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
@@ -282,6 +311,16 @@ async function openRayons(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Configuration" }).click();
   await expect(page.getByRole("list", { name: "Rayons" })).toBeVisible();
+  await pause(page);
+}
+
+async function createIga(page: Page) {
+  const field = page.getByRole("textbox", { name: "Nouveau magasin" });
+  await field.scrollIntoViewIfNeeded();
+  await field.pressSequentially("IGA", { delay: 200 });
+  await pause(page);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("tab", { name: "IGA" })).toHaveAttribute("aria-selected", "true");
   await pause(page);
 }
 
