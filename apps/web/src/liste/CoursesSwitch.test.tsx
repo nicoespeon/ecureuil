@@ -2,6 +2,7 @@ import { cleanup, screen, within } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderApp } from "../config/renderApp";
+import { inMemoryJournal } from "../journal/journal";
 
 describe("préparer ou faire les courses", () => {
   it("s'ouvre en Préparer, l'interrupteur « Courses » éteint", () => {
@@ -122,6 +123,17 @@ describe("préparer ou faire les courses", () => {
     await user.click(screen.getByRole("button", { name: "Liste" }));
 
     expect(screen.getByRole("switch", { name: "Courses" })).toBeChecked();
+  });
+
+  it("passe en Courses sur un magasin créé depuis l'écran vide", async () => {
+    const { user } = renderApp({ journal: inMemoryJournal([]) });
+    await user.click(screen.getByRole("button", { name: "Créer un magasin" }));
+    await user.type(screen.getByRole("textbox", { name: "Nom" }), "IGA{Enter}");
+    await user.click(screen.getByRole("button", { name: "Liste" }));
+
+    await startCourses(user);
+
+    expect(screen.queryByRole("button", { name: "Ajouter" })).toBeNull();
   });
 
   it("l'invité n'a pas d'interrupteur", () => {
