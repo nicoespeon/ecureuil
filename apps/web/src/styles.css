@@ -3,3 +3,25 @@
 ::view-transition-group(*) {
   animation-duration: 180ms;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hop {
+    animation: hop 600ms ease-out;
+  }
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-18%) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  78% {
+    transform: translateY(-5%);
+  }
+}

@@ -9,6 +9,7 @@ import { httpTransport } from "./journal/httpTransport";
 import { inMemoryJournal, type Journal } from "./journal/journal";
 import { openLocalJournal } from "./journal/localJournal";
 import { startSync } from "./journal/startSync";
+import { Mascottes } from "./prototype/Mascottes";
 import "./styles.css";
 
 const root = document.getElementById("root");
@@ -31,9 +32,13 @@ const journal = await openLocalJournal("ecureuil", { seed: initial }).then(
 
 createRoot(root).render(
   <StrictMode>
-    <AccesGate acces={acces}>
-      {(role) => <App journal={journal} role={role} acces={acces} />}
-    </AccesGate>
+    {new URLSearchParams(location.search).has("mascotte") ? (
+      <Mascottes />
+    ) : (
+      <AccesGate acces={acces}>
+        {(role) => <App journal={journal} role={role} acces={acces} />}
+      </AccesGate>
+    )}
   </StrictMode>,
 );
 
