@@ -56,7 +56,7 @@ export function thisDevice() {
 }
 
 /** Storage can be blocked by the browser: nothing is remembered past this page load. */
-function readStored(key: string) {
+export function readStored(key: string) {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -64,7 +64,7 @@ function readStored(key: string) {
   }
 }
 
-function writeStored(key: string, value: string) {
+export function writeStored(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {

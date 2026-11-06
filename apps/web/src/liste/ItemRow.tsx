@@ -28,10 +28,11 @@ export function ToBuyRow({
     <Row
       item={item}
       checkbox={{ checked: false, onToggle: () => actions.check(item) }}
+      showsQuantity
       openFiche={actions.openFiche}
     />
   ) : (
-    <Row item={item} openFiche={actions.openFiche}>
+    <Row item={item} showsQuantity={false} openFiche={actions.openFiche}>
       <Stepper item={item} setQuantity={actions.setQuantity} />
       <RemoveButton item={item} actions={actions} />
     </Row>
@@ -50,19 +51,21 @@ export function PanierRow({
 }) {
   const checkbox =
     mode === "courses" ? { checked: true, onToggle: () => actions.uncheck(item) } : undefined;
-  return <Row item={item} checkbox={checkbox} openFiche={actions.openFiche} />;
+  return <Row item={item} checkbox={checkbox} showsQuantity openFiche={actions.openFiche} />;
 }
 
 function Row({
   item,
   checkbox,
+  showsQuantity,
   openFiche,
   children,
 }: {
   item: ListItem;
   checkbox?: { checked: boolean; onToggle: () => void } | undefined;
+  /** ×N next to the name, where no stepper already says it. */
+  showsQuantity: boolean;
   openFiche: (itemId: string) => void;
-  /** The controls that edit the item; a row without them reads its quantity as ×N. */
   children?: ReactNode;
 }) {
   return (
@@ -93,7 +96,7 @@ function Row({
         >
           {item.name}
         </button>
-        {children === undefined && item.quantity > 1 && (
+        {showsQuantity && item.quantity > 1 && (
           <span className="ml-1 shrink-0 text-neutral-700">×{item.quantity}</span>
         )}
       </span>

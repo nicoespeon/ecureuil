@@ -19,7 +19,7 @@ import { AValider } from "./liste/AValider";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
-import { useMode } from "./liste/useMode";
+import { type Mode, useMode } from "./liste/useMode";
 
 export function App({
   journal,
@@ -35,6 +35,8 @@ export function App({
   const [screen, setScreen] = useState<"liste" | "configuration" | "backFromConfiguration">(
     "liste",
   );
+  // Held above the screens: with storage blocked, a trip to the configuration keeps the mode.
+  const { mode, setMode } = useMode();
   const writer = { journal, actor: role };
   const { magasinActif, liste } = foyer;
 
@@ -53,6 +55,8 @@ export function App({
     <ListeScreen
       foyer={{ ...foyer, magasinActif, liste }}
       writer={writer}
+      mode={mode}
+      setMode={setMode}
       configuration={{
         focusOnMount: screen === "backFromConfiguration",
         open: () => setScreen("configuration"),
@@ -64,14 +68,17 @@ export function App({
 function ListeScreen({
   foyer,
   writer,
+  mode,
+  setMode,
   configuration,
 }: {
   foyer: FoyerWithListe;
   writer: Writer;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
-  const { mode, setMode } = useMode();
 
   return (
     <Tabs.Root
@@ -84,19 +91,19 @@ function ListeScreen({
         className="sticky top-0 z-20 flex h-14 items-center border-b border-neutral-300 bg-white px-2"
       >
         <h1 className="sr-only">Écureuil</h1>
-        <Tabs.List aria-label="Magasin" className="flex h-full gap-1">
+        <Tabs.List aria-label="Magasin" className="flex h-full min-w-0 gap-1 overflow-x-auto">
           {magasins.map((magasin) => (
             <Tabs.Tab
               key={magasin.id}
               value={magasin.id}
-              className="h-full border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
+              className="h-full shrink-0 whitespace-nowrap border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
             >
               {magasin.name}
             </Tabs.Tab>
           ))}
         </Tabs.List>
         {writer.actor === "proprietaire" && (
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <CoursesSwitch mode={mode} setMode={setMode} />
             <ConfigurationButton
               focusOnMount={configuration.focusOnMount}
@@ -108,7 +115,7 @@ function ListeScreen({
       {writer.actor === "invite" ? (
         <InvitePanel foyer={foyer} />
       ) : (
-        <MagasinPanel foyer={foyer} writer={writer} modes={{ mode, setMode }} />
+        <MagasinPanel foyer={foyer} writer={writer} mode={mode} setMode={setMode} />
       )}
     </Tabs.Root>
   );
@@ -117,11 +124,13 @@ function ListeScreen({
 function MagasinPanel({
   foyer,
   writer,
-  modes: { mode, setMode },
+  mode,
+  setMode,
 }: {
   foyer: FoyerWithListe;
   writer: Writer;
-  modes: ReturnType<typeof useMode>;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);

@@ -373,12 +373,11 @@ function sectionTitles() {
   return screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
 }
 
-/** Every item on the list, by the name that opens its sheet, sorted so a different grouping compares equal. */
+/** Every item to buy, by its trash in Préparer, sorted so a different grouping compares equal. */
 function itemNames() {
   return screen
-    .getAllByRole("listitem")
-    .map((row) => row.querySelector("[data-fiche-item-id]")?.textContent)
-    .filter((name) => name !== undefined)
+    .getAllByRole("button", { name: /^Retirer .+ de la liste$/ })
+    .map((trash) => trash.textContent?.replace(/^Retirer (.+) de la liste$/, "$1"))
     .sort();
 }
 

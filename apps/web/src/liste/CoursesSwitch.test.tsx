@@ -113,6 +113,17 @@ describe("préparer ou faire les courses", () => {
     expect(screen.getByRole("switch", { name: "Courses" })).toBeChecked();
   });
 
+  it("garde le mode Courses au retour de la configuration, même quand le stockage est bloqué", async () => {
+    vi.stubGlobal("localStorage", blockedStorage());
+    const { user } = renderApp();
+    await startCourses(user);
+
+    await user.click(screen.getByRole("button", { name: "Configuration" }));
+    await user.click(screen.getByRole("button", { name: "Liste" }));
+
+    expect(screen.getByRole("switch", { name: "Courses" })).toBeChecked();
+  });
+
   it("l'invité n'a pas d'interrupteur", () => {
     renderApp({ role: "invite" });
 
