@@ -43,11 +43,7 @@ export function RayonsView({
 }) {
   const { rayons } = magasin;
   const rayonIds = rayons.map((rayon) => rayon.id);
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
+  const sensors = useRayonSensors();
   const announcements = useRayonAnnouncements(rayons);
   const { containerRef, focusNeighborOf } = useFocusNeighborOfRemovedRayon(rayonIds);
   const moveBy = moveRayon({ magasinId: magasin.id, rayonIds, actions });
@@ -101,8 +97,19 @@ export function RayonsView({
           </ul>
         </SortableContext>
       </DndContext>
-      <NouveauRayon create={(name) => actions.createRayon(magasin.id, name)} />
+      <NouveauRayon
+        create={(name) => actions.createRayon(magasin.id, name)}
+        announce={actions.announce}
+      />
     </div>
+  );
+}
+
+/** The mouse or a finger drags, the keyboard moves with the arrows. */
+function useRayonSensors() {
+  return useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 }
 
@@ -220,13 +227,22 @@ function classifiedArticleCount(articles: State["articles"], magasinId: string) 
   ).length;
 }
 
-function NouveauRayon({ create }: { create: (name: string) => void }) {
+function NouveauRayon({
+  create,
+  announce,
+}: {
+  create: (name: string) => void;
+  announce: (message: string) => void;
+}) {
   const inputId = useId();
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const name = new FormData(form).get("name");
-    if (typeof name === "string" && name.trim() !== "") create(name.trim());
+    if (typeof name === "string" && name.trim() !== "") {
+      create(name.trim());
+      announce(`Rayon ${name.trim()} ajouté.`);
+    }
     form.reset();
   };
 

@@ -51,6 +51,16 @@ describe("la fiche d'un article", () => {
     expect(screen.queryByRole("button", { name: "Lait" })).not.toBeInTheDocument();
   });
 
+  it("supprimer Lait depuis sa fiche l'annonce une fois la fiche fermée", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Lait" }));
+
+    await user.click(fiche("Lait").getByRole("button", { name: "Supprimer Lait" }));
+    await user.click(fiche("Lait").getByRole("button", { name: /Confirmer/ }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Lait supprimé");
+  });
+
   it("la quantité se règle depuis la fiche", async () => {
     const { user } = renderApp();
     await user.click(screen.getByRole("button", { name: "Babybel" }));

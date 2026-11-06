@@ -121,6 +121,15 @@ describe("sans magasin", () => {
     expect(screen.getByRole("tab", { name: "IGA" })).toHaveAttribute("aria-selected", "true");
   });
 
+  it("après le dernier magasin supprimé, le focus va au titre de l'écran vide", async () => {
+    const { user } = await openConfiguration();
+    await confirmRemoval(user, "Costco");
+
+    await confirmRemoval(user, "Maxi");
+
+    expect(screen.getByRole("heading", { level: 1, name: "Écureuil" })).toHaveFocus();
+  });
+
   it("l'invité ne peut pas créer de magasin", () => {
     renderApp({ role: "invite", journal: inMemoryJournal([]) });
 

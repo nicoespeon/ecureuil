@@ -109,6 +109,16 @@ describe("les rayons d'un magasin", () => {
 
 type User = ReturnType<typeof userEvent.setup>;
 
+describe("ajouter un rayon", () => {
+  it("annonce le rayon ajouté", async () => {
+    const { user } = await openRayons();
+
+    await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Boissons{Enter}");
+
+    expect(screen.getByText("Rayon Boissons ajouté.")).toHaveRole("status");
+  });
+});
+
 describe("déplacer un rayon sans glisser", () => {
   it("« Descendre Hygiène » la met après Épicerie", async () => {
     const { user } = await openRayons();

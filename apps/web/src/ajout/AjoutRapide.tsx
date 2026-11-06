@@ -1,11 +1,13 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Article, Magasin } from "@ecureuil/domain";
-import { type ReactNode, type RefObject, useId, useRef, useState } from "react";
+import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from "react";
 import type { Writer } from "../config/configActions";
 import { useFicheArticle } from "../config/FicheArticle";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
 import { frequentArticles, searchArticles } from "./suggestions";
+
+const TYPING_PAUSE_MS = 500;
 
 type AjoutFoyer = Pick<Foyer, "state" | "magasins" | "markToBuy" | "createArticle"> & {
   readonly magasinActif: Magasin;
@@ -14,10 +16,12 @@ type AjoutFoyer = Pick<Foyer, "state" | "magasins" | "markToBuy" | "createArticl
 /** Adds an article to the list in a few keystrokes: a frequent one, a found one, or a new one. */
 export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writer }) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const announcer = useAnnouncer();
   // A new article needs its rayons: its sheet opens over the panel, then hands the field back.
   const { openFiche, fiche } = useFicheArticle({
     foyer,
     writer,
+    announce: announcer.announce,
     focusAfterRemove: searchRef,
     focusAfterClose: searchRef,
   });
@@ -38,7 +42,12 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
           initialFocus={searchRef}
           className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-lg sm:shadow-xl"
         >
-          <AjoutPanel foyer={foyer} searchRef={searchRef} openFiche={openFiche} />
+          <AjoutPanel
+            foyer={foyer}
+            searchRef={searchRef}
+            openFiche={openFiche}
+            announcer={announcer}
+          />
           {fiche}
         </Dialog.Popup>
       </Dialog.Portal>
@@ -50,12 +59,14 @@ function AjoutPanel({
   foyer,
   searchRef,
   openFiche,
+  announcer,
 }: {
   foyer: AjoutFoyer;
   searchRef: RefObject<HTMLInputElement | null>;
   openFiche: (articleId: string) => void;
+  announcer: ReturnType<typeof useAnnouncer>;
 }) {
-  const ajout = useAjout(foyer, { searchRef, openFiche });
+  const ajout = useAjout(foyer, { searchRef, openFiche, announce: announcer.announce });
   const magasin = foyer.magasinActif;
 
   return (
@@ -93,7 +104,7 @@ function AjoutPanel({
         <Results {...ajout.result} magasin={magasin} add={ajout.add} create={ajout.create} />
       )}
       <p role="status" className="sr-only">
-        {ajout.announcement}
+        {announcer.announcement}
       </p>
     </>
   );
@@ -105,14 +116,21 @@ function useAjout(
   {
     searchRef,
     openFiche,
-  }: { searchRef: RefObject<HTMLInputElement | null>; openFiche: (articleId: string) => void },
+    announce,
+  }: {
+    searchRef: RefObject<HTMLInputElement | null>;
+    openFiche: (articleId: string) => void;
+    announce: (message: string) => void;
+  },
 ) {
   const [query, setQuery] = useState("");
-  const { announcement, announce } = useAnnouncer();
   const result = searchArticles(foyer.state, query);
+  const countAnnouncement = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(countAnnouncement.current), []);
 
   // The tapped row disappears: the focus goes back to the field, ready for the next article.
   const added = (name: string) => {
+    clearTimeout(countAnnouncement.current);
     setQuery("");
     announce(`Sur la liste : ${name}`);
     searchRef.current?.focus();
@@ -130,13 +148,17 @@ function useAjout(
   return {
     query,
     result,
-    announcement,
     add,
     create,
     search: (next: string) => {
       setQuery(next);
+      clearTimeout(countAnnouncement.current);
+      // Spoken once typing pauses: a count per keystroke would talk over the keyboard's echo.
       if (next.trim() !== "")
-        announce(articlesFound(searchArticles(foyer.state, next).articles.length));
+        countAnnouncement.current = setTimeout(
+          () => announce(articlesFound(searchArticles(foyer.state, next).articles.length)),
+          TYPING_PAUSE_MS,
+        );
     },
     // The exact name wins: Enter on « lait » never adds Laitue when Lait is already on the list.
     addOnEnter: () => {

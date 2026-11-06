@@ -240,6 +240,17 @@ describe("retirer de la liste", () => {
     expect(screen.getByRole("button", { name: "Retirer Croissants de la liste" })).toHaveFocus();
   });
 
+  it("rend le focus à la liste quand le dernier article à acheter en est retiré", async () => {
+    const { user } = renderApp();
+
+    for (const trash of screen.getAllByRole("button", { name: /^Retirer .* de la liste$/ })) {
+      await user.click(trash);
+      await user.click(trash);
+    }
+
+    expect(screen.getByRole("tabpanel", { name: "Costco" })).toHaveFocus();
+  });
+
   it("la confirmation tient le temps qu'un lecteur d'écran lise l'avertissement", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { user } = renderApp();
@@ -308,6 +319,16 @@ describe("terminer les courses", () => {
     await finishSortie(user);
 
     expect(screen.queryByRole("region", { name: "Dans le panier" })).toBeNull();
+  });
+
+  it("annonce la fin des courses", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
+    await checkLaitAndBabybel(user);
+
+    await finishSortie(user);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Courses terminées");
   });
 
   it("laisse les autres articles à acheter", async () => {

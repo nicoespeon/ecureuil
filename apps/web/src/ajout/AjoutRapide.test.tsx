@@ -161,7 +161,15 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), query);
 
-    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(announcement);
+    expect(await within(screen.getByRole("dialog")).findByText(announcement)).toHaveRole("status");
+  });
+
+  it("ne compte les résultats qu'une fois la frappe posée, pour ne pas couvrir l'écho du clavier", async () => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), "lai");
+
+    expect(within(screen.getByRole("dialog")).getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("n'est pas proposé à l'invité : son « Ajouter » envoie une demande", async () => {
