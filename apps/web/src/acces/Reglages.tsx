@@ -13,10 +13,10 @@ export function Reglages({ acces }: { acces: AccesStore }) {
 
   return (
     <div className="flex flex-col gap-8 px-4 py-6">
-      <h2 className="text-2xl font-semibold">Réglages</h2>
+      <h2 className="text-2xl font-black">Réglages</h2>
       <NomAppareil />
       <section aria-labelledby={accesId} className="flex flex-col gap-3">
-        <h3 id={accesId} className="text-lg font-semibold">
+        <h3 id={accesId} className="text-xl font-black">
           Accès
         </h3>
         {state._tag === "SansLien" && (
