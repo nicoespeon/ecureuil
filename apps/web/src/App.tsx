@@ -19,7 +19,7 @@ import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
-import { tintClassName, tintForMagasin } from "./liste/magasinTint";
+import { tintClassName, tintForTab } from "./liste/magasinTint";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
 import { useHistoryScreen } from "./useHistoryScreen";
@@ -94,7 +94,7 @@ function ListeScreen({
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
-  const tint = tintForMagasin(magasinActif.id);
+  const tint = tintForTab(magasins.findIndex((magasin) => magasin.id === magasinActif.id));
   const tintClasses = tintClassName(tint);
 
   return (
