@@ -52,10 +52,21 @@ body {
   box-shadow: var(--shadow-well);
 }
 
+/*
+ * A section heading that stays under the header. Its solid background hides the rows scrolling
+ * under it, and would also hide the shadow of whatever lies just above: the margin, outside the
+ * background, leaves that shadow its room. One rule for every pebble, banner or card above it.
+ */
+@utility sticky-heading {
+  position: sticky;
+  top: 4rem;
+  z-index: 10;
+  margin-top: calc(var(--relief) + 2px);
+  background-color: var(--color-neutral-100);
+}
+
 /* A rayon's articles on one pebble. */
 @utility pebble-list {
-  /* Room for the shadow: the next sticky heading would paint over it. */
-  margin-bottom: calc(var(--relief) + 2px);
   border-radius: var(--radius-pebble);
   background-color: white;
   box-shadow: var(--shadow-raised);
