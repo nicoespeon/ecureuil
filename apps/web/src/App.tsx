@@ -18,6 +18,7 @@ import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
 import { CelebrationBanner } from "./liste/CelebrationBanner";
+import { Compteur } from "./liste/Compteur";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { putAwayText } from "./liste/celebration";
 import { ListeView } from "./liste/ListeView";
@@ -239,6 +240,7 @@ function MagasinPanel({
         />
       </Tabs.Panel>
       <BottomBar>
+        <Compteur liste={liste} mode={mode} />
         {mode === "preparer" && <AjoutRapide foyer={foyer} writer={writer} />}
         <TerminerLesCourses
           liste={liste}
