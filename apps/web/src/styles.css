@@ -1,8 +1,142 @@
 @import "tailwindcss";
+@import "@fontsource-variable/nunito/wght.css";
+
+/*
+ * Plasticine, like the squirrel: a cream table, lumps of clay with a matte offset shadow, a
+ * rounded type. The neutral scale is warmed so every grey of the app turns to its browns.
+ */
+@theme {
+  --font-sans: "Nunito Variable", ui-rounded, system-ui, sans-serif;
+
+  --color-neutral-50: oklch(98.6% 0.01 80);
+  --color-neutral-100: oklch(96.6% 0.022 78);
+  --color-neutral-200: oklch(92.6% 0.032 75);
+  --color-neutral-300: oklch(87% 0.038 70);
+  --color-neutral-400: oklch(70% 0.05 62);
+  --color-neutral-500: oklch(58% 0.055 58);
+  --color-neutral-600: oklch(49% 0.06 55);
+  --color-neutral-700: oklch(42% 0.06 52);
+  --color-neutral-800: oklch(34% 0.055 50);
+  --color-neutral-900: oklch(28% 0.05 48);
+  --color-neutral-950: oklch(24% 0.045 46);
+
+  /* The squirrel's russet: the one action of a screen. */
+  --color-roux: oklch(54% 0.15 45);
+  --color-roux-800: oklch(42% 0.12 42);
+
+  --radius-pebble: 1.5rem;
+}
+
+:root {
+  --relief: 3px;
+  --clay-edge: oklch(45% 0.06 50 / 0.18);
+  --shadow-raised:
+    0 var(--relief) 0 var(--clay-edge), inset 0 -2px 0 oklch(45% 0.06 50 / 0.06),
+    inset 0 2px 0 oklch(100% 0 0 / 0.7);
+  --shadow-well: inset 0 2px 3px oklch(45% 0.06 50 / 0.22);
+}
+
+body {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-950);
+}
+
+/* A lump of clay on the table. */
+@utility clay {
+  background-color: white;
+  box-shadow: var(--shadow-raised);
+}
+
+/* Pressed into the clay: a field, a stepper. */
+@utility clay-well {
+  box-shadow: var(--shadow-well);
+}
+
+/* A rayon's articles on one pebble. */
+@utility pebble-list {
+  margin-inline: 0.75rem;
+  /* Room for the shadow: the next sticky heading would paint over it. */
+  margin-bottom: calc(var(--relief) + 2px);
+  overflow: hidden;
+  border-radius: var(--radius-pebble);
+  background-color: white;
+  box-shadow: var(--shadow-raised);
+}
+
+/* The one action of the screen: it sinks under the finger. */
+@utility button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: 9999px;
+  background-color: var(--color-roux);
+  color: white;
+  font-weight: 800;
+  box-shadow:
+    0 calc(var(--relief) + 1px) 0 var(--color-roux-800),
+    inset 0 2px 0 oklch(100% 0 0 / 0.25);
+
+  &:active {
+    box-shadow: 0 1px 0 var(--color-roux-800);
+    translate: 0 var(--relief);
+  }
+}
+
+@utility button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: 9999px;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-950);
+  font-weight: 700;
+  box-shadow: var(--shadow-raised);
+
+  &:active {
+    box-shadow: 0 1px 0 var(--clay-edge);
+    translate: 0 calc(var(--relief) - 1px);
+  }
+}
+
+/* The box of the courses: a hollow to fill, then a green pellet with its tick. */
+@utility clay-checkbox {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-neutral-200);
+  box-shadow: var(--shadow-well);
+  cursor: pointer;
+
+  &:checked {
+    background-color: var(--color-emerald-700);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 17 19 7'/%3E%3C/svg%3E");
+    background-size: 1.5rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow:
+      0 var(--relief) 0 var(--color-emerald-900),
+      inset 0 2px 0 oklch(100% 0 0 / 0.3);
+  }
+}
+
+/* Nothing slides for who asks for less motion: the shadow alone says the press. */
+@media (prefers-reduced-motion: reduce) {
+  .button-primary:active,
+  .button-secondary:active {
+    translate: none;
+  }
+}
 
 /* Whatever gets the keyboard focus scrolls clear of the sticky header and rayon heading, and of the bottom bar. */
 html {
-  scroll-padding-top: 6rem;
+  scroll-padding-top: 7rem;
   scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 

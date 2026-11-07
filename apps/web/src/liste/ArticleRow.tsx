@@ -91,7 +91,7 @@ function Row({
   const quantityShown = showsQuantity && article.quantity > 1;
   return (
     <li
-      className={`flex min-h-14 items-center border-b border-neutral-200 pr-2 ${checkbox ? "gap-2" : "gap-1 pl-4"} ${highlighted ? "arrive" : ""}`}
+      className={`flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 ${checkbox ? "gap-1" : "gap-1 pl-4"} ${highlighted ? "arrive" : ""}`}
       style={{ viewTransitionName: moveTransitionName(article.id) }}
       onAnimationEnd={(event) => {
         if (event.animationName === "arrive") setHighlighted(false);
@@ -108,7 +108,7 @@ function Row({
             data-article-id={article.id}
             checked={checkbox.checked}
             onChange={() => animateMove(checkbox.onToggle)}
-            className={`size-7 cursor-pointer accent-neutral-900 ${popping ? "pop" : ""}`}
+            className={`clay-checkbox focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${popping ? "pop" : ""}`}
           />
         </label>
       )}
@@ -118,12 +118,15 @@ function Row({
           aria-haspopup="dialog"
           data-fiche-article-id={article.id}
           onClick={() => openFiche(article.id)}
-          className="flex min-h-11 min-w-11 items-center rounded-md text-left focus-visible:outline-2 focus-visible:outline-blue-700"
+          className="flex min-h-11 min-w-11 items-center rounded-md text-left text-[1.0625rem] font-bold focus-visible:outline-2 focus-visible:outline-blue-700"
         >
           <span className="truncate">{article.name}</span>
           {/* Inside the button, out of its name: the quantity widens a short name's target. */}
           {quantityShown && (
-            <span aria-hidden="true" className="ml-1 shrink-0 text-neutral-700">
+            <span
+              aria-hidden="true"
+              className="ml-2 shrink-0 rounded-full bg-neutral-200 px-2 text-sm font-extrabold text-neutral-900"
+            >
               ×{article.quantity}
             </span>
           )}
@@ -140,7 +143,7 @@ function Row({
 }
 
 const iconButtonClassName =
-  "grid size-11 shrink-0 place-items-center rounded-md text-lg text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:text-neutral-400 disabled:hover:bg-transparent";
+  "grid size-11 shrink-0 place-items-center rounded-full text-lg font-bold text-neutral-900 hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:text-neutral-400 disabled:hover:bg-transparent";
 
 export function Stepper({
   article,
@@ -154,7 +157,10 @@ export function Stepper({
     actions.announce(`${article.name} : ${quantity}`);
   };
   return (
-    <fieldset aria-label={`Quantité de ${article.name}`} className="flex shrink-0 items-center">
+    <fieldset
+      aria-label={`Quantité de ${article.name}`}
+      className="clay-well flex shrink-0 items-center rounded-full bg-neutral-100"
+    >
       <button
         type="button"
         aria-label={`Diminuer la quantité de ${article.name}`}
@@ -164,7 +170,7 @@ export function Stepper({
       >
         −
       </button>
-      <span className="w-5 text-center tabular-nums">{article.quantity}</span>
+      <span className="w-5 text-center font-extrabold tabular-nums">{article.quantity}</span>
       <button
         type="button"
         aria-label={`Augmenter la quantité de ${article.name}`}
@@ -196,7 +202,7 @@ function RemoveButton({ article, actions }: { article: ListArticle; actions: ToB
       }}
       className={
         confirming
-          ? "h-11 shrink-0 rounded-md bg-red-700 px-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          ? "h-11 shrink-0 rounded-full bg-red-700 px-3 text-sm font-extrabold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
           : iconButtonClassName
       }
     >

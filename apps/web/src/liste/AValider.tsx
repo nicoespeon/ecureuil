@@ -35,25 +35,25 @@ export function AValider({
 
   return (
     <ListeSection id="a-valider" title={`À valider (${demandes.length})`}>
-      <ul ref={listRef}>
+      <ul ref={listRef} className="pebble-list">
         {demandes.map((demande) => (
           <li
             key={demande.id}
-            className="flex min-h-14 items-center gap-2 border-b border-neutral-200 pr-2 pl-4"
+            className="flex min-h-16 items-center gap-2 border-b-2 border-neutral-100 pr-2 pl-4 last:border-b-0"
           >
-            <span className="min-w-0 flex-1 truncate">{demande.name}</span>
+            <span className="min-w-0 flex-1 truncate font-bold">{demande.name}</span>
             <button
               type="button"
               data-demande-id={demande.id}
               onClick={() => accept(demande)}
-              className={`${buttonClassName} bg-neutral-900 text-white`}
+              className={`${buttonClassName} button-primary`}
             >
               Accepter<span className="sr-only"> {demande.name}</span>
             </button>
             <button
               type="button"
               onClick={() => refuse(demande)}
-              className={`${buttonClassName} border border-neutral-400 text-neutral-900 hover:bg-neutral-100`}
+              className={`${buttonClassName} button-secondary`}
             >
               Refuser<span className="sr-only"> {demande.name}</span>
             </button>
@@ -65,4 +65,4 @@ export function AValider({
 }
 
 const buttonClassName =
-  "h-11 shrink-0 rounded-md px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "shrink-0 px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
