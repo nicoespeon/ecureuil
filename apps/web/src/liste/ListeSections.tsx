@@ -84,13 +84,13 @@ function sectionTitle(section: Section) {
 }
 
 const headingClassName =
-  "sticky top-16 z-10 bg-neutral-100 px-5 pt-4 pb-2 text-sm font-black tracking-wide text-neutral-700 uppercase";
+  "sticky-heading px-5 pt-3 pb-2 text-sm font-black tracking-wide text-neutral-700 uppercase";
 
 /** Rows carry the tint too: a row moving in or out keeps it in its view transition. */
 const panierClassName = "[&_li]:border-emerald-100 [&_li]:bg-emerald-50 [&_ul]:bg-emerald-50";
 
 const panierHeadingClassName =
-  "sticky top-16 z-10 bg-neutral-100 px-5 pt-4 pb-2 text-sm font-black tracking-wide text-emerald-800 uppercase";
+  "sticky-heading px-5 pt-3 pb-2 text-sm font-black tracking-wide text-emerald-800 uppercase";
 
 function PasVenduIci({
   magasinName,
