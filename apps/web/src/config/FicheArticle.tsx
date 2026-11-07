@@ -4,6 +4,7 @@ import { type RefObject, useId, useRef, useState } from "react";
 import { Stepper } from "../liste/ArticleRow";
 import { ConfirmButton } from "./ConfirmButton";
 import { type ConfigActions, configActions, type Writer } from "./configActions";
+import { LiveRegion } from "./LiveRegion";
 import { NameInput } from "./NameInput";
 import { RayonSelect } from "./RayonSelect";
 import { useAnnouncer } from "./useAnnouncer";
@@ -154,9 +155,7 @@ function FicheContent({
           />
         </div>
       </div>
-      <p role="status" className="sr-only">
-        {announcement}
-      </p>
+      <LiveRegion>{announcement}</LiveRegion>
     </>
   );
 }

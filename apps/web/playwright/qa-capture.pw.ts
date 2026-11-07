@@ -1,13 +1,11 @@
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { Actor, LienResponse } from "@ecureuil/wire";
-import { devices, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { outDir, pause, saveVideo, screenshot } from "./qaCapture";
 
 const narrowPhone = { width: 375, height: 812 };
 const desktop = { viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false };
-
-/** `QA_OUT=before` on `main`, the default `after` on the branch: two folders to compare. */
-const outDir = join(import.meta.dirname, "../../../qa-output", process.env.QA_OUT || "after");
 
 // A failed run must not leave an older capture to be attached as this one.
 test.beforeAll(() => rm(outDir, { recursive: true, force: true }));
@@ -70,6 +68,29 @@ test.describe("captures de la configuration à 375 px", () => {
     for (const name of ["Costco", "Maxi"]) await removeMagasin(page, name);
     await expect(page.getByRole("button", { name: "Créer un magasin" })).toBeVisible();
     await screenshot(page, "sans-magasin-375");
+  });
+});
+
+test.describe("créer un article depuis la configuration à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : chercher, créer, classer l'article", async ({ page }) => {
+    await openRayons(page);
+    await page.getByRole("tab", { name: "Articles" }).click();
+    const search = page.getByRole("searchbox", { name: "Rechercher ou créer un article" });
+    await search.pressSequentially("Lai", { delay: 200 });
+    await expect(page.getByRole("button", { name: "Créer « Lai »" })).toBeVisible();
+    await screenshot(page, "articles-creer-375", { fullPage: false });
+    await search.pressSequentially("tue", { delay: 200 });
+    await page.getByRole("button", { name: "Créer « Laitue »" }).click();
+    const fiche = page.getByRole("dialog", { name: "Laitue" });
+    await expect(fiche).toBeVisible();
+    await screenshot(page, "articles-creer-fiche-375", { fullPage: false });
+    await fiche.getByRole("combobox", { name: "Rayon chez Costco" }).selectOption({ index: 1 });
+    await pause(page);
+    await fiche.getByRole("button", { name: "Fermer" }).click();
+    await expect(page.getByRole("button", { name: "Laitue", exact: true })).toBeFocused();
+    await saveVideo(page, "articles-creer");
   });
 });
 
@@ -425,13 +446,6 @@ async function expectHygieneMovedDown(page: Page) {
   expect((await names).slice(0, 4)).toEqual(["Vêtements", "Épicerie", "Collations", "Hygiène"]);
 }
 
-async function saveVideo(page: Page, name: string) {
-  await pause(page);
-  // The video is only written once the page closes.
-  await page.close();
-  await page.video()?.saveAs(join(outDir, `${name}.webm`));
-}
-
 function searchbox(page: Page) {
   return page.getByRole("searchbox", { name: "Article à ajouter" });
 }
@@ -449,25 +463,6 @@ async function checkLaitAndBabybel(page: Page) {
     await panier.scrollIntoViewIfNeeded();
     await pause(page);
   }
-}
-
-/**
- * A full-page shot grows the viewport to the page instead of stitching it: the fixed footer then
- * sits below the list, not over it.
- */
-async function screenshot(page: Page, name: string, { fullPage = true } = {}) {
-  const viewport = page.viewportSize() ?? devices["Pixel 7"].viewport;
-  if (fullPage) {
-    const height = await page.evaluate(() => document.documentElement.scrollHeight);
-    await page.setViewportSize({ ...viewport, height: Math.max(height, viewport.height) });
-  }
-  await page.screenshot({ path: join(outDir, `${name}.png`), animations: "disabled" });
-  await page.setViewportSize(viewport);
-}
-
-/** Leaves the viewer of the video time to see each step. Stills wait on the UI state, not on it. */
-function pause(page: Page) {
-  return page.waitForTimeout(800);
 }
 
 /** Checked by name, then scrolled back up: each check moves its row to the panier. */

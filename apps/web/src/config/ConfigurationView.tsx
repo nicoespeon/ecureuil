@@ -6,9 +6,9 @@ import { Reglages } from "../acces/Reglages";
 import { ArticlesView } from "./ArticlesView";
 import { configActions, createMagasin, type Writer } from "./configActions";
 import { type FicheFoyer, useFicheArticle } from "./FicheArticle";
+import { LiveRegion } from "./LiveRegion";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
-
 import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
 import { useFocusRequest } from "./useFocusRequest";
@@ -103,9 +103,7 @@ export function ConfigurationView({
         </Tabs.Panel>
       </Tabs.Root>
       {fiche}
-      <p role="status" className="sr-only">
-        {announcement}
-      </p>
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

@@ -29,12 +29,12 @@ export function frequentArticles(state: State, magasinId: string) {
  * The catalogue articles whose name contains the query, ignoring accents and case, those starting
  * with it first. `nameToCreate` is the query when no article bears that exact name.
  */
-export function searchArticles(state: State, query: string) {
+export function searchArticles({ articles }: Pick<State, "articles">, query: string) {
   const name = query.trim();
   const needle = searchable(name);
   if (needle === "") return { articles: [], exactMatch: undefined, nameToCreate: null };
 
-  const found = Object.values(state.articles)
+  const found = Object.values(articles)
     .map((article) => ({ article, key: searchable(article.name) }))
     .filter(({ key }) => key.includes(needle))
     .sort(

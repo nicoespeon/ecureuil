@@ -1,10 +1,12 @@
 import { Dialog } from "@base-ui/react/dialog";
 import type { Article, Magasin } from "@ecureuil/domain";
-import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from "react";
+import { type RefObject, useEffect, useId, useRef, useState } from "react";
 import type { Writer } from "../config/configActions";
 import { useFicheArticle } from "../config/FicheArticle";
+import { LiveRegion } from "../config/LiveRegion";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
+import { AddButton, CreateArticleButton, rowLayoutClassName } from "./AddButton";
 import { frequentArticles, searchArticles } from "./suggestions";
 
 const TYPING_PAUSE_MS = 500;
@@ -102,9 +104,7 @@ function AjoutPanel({
       ) : (
         <Results {...ajout.result} magasin={magasin} add={ajout.add} create={ajout.create} />
       )}
-      <p role="status" className="sr-only">
-        {announcer.announcement}
-      </p>
+      <LiveRegion>{announcer.announcement}</LiveRegion>
     </>
   );
 }
@@ -196,9 +196,7 @@ function Results({
       ))}
       {nameToCreate !== null && (
         <li>
-          <AddButton onClick={() => create(nameToCreate)}>
-            <span className="min-w-0 flex-1 truncate">Créer « {nameToCreate} »</span>
-          </AddButton>
+          <CreateArticleButton name={nameToCreate} create={() => create(nameToCreate)} />
         </li>
       )}
     </ul>
@@ -270,24 +268,6 @@ function ArticleOption({
   );
 }
 
-function AddButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${rowLayoutClassName} font-bold hover:bg-neutral-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`}
-    >
-      {children}
-      <span
-        aria-hidden="true"
-        className="grid size-9 shrink-0 place-items-center rounded-full bg-roux text-xl leading-none font-black text-white"
-      >
-        +
-      </span>
-    </button>
-  );
-}
-
 const plural = new Intl.PluralRules("fr");
 
 function articlesFound(count: number) {
@@ -297,6 +277,3 @@ function articlesFound(count: number) {
 
 const closeClassName =
   "button-secondary shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
-
-const rowLayoutClassName =
-  "flex min-h-14 w-full items-center gap-3 border-b-2 border-neutral-100 px-4 text-left text-base in-[li:last-child]:border-b-0 rounded-[inherit]";

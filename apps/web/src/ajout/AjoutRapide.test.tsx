@@ -102,6 +102,16 @@ describe("l'ajout rapide", () => {
     ).toBeChecked();
   });
 
+  it("annonce l'article créé, même sa fiche ouverte", async () => {
+    const { user } = await openAjout();
+
+    await user.type(searchbox(), "Laitue{Enter}");
+
+    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
+      "Sur la liste : Laitue",
+    );
+  });
+
   it("fermer la fiche de l'article créé ramène au champ, vide, avec le focus", async () => {
     const { user } = await openAjout();
     await user.type(searchbox(), "Laitue{Enter}");
