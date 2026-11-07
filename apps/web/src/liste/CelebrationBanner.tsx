@@ -18,7 +18,7 @@ export function CelebrationBanner({
   const { title, detail, pose, dismissable } = celebration;
   return (
     <div
-      className={`clay mx-3 mt-4 flex items-center gap-3 rounded-lg p-3 ${pose === "hop" ? "bg-emerald-50 text-emerald-900" : "bg-white text-neutral-800"}`}
+      className={`clay mx-3 mt-4 flex items-center gap-3 rounded-pebble p-3 ${pose === "hop" ? "bg-emerald-50 text-emerald-900" : "bg-white text-neutral-800"}`}
     >
       {/* Keyed on the title: a new moment hops again, a re-render does not. */}
       <span key={title} className={`shrink-0 ${pose === "hop" ? "hop" : ""}`}>

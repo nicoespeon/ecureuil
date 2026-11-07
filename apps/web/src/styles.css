@@ -124,6 +124,11 @@ body {
       0 var(--relief) 0 var(--color-emerald-900),
       inset 0 2px 0 oklch(100% 0 0 / 0.3);
   }
+
+  /* Forced colours drop backgrounds, and the tick with them: the native box comes back. */
+  @media (forced-colors: active) {
+    appearance: auto;
+  }
 }
 
 /* Nothing slides for who asks for less motion: the shadow alone says the press. */

@@ -32,7 +32,7 @@ export function TerminerLesCourses({
         <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
         <AlertDialog.Popup
           finalFocus={() => (inPanier === 0 ? focusAfterFinish.current : true)}
-          className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-(--radius-pebble) bg-neutral-50 p-6 text-neutral-950 shadow-xl"
+          className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-pebble bg-neutral-50 p-6 text-neutral-950 shadow-xl"
         >
           <AlertDialog.Title className="text-xl font-black">
             Terminer les courses ?

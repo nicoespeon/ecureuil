@@ -91,7 +91,7 @@ function Row({
   const quantityShown = showsQuantity && article.quantity > 1;
   return (
     <li
-      className={`flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 ${checkbox ? "gap-1" : "gap-1 pl-4"} ${highlighted ? "arrive" : ""}`}
+      className={`flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 gap-1 ${checkbox ? "" : "pl-4"} ${highlighted ? "arrive" : ""}`}
       style={{ viewTransitionName: moveTransitionName(article.id) }}
       onAnimationEnd={(event) => {
         if (event.animationName === "arrive") setHighlighted(false);
