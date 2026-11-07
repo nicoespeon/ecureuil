@@ -39,7 +39,7 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
         <Dialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
         <Dialog.Popup
           initialFocus={searchRef}
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-neutral-100 text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-pebble sm:pb-4 sm:shadow-xl"
+          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-neutral-100 pb-4 text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-pebble sm:shadow-xl"
         >
           <AjoutPanel
             foyer={foyer}
