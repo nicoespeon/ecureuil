@@ -36,10 +36,10 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
         Ajouter
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
+        <Dialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
         <Dialog.Popup
           initialFocus={searchRef}
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-lg sm:shadow-xl"
+          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-neutral-100 text-neutral-950 sm:inset-auto sm:top-8 sm:left-1/2 sm:max-h-[calc(100dvh-4rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:rounded-pebble sm:pb-4 sm:shadow-xl"
         >
           <AjoutPanel
             foyer={foyer}
@@ -70,12 +70,12 @@ function AjoutPanel({
 
   return (
     <>
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-neutral-300 px-4">
-        <Dialog.Title className="flex-1 text-lg font-semibold">Ajouter à la liste</Dialog.Title>
+      <div className="flex h-16 shrink-0 items-center gap-2 px-4">
+        <Dialog.Title className="flex-1 text-xl font-black">Ajouter à la liste</Dialog.Title>
         <Dialog.Close className={closeClassName}>Fermer</Dialog.Close>
       </div>
       <form
-        className="p-4"
+        className="px-4 pb-4"
         onSubmit={(event) => {
           event.preventDefault();
           ajout.addOnEnter();
@@ -90,7 +90,7 @@ function AjoutPanel({
           enterKeyHint="done"
           value={ajout.query}
           onChange={(event) => ajout.search(event.currentTarget.value)}
-          className="h-12 w-full rounded-md border border-neutral-400 bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
+          className="clay-well h-14 w-full rounded-full bg-white px-5 text-lg font-semibold placeholder:text-neutral-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
         />
       </form>
       {ajout.query.trim() === "" ? (
@@ -188,7 +188,7 @@ function Results({
   create: (name: string) => void;
 }) {
   return (
-    <ul aria-label="Résultats">
+    <ul aria-label="Résultats" className="pebble-list">
       {articles.map((article) => (
         <li key={article.id}>
           <ArticleOption article={article} magasin={magasin} add={add} />
@@ -219,10 +219,13 @@ function Frequents({
 
   return (
     <section aria-labelledby={headingId}>
-      <h2 id={headingId} className="px-4 pb-1 text-sm font-semibold text-neutral-800">
+      <h2
+        id={headingId}
+        className="px-5 pb-2 text-sm font-black tracking-wide text-neutral-700 uppercase"
+      >
         Fréquents
       </h2>
-      <ul>
+      <ul className="pebble-list">
         {articles.map((article) => (
           <li key={article.id}>
             <ArticleOption article={article} magasin={magasin} add={add} />
@@ -253,7 +256,9 @@ function ArticleOption({
     <>
       <span className="min-w-0 flex-1 truncate">{article.name}</span>
       {details.length > 0 && (
-        <span className="shrink-0 text-sm text-neutral-700">{details.join(" · ")}</span>
+        <span className="shrink-0 text-sm font-semibold text-neutral-700">
+          {details.join(" · ")}
+        </span>
       )}
     </>
   );
@@ -270,10 +275,13 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
     <button
       type="button"
       onClick={onClick}
-      className={`${rowLayoutClassName} hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`}
+      className={`${rowLayoutClassName} font-bold hover:bg-neutral-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`}
     >
       {children}
-      <span aria-hidden="true" className="shrink-0 text-xl leading-none">
+      <span
+        aria-hidden="true"
+        className="grid size-9 shrink-0 place-items-center rounded-full bg-roux text-xl leading-none font-black text-white"
+      >
         +
       </span>
     </button>
@@ -288,7 +296,7 @@ function articlesFound(count: number) {
 }
 
 const closeClassName =
-  "h-11 shrink-0 rounded-md px-3 text-base font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "button-secondary min-h-11 shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const rowLayoutClassName =
-  "flex min-h-12 w-full items-center gap-3 border-b border-neutral-200 px-4 text-left text-base";
+  "flex min-h-14 w-full items-center gap-3 border-b-2 border-neutral-100 px-4 text-left text-base in-[li:last-child]:border-b-0";
