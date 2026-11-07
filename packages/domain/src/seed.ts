@@ -44,11 +44,19 @@ const onTheList: ReadonlyArray<ArticleSlug> = [
 /**
  * Rayons in walking order. An article missing from `placements` stays NonClasse in that magasin.
  */
-type MagasinSeed<RayonSlug extends string> = {
+export type MagasinSeed<RayonSlug extends string = string, Article extends string = string> = {
   readonly slug: string;
   readonly name: string;
   readonly rayons: Readonly<Record<RayonSlug, string>>;
-  readonly placements: Partial<Record<ArticleSlug, NoInfer<RayonSlug> | "PasVenduIci">>;
+  readonly placements: Partial<Record<Article, NoInfer<RayonSlug> | "PasVenduIci">>;
+};
+
+/** A foyer to turn into a journal: its magasins, its catalogue and what is on the list. */
+export type FoyerSeed = {
+  readonly magasins: ReadonlyArray<MagasinSeed>;
+  readonly articles: Readonly<Record<string, string>>;
+  readonly quantities: Readonly<Partial<Record<string, number>>>;
+  readonly onTheList: ReadonlyArray<string>;
 };
 
 const costco = magasin({
@@ -131,17 +139,7 @@ const decodeEvent = Schema.decodeUnknownSync(Event);
  */
 export const seed: ReadonlyArray<Event> = toEvents(
   [
-    ...magasinCreation(costco),
-    ...magasinCreation(maxi),
-    ...Object.entries(articles).map(([slug, name]) =>
-      draft("ArticleCreated", null, { articleId: articleId(slug), name }),
-    ),
-    ...Object.entries(quantities).map(([slug, quantity]) =>
-      draft("ArticleQuantitySet", null, { articleId: articleId(slug), quantity }),
-    ),
-    ...articlePlacement(costco),
-    ...articlePlacement(maxi),
-    ...onTheList.map((slug) => draft("ArticleMarkedToBuy", null, { articleId: articleId(slug) })),
+    ...foyerDrafts({ magasins: [costco, maxi], articles, quantities, onTheList }),
     byInvite(
       draft("DemandeCreated", null, {
         demandeId: "demande-chocolat-chaud",
@@ -151,6 +149,28 @@ export const seed: ReadonlyArray<Event> = toEvents(
   ],
   { idPrefix: "seed", startAt: 0 },
 );
+
+/** The seed's magasins, with their rayons and placements, for a real foyer to start from. */
+export const seedMagasins: ReadonlyArray<MagasinSeed> = [costco, maxi];
+
+/** Any foyer as a journal, with the proprietaire as the author of every event. */
+export function foyerJournal(foyer: FoyerSeed, idPrefix: string): ReadonlyArray<Event> {
+  return toEvents(foyerDrafts(foyer), { idPrefix, startAt: 0 });
+}
+
+function foyerDrafts({ magasins, articles, quantities, onTheList }: FoyerSeed) {
+  return [
+    ...magasins.flatMap(magasinCreation),
+    ...Object.entries(articles).map(([slug, name]) =>
+      draft("ArticleCreated", null, { articleId: articleId(slug), name }),
+    ),
+    ...Object.entries(quantities).map(([slug, quantity]) =>
+      draft("ArticleQuantitySet", null, { articleId: articleId(slug), quantity }),
+    ),
+    ...magasins.flatMap(articlePlacement),
+    ...onTheList.map((slug) => draft("ArticleMarkedToBuy", null, { articleId: articleId(slug) })),
+  ];
+}
 
 /**
  * Past sorties, for the fréquents in dev only: kept out of `seed`, which the API's `seed`
@@ -178,11 +198,11 @@ function sortie({ slug }: MagasinSeed<string>, achats: ReadonlyArray<ArticleSlug
 }
 
 /** Ties `placements` to the magasin's own rayon slugs at compile time. */
-function magasin<RayonSlug extends string>(definition: MagasinSeed<RayonSlug>) {
+function magasin<RayonSlug extends string>(definition: MagasinSeed<RayonSlug, ArticleSlug>) {
   return definition;
 }
 
-function magasinCreation({ slug, name, rayons }: MagasinSeed<string>) {
+function magasinCreation({ slug, name, rayons }: MagasinSeed) {
   return [
     draft("MagasinCreated", magasinId(slug), { name }),
     ...Object.entries(rayons).map(([rayonSlug, rayonName]) =>
@@ -194,16 +214,20 @@ function magasinCreation({ slug, name, rayons }: MagasinSeed<string>) {
   ];
 }
 
-function articlePlacement({ slug, placements }: MagasinSeed<string>) {
-  return Object.entries(placements).map(([articleSlug, placement]) =>
-    draft("ArticleRayonSet", magasinId(slug), {
-      articleId: articleId(articleSlug),
-      rayon:
-        placement === "PasVenduIci"
-          ? ArticleRayon.cases.PasVenduIci.make({})
-          : ArticleRayon.cases.Rayon.make({ rayonId: rayonId(slug, placement) }),
-    }),
-  );
+function articlePlacement({ slug, placements }: MagasinSeed) {
+  return Object.entries(placements).flatMap(([articleSlug, placement]) => {
+    // A key set to undefined is an article left out, like a missing key: NonClasse.
+    if (placement === undefined) return [];
+    return [
+      draft("ArticleRayonSet", magasinId(slug), {
+        articleId: articleId(articleSlug),
+        rayon:
+          placement === "PasVenduIci"
+            ? ArticleRayon.cases.PasVenduIci.make({})
+            : ArticleRayon.cases.Rayon.make({ rayonId: rayonId(slug, placement) }),
+      }),
+    ];
+  });
 }
 
 function magasinId(slug: string) {

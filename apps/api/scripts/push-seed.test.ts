@@ -5,14 +5,19 @@ import { Schema } from "effect";
 import { beforeEach, expect, it } from "vitest";
 import { app } from "../src/index";
 import { resetFoyer, secrets } from "../test/liens";
-import { pushSeed } from "./push-seed";
+import { pushJournal } from "./push-seed";
 
 const apiUrl = "https://api.test";
 
 beforeEach(resetFoyer);
 
 it("pousse les événements proprietaire du seed et ignore ceux de l'invite", async () => {
-  const result = await pushSeed({ apiUrl, secret: secrets.proprietaire, fetch: toApp });
+  const result = await pushJournal({
+    apiUrl,
+    secret: secrets.proprietaire,
+    fetch: toApp,
+    journal: seed,
+  });
 
   const proprietaireEvents = seed.filter(({ actor }) => actor === "proprietaire");
   expect(result).toEqual({
@@ -22,11 +27,27 @@ it("pousse les événements proprietaire du seed et ignore ceux de l'invite", as
   expect(await pullAll()).toEqual(proprietaireEvents);
 });
 
+it("refuse de pousser dans un journal qui n'est pas vide quand on le demande", async () => {
+  await pushJournal({ apiUrl, secret: secrets.proprietaire, fetch: toApp, journal: seed });
+
+  await expect(
+    pushJournal({
+      apiUrl,
+      secret: secrets.proprietaire,
+      fetch: toApp,
+      journal: seed,
+      onlyIfEmpty: true,
+    }),
+  ).rejects.toThrow("Le journal n'est pas vide");
+});
+
 it.each([
   ["un secret inconnu", "pas-un-secret", "401"],
   ["le secret de l'invite", secrets.invite, "403"],
 ])("s'arrête avec le statut HTTP sur %s", async (_, secret, status) => {
-  await expect(pushSeed({ apiUrl, secret, fetch: toApp })).rejects.toThrow(status);
+  await expect(pushJournal({ apiUrl, secret, fetch: toApp, journal: seed })).rejects.toThrow(
+    status,
+  );
 });
 
 function toApp(url: string, init: RequestInit) {

@@ -1,27 +1,43 @@
-import { seed } from "@ecureuil/domain";
-import { authorizationHeader, journalPath, PushRequest } from "@ecureuil/wire";
+import {
+  authorizationHeader,
+  type Event,
+  journalPath,
+  PullResponse,
+  PushRequest,
+} from "@ecureuil/wire";
 import { Schema } from "effect";
 
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
 /**
- * Pushes the seed's proprietaire events to `POST /journal` with the proprietaire secret.
+ * Pushes a journal's proprietaire events to `POST /journal` with the proprietaire secret.
  * The invite's events are left out: the server refuses a push whose actor is not the lien's role.
+ * With `onlyIfEmpty`, a journal that already holds events is refused: the API ignores the ids
+ * it has, so a second push of fixed ids would land in part, without a word.
  */
-export async function pushSeed({
+export async function pushJournal({
   apiUrl,
   secret,
   fetch,
+  journal,
+  onlyIfEmpty = false,
 }: {
   apiUrl: string;
   secret: string;
   fetch: Fetch;
+  journal: ReadonlyArray<Event>;
+  onlyIfEmpty?: boolean;
 }) {
-  const events = seed.filter(({ actor }) => actor === "proprietaire");
+  const url = new URL(journalPath, apiUrl).href;
+  const headers = { [authorizationHeader]: `Bearer ${secret}` };
+  if (onlyIfEmpty && (await isJournalEmpty(fetch, url, headers)) === false) {
+    throw new Error("Le journal n'est pas vide : videz-le d'abord (DELETE FROM journal).");
+  }
+  const events = journal.filter(({ actor }) => actor === "proprietaire");
   for (const batch of inBatches(events)) {
-    const response = await fetch(new URL(journalPath, apiUrl).href, {
+    const response = await fetch(url, {
       method: "POST",
-      headers: { [authorizationHeader]: `Bearer ${secret}` },
+      headers,
       body: encodePush({ events: batch }),
       // A followed redirect would replay the POST as a GET and answer 200 without writing.
       redirect: "manual",
@@ -31,7 +47,10 @@ export async function pushSeed({
       throw new Error(`POST ${journalPath} : ${response.status} ${await response.text()}${hint}`);
     }
   }
-  return { pushed: events.length, ignored: seed.filter(({ actor }) => actor !== "proprietaire") };
+  return {
+    pushed: events.length,
+    ignored: journal.filter(({ actor }) => actor !== "proprietaire"),
+  };
 }
 
 const hints: Partial<Record<number, string>> = {
@@ -39,6 +58,16 @@ const hints: Partial<Record<number, string>> = {
   403: "\nLIEN_SECRET est celui de l'invite : il faut celui du proprietaire.",
 };
 
+async function isJournalEmpty(fetch: Fetch, url: string, headers: Record<string, string>) {
+  const response = await fetch(url, { method: "GET", headers, redirect: "manual" });
+  if (response.status !== 200) {
+    const hint = hints[response.status] ?? "";
+    throw new Error(`GET ${journalPath} : ${response.status} ${await response.text()}${hint}`);
+  }
+  return decodePull(await response.json()).events.length === 0;
+}
+
+const decodePull = Schema.decodeUnknownSync(PullResponse);
 const encodePush = Schema.encodeSync(Schema.fromJsonString(PushRequest));
 
 const BATCH_SIZE = 50;
