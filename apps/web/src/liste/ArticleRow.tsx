@@ -1,5 +1,5 @@
 import type { ListArticle } from "@ecureuil/domain";
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useId, useState } from "react";
 import { animateMove, moveTransitionName } from "./animateMove";
 import { useConfirmation } from "./useConfirmation";
 import type { Mode } from "./useMode";
@@ -19,10 +19,13 @@ export function ToBuyRow({
   article,
   actions,
   mode,
+  justArrived,
 }: {
   article: ListArticle;
   actions: ToBuyActions;
   mode: Mode;
+  /** Just put on the list: the row lights up once. */
+  justArrived: boolean;
 }) {
   return mode === "courses" ? (
     <Row
@@ -30,9 +33,15 @@ export function ToBuyRow({
       checkbox={{ checked: false, onToggle: () => actions.check(article) }}
       showsQuantity
       openFiche={actions.openFiche}
+      highlight={justArrived}
     />
   ) : (
-    <Row article={article} showsQuantity={false} openFiche={actions.openFiche}>
+    <Row
+      article={article}
+      showsQuantity={false}
+      openFiche={actions.openFiche}
+      highlight={justArrived}
+    >
       <Stepper article={article} actions={actions} />
       <RemoveButton article={article} actions={actions} />
     </Row>
@@ -44,13 +53,18 @@ export function PanierRow({
   article,
   actions,
   mode,
+  justChecked,
 }: {
   article: ListArticle;
   actions: { uncheck: (article: ListArticle) => void; openFiche: (articleId: string) => void };
   mode: Mode;
+  /** Just put in the panier: its box pops once, a small victory. */
+  justChecked: boolean;
 }) {
   const checkbox =
-    mode === "courses" ? { checked: true, onToggle: () => actions.uncheck(article) } : undefined;
+    mode === "courses"
+      ? { checked: true, onToggle: () => actions.uncheck(article), pop: justChecked }
+      : undefined;
   return <Row article={article} checkbox={checkbox} showsQuantity openFiche={actions.openFiche} />;
 }
 
@@ -59,21 +73,30 @@ function Row({
   checkbox,
   showsQuantity,
   openFiche,
+  highlight,
   children,
 }: {
   article: ListArticle;
-  checkbox?: { checked: boolean; onToggle: () => void } | undefined;
+  checkbox?: { checked: boolean; onToggle: () => void; pop?: boolean } | undefined;
   /** ×N next to the name, where no stepper already says it. */
   showsQuantity: boolean;
   openFiche: (articleId: string) => void;
+  highlight?: boolean;
   children?: ReactNode;
 }) {
   const quantityId = useId();
+  // Read once, when the row mounts: the next render no longer knows it is new.
+  const [highlighted, setHighlighted] = useState(highlight ?? false);
+  const [popping, setPopping] = useState(checkbox?.pop ?? false);
   const quantityShown = showsQuantity && article.quantity > 1;
   return (
     <li
-      className={`flex min-h-14 items-center border-b border-neutral-200 pr-2 ${checkbox ? "gap-2" : "gap-1 pl-4"}`}
+      className={`flex min-h-14 items-center border-b border-neutral-200 pr-2 ${checkbox ? "gap-2" : "gap-1 pl-4"} ${highlighted ? "arrive" : ""}`}
       style={{ viewTransitionName: moveTransitionName(article.id) }}
+      onAnimationEnd={(event) => {
+        if (event.animationName === "arrive") setHighlighted(false);
+        if (event.animationName === "pop") setPopping(false);
+      }}
     >
       {checkbox && (
         // Only the box checks: the name opens the article sheet. The whole row height, for gloves.
@@ -85,7 +108,7 @@ function Row({
             data-article-id={article.id}
             checked={checkbox.checked}
             onChange={() => animateMove(checkbox.onToggle)}
-            className="size-7 cursor-pointer accent-neutral-900"
+            className={`size-7 cursor-pointer accent-neutral-900 ${popping ? "pop" : ""}`}
           />
         </label>
       )}

@@ -3,6 +3,7 @@ import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { ListeSections } from "./ListeSections";
+import { useListeChanges } from "./useListeChanges";
 import type { Mode } from "./useMode";
 
 type Actions = Pick<
@@ -28,6 +29,7 @@ export function ListeView({
   focusWhenEmpty: RefObject<HTMLElement | null>;
 }) {
   const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow(focusWhenEmpty);
+  const { arrived, checked } = useListeChanges(liste);
   const rowActions = {
     setQuantity: actions.setQuantity,
     announce: actions.announce,
@@ -35,7 +37,14 @@ export function ListeView({
     check: (article: ListArticle) => {
       focusNeighborOf(article.id);
       actions.check(article.id);
-      actions.announce(`${article.name} dans le panier`);
+      const othersToBuy = liste.sections.some((section) =>
+        section.articles.some((other) => other.id !== article.id),
+      );
+      actions.announce(
+        othersToBuy
+          ? `${article.name} dans le panier`
+          : `${article.name} dans le panier. Tout est dans le panier !`,
+      );
     },
     uncheck: (article: ListArticle) => {
       focusNeighborOf(article.id);
@@ -54,11 +63,19 @@ export function ListeView({
       <ListeSections
         liste={liste}
         magasinName={magasinName}
-        toBuyRows={(articles) => <ToBuyRows articles={articles} actions={rowActions} mode={mode} />}
+        toBuyRows={(articles) => (
+          <ToBuyRows articles={articles} actions={rowActions} mode={mode} arrived={arrived} />
+        )}
         panierRows={(articles) => (
           <ul>
             {articles.map((article) => (
-              <PanierRow key={article.id} article={article} actions={rowActions} mode={mode} />
+              <PanierRow
+                key={article.id}
+                article={article}
+                actions={rowActions}
+                mode={mode}
+                justChecked={checked.has(article.id)}
+              />
             ))}
           </ul>
         )}
@@ -105,15 +122,23 @@ function ToBuyRows({
   articles,
   actions,
   mode,
+  arrived,
 }: {
   articles: ReadonlyArray<ListArticle>;
   actions: ToBuyActions;
   mode: Mode;
+  arrived: ReadonlySet<string>;
 }) {
   return (
     <ul>
       {articles.map((article) => (
-        <ToBuyRow key={article.id} article={article} actions={actions} mode={mode} />
+        <ToBuyRow
+          key={article.id}
+          article={article}
+          actions={actions}
+          mode={mode}
+          justArrived={arrived.has(article.id)}
+        />
       ))}
     </ul>
   );
