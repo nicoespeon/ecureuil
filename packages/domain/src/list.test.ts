@@ -112,3 +112,15 @@ it("compte les unités dans le panier et prévues, sans ce qui n'est pas vendu i
     planned: 8,
   });
 });
+
+it("compte dans le panier un article coché même s'il n'est pas vendu ici", () => {
+  const beerInPanier = [
+    ...journal,
+    event({ type: "ArticleChecked", magasin: "costco", payload: { articleId: "beer" } }),
+  ];
+
+  expect(unitCount(listForMagasin(fold(beerInPanier), "costco"))).toEqual({
+    inPanier: 2,
+    planned: 7,
+  });
+});
