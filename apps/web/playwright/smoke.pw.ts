@@ -186,6 +186,34 @@ test.describe("les fêtes et les micro-victoires", () => {
   });
 });
 
+test("aucun titre de rayon ne recouvre l'ombre de ce qui est posé au-dessus", async ({ page }) => {
+  // Without the rows' view transition: its overlay would answer every hit test.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("switch", { name: "Courses" }).click();
+
+  await checkEverythingToBuy(page);
+  await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
+  // Checking scrolled the page: the squirrel's banner, at the top, must be in view to be hit.
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  expect(await shadowsCoveredByHeadings(page)).toEqual([]);
+});
+
+/** What casts a matte shadow downward, named by its text, when an h2 paints over that shadow. */
+function shadowsCoveredByHeadings(page: Page) {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("main *")].flatMap((element) => {
+      const [outer = ""] = getComputedStyle(element).boxShadow.split(/,(?![^(]*\))/);
+      const offsetY = /(-?[\d.]+)px\s+(-?[\d.]+)px/.exec(outer)?.[2];
+      if (outer.includes("inset") || !offsetY || Number(offsetY) <= 0) return [];
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.bottom + 1);
+      return hit?.closest("h2") ? [element.textContent?.trim().slice(0, 30)] : [];
+    }),
+  );
+}
+
 test("sous reduced-motion, ni la case ni l'écureuil ne bougent", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const animations = await recordAnimations(page);
