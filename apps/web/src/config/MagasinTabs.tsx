@@ -68,4 +68,4 @@ export function MagasinTabs({
 }
 
 const plusClassName =
-  "my-0.5 grid w-11 shrink-0 place-items-center rounded-md text-2xl font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "grid size-11 shrink-0 self-center place-items-center rounded-md text-2xl font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";

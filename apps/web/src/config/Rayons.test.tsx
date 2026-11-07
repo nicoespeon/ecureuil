@@ -96,9 +96,62 @@ describe("les rayons d'un magasin", () => {
     await backToListe(user);
     expect(section("Non classé").getByRole("button", { name: "Lait" })).toBeVisible();
   });
+
+  it("la confirmation de suppression d'un rayon retombe quand le focus quitte le bouton", async () => {
+    const { user } = await openRayons();
+    await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
+
+    await user.tab();
+
+    expect(screen.getByRole("button", { name: "Supprimer Produits laitiers" })).toBeVisible();
+  });
 });
 
 type User = ReturnType<typeof userEvent.setup>;
+
+describe("ajouter un rayon", () => {
+  it("annonce le rayon ajouté", async () => {
+    const { user } = await openRayons();
+
+    await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Boissons{Enter}");
+
+    expect(screen.getByText("Rayon Boissons ajouté.")).toHaveRole("status");
+  });
+});
+
+describe("déplacer un rayon sans glisser", () => {
+  it("« Descendre Hygiène » la met après Épicerie", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Descendre Hygiène" }));
+
+    expect(rayonNames().slice(0, 3)).toEqual(["Vêtements", "Épicerie", "Hygiène"]);
+  });
+
+  it("« Monter Hygiène » la met avant Vêtements", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Monter Hygiène" }));
+
+    expect(rayonNames().slice(0, 2)).toEqual(["Hygiène", "Vêtements"]);
+  });
+
+  it("annonce la nouvelle position d'Hygiène", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Descendre Hygiène" }));
+
+    expect(screen.getByText("Hygiène en position 3 sur 8.")).toHaveRole("status");
+  });
+
+  it("« Monter » ne fait rien sur le premier rayon", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Monter Vêtements" }));
+
+    expect(rayonNames()[0]).toBe("Vêtements");
+  });
+});
 
 async function openRayons() {
   const { user } = renderApp();

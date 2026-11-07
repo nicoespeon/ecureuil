@@ -107,9 +107,9 @@ function PasVenduIci({
       <h2
         id={headingId}
         style={{ viewTransitionName: headingTransitionName("pas-vendu-ici") }}
-        className={headingClassName}
+        className={`${headingClassName} py-0`}
       >
-        <Collapsible.Trigger className="group flex w-full items-center gap-2 text-left">
+        <Collapsible.Trigger className="group flex min-h-11 w-full items-center gap-2 text-left focus-visible:outline-2 focus-visible:outline-blue-700">
           <svg
             aria-hidden="true"
             width="12"

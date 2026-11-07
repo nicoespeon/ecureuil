@@ -1,10 +1,23 @@
 import type { ReactNode } from "react";
+import { useFocusOnMount } from "../config/useFocusOnMount";
 
 /** A full screen before the list: a new device, a lien to check or to replace. */
-export function Accueil({ title, children }: { title: string; children: ReactNode }) {
+export function Accueil({
+  title,
+  focusTitle = false,
+  children,
+}: {
+  title: string;
+  /** When the screen replaces the one that had the focus. */
+  focusTitle?: boolean;
+  children: ReactNode;
+}) {
+  const titleRef = useFocusOnMount<HTMLHeadingElement>(focusTitle);
   return (
     <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 bg-white px-6 text-neutral-950">
-      <h1 className="text-3xl font-semibold">{title}</h1>
+      <h1 ref={titleRef} tabIndex={-1} className="text-3xl font-semibold outline-none">
+        {title}
+      </h1>
       {children}
     </main>
   );

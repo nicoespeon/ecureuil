@@ -45,6 +45,7 @@ export function App({
     return (
       <SansMagasin
         acces={acces}
+        focusTitle={screen === "configuration"}
         create={
           role === "proprietaire"
             ? (name) => {
@@ -129,11 +130,13 @@ function ListeScreen({
           </div>
         )}
       </header>
-      {writer.actor === "invite" ? (
-        <InvitePanel foyer={foyer} />
-      ) : (
-        <MagasinPanel foyer={foyer} writer={writer} mode={mode} setMode={setMode} />
-      )}
+      <main>
+        {writer.actor === "invite" ? (
+          <InvitePanel foyer={foyer} />
+        ) : (
+          <MagasinPanel foyer={foyer} writer={writer} mode={mode} setMode={setMode} />
+        )}
+      </main>
     </Tabs.Root>
   );
 }
@@ -151,7 +154,12 @@ function MagasinPanel({
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
-  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: panelRef });
+  const { openFiche, fiche } = useFicheArticle({
+    foyer,
+    writer,
+    announce,
+    focusAfterRemove: panelRef,
+  });
   const { magasinActif: magasin, liste } = foyer;
 
   return (
@@ -170,6 +178,7 @@ function MagasinPanel({
           liste={liste}
           magasinName={magasin.name}
           mode={mode}
+          focusWhenEmpty={panelRef}
           actions={{
             check: foyer.check,
             uncheck: foyer.uncheck,
@@ -188,6 +197,7 @@ function MagasinPanel({
           finishSortie={() => {
             foyer.finishSortie();
             setMode("preparer");
+            announce("Courses terminées");
           }}
           focusAfterFinish={panelRef}
         />
@@ -265,16 +275,19 @@ function GearIcon() {
 /** A new device, or one whose first sync has not brought a magasin yet. */
 function SansMagasin({
   acces,
+  focusTitle,
   create,
 }: {
   acces: AccesStore;
+  /** Coming from the configuration, where the last magasin was just removed. */
+  focusTitle: boolean;
   /** Only the proprietaire configures the foyer. */
   create: ((name: string) => void) | undefined;
 }) {
   const state = useSyncExternalStore(acces.subscribe, acces.get);
 
   return (
-    <Accueil title="Écureuil">
+    <Accueil title="Écureuil" focusTitle={focusTitle}>
       <p className="text-lg">Cet appareil n'a encore aucun magasin.</p>
       <p className="text-lg text-neutral-700">
         Ouvrez votre lien d'accès sur cet appareil, ou collez-le ici : votre liste arrive avec la
