@@ -103,7 +103,8 @@ export function ConfigurationView({
         </Tabs.Panel>
       </Tabs.Root>
       {fiche}
-      <p role="status" className="sr-only">
+      {/* aria-live keeps it audible while the sheet is open: the dialog hides the rest, live regions aside. */}
+      <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
     </div>

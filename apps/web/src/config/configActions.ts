@@ -29,6 +29,12 @@ export function configActions({ journal, actor }: Writer, magasinActifId: string
       magasinId: string,
       { articleId, choice }: { articleId: string; choice: string },
     ) => append("ArticleRayonSet", magasinId, { articleId, rayon: articleRayonOf(choice) }),
+    /** Into the catalogue only, NonClasse everywhere: the list is not this screen's business. Returns its id. */
+    createArticle: (name: string) => {
+      const articleId = crypto.randomUUID();
+      append("ArticleCreated", magasinActifId, { articleId, name });
+      return articleId;
+    },
     renameArticle: (articleId: string, name: string) =>
       append("ArticleRenamed", magasinActifId, { articleId, name }),
     setQuantity: (articleId: string, quantity: number) =>

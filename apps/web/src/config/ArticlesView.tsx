@@ -1,5 +1,7 @@
-import type { Article, Magasin, State } from "@ecureuil/domain";
+import type { Magasin, State } from "@ecureuil/domain";
 import { useId, useState } from "react";
+import { CreateArticleButton } from "../ajout/AddButton";
+import { searchArticles } from "../ajout/suggestions";
 import { fieldClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
 import { RayonSelect } from "./RayonSelect";
@@ -11,21 +13,40 @@ export function ArticlesView({
 }: {
   magasin: Magasin;
   articles: State["articles"];
-  actions: Pick<ConfigActions, "setArticleRayon"> & {
+  actions: Pick<ConfigActions, "setArticleRayon" | "createArticle"> & {
     readonly openFiche: (articleId: string) => void;
+    readonly announce: (message: string) => void;
   };
 }) {
   const searchId = useId();
   const [search, setSearch] = useState("");
-  const shown = Object.values(articles)
-    .filter((article) => matches(article, search))
-    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const { shown, exactMatch, nameToCreate } = searchCatalogue(articles, search);
+
+  // A new article has no rayon yet: its sheet opens to sort it in every magasin.
+  const create = (name: string) => {
+    const articleId = actions.createArticle(name);
+    actions.announce(`Au catalogue : ${name}`);
+    actions.openFiche(articleId);
+  };
+  // Like the list's quick add: the exact name, the first result, or a new article.
+  const openOrCreate = () => {
+    if (search.trim() === "") return;
+    const choice = exactMatch ?? shown[0];
+    if (choice) actions.openFiche(choice.id);
+    else if (nameToCreate !== null) create(nameToCreate);
+  };
 
   return (
     <div className="p-4">
-      <div className="flex max-w-2xl flex-col gap-1">
+      <form
+        className="flex max-w-2xl flex-col gap-1"
+        onSubmit={(event) => {
+          event.preventDefault();
+          openOrCreate();
+        }}
+      >
         <label htmlFor={searchId} className="text-sm font-extrabold text-neutral-800">
-          Rechercher un article
+          Rechercher ou créer un article
         </label>
         <input
           id={searchId}
@@ -33,9 +54,10 @@ export function ArticlesView({
           value={search}
           onChange={(event) => setSearch(event.currentTarget.value)}
           autoComplete="off"
+          enterKeyHint="go"
           className={fieldClassName}
         />
-      </div>
+      </form>
       <ul aria-label="Articles" className="pebble-list mt-3 max-w-2xl">
         {shown.map((article) => (
           <li
@@ -61,21 +83,22 @@ export function ArticlesView({
             </div>
           </li>
         ))}
+        {nameToCreate !== null && (
+          <li>
+            <CreateArticleButton name={nameToCreate} create={() => create(nameToCreate)} />
+          </li>
+        )}
       </ul>
     </div>
   );
 }
 
-function matches(article: Article, search: string) {
-  return comparable(article.name).includes(comparable(search.trim()));
-}
-
-/** « rape » finds « Fromage râpé », « oeufs » finds « Œufs ». */
-function comparable(text: string) {
-  return text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("fr")
-    .replaceAll("œ", "oe")
-    .replaceAll("æ", "ae");
+/** The whole catalogue by name until a search narrows it. */
+function searchCatalogue(articles: State["articles"], search: string) {
+  const { articles: found, ...result } = searchArticles({ articles }, search);
+  if (search.trim() !== "") return { shown: found, ...result };
+  return {
+    ...result,
+    shown: Object.values(articles).sort((a, b) => a.name.localeCompare(b.name, "fr")),
+  };
 }
