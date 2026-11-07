@@ -1,6 +1,5 @@
 import type { ListArticle } from "@ecureuil/domain";
 import { type ReactNode, useId, useState } from "react";
-import { animateMove, moveTransitionName } from "./animateMove";
 import { useConfirmation } from "./useConfirmation";
 import type { Mode } from "./useMode";
 
@@ -92,7 +91,6 @@ function Row({
   return (
     <li
       className={`flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 gap-1 ${checkbox ? "" : "pl-4"} ${highlighted ? "arrive" : ""}`}
-      style={{ viewTransitionName: moveTransitionName(article.id) }}
       onAnimationEnd={(event) => {
         if (event.animationName === "arrive") setHighlighted(false);
         if (event.animationName === "pop") setPopping(false);
@@ -107,7 +105,7 @@ function Row({
             aria-describedby={quantityShown ? quantityId : undefined}
             data-article-id={article.id}
             checked={checkbox.checked}
-            onChange={() => animateMove(checkbox.onToggle)}
+            onChange={checkbox.onToggle}
             className={`clay-checkbox focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${popping ? "pop" : ""}`}
           />
         </label>

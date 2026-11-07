@@ -184,10 +184,23 @@ test.describe("les fêtes et les micro-victoires", () => {
     await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
     await expect.poll(animations).toContain("hop");
   });
+
+  test("la case et l'écureuil s'animent sur l'écran à jour, jamais sous une transition", async ({
+    page,
+  }) => {
+    const animations = await recordAnimations(page);
+    await page.goto("/");
+    await page.getByRole("switch", { name: "Courses" }).click();
+
+    await checkEverythingToBuy(page);
+
+    await expect.poll(animations).toContain("hop");
+    expect(await animations()).not.toContain("under-view-transition");
+  });
 });
 
 test("aucun titre de rayon ne recouvre l'ombre de ce qui est posé au-dessus", async ({ page }) => {
-  // Without the rows' view transition: its overlay would answer every hit test.
+  // A box mid-pop would carry its shadow elsewhere.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.getByRole("switch", { name: "Courses" }).click();
@@ -227,9 +240,6 @@ test("sous reduced-motion, ni la case ni l'écureuil ne bougent", async ({ page 
 });
 
 test.describe("accessibilité", () => {
-  // A row caught mid view transition would be read half transparent.
-  test.use({ reducedMotion: "reduce" });
-
   for (const { name, reach } of screens) {
     test(`${name} respecte WCAG 2.2 AA`, async ({ page }) => {
       await page.goto("/");
@@ -258,8 +268,19 @@ async function recordAnimations(page: Page) {
     document.addEventListener("animationstart", (event) => {
       // The browser's own view transition animations are noise here.
       if (event.animationName.startsWith("-ua-")) return;
+      // The old screen's snapshot hides whatever starts under it.
+      const underViewTransition = document
+        .getAnimations()
+        .some(
+          ({ effect }) =>
+            effect instanceof KeyframeEffect &&
+            effect.pseudoElement?.startsWith("::view-transition"),
+        );
+      const name = underViewTransition
+        ? `${event.animationName}-under-view-transition`
+        : event.animationName;
       const seen = document.documentElement.dataset.animations ?? "";
-      document.documentElement.dataset.animations = `${seen} ${event.animationName}`;
+      document.documentElement.dataset.animations = `${seen} ${name}`;
     });
   });
   return async () => (await page.locator("html").getAttribute("data-animations")) ?? "";
