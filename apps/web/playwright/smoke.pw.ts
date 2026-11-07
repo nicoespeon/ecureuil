@@ -174,7 +174,7 @@ test.describe("les fêtes et les micro-victoires", () => {
     await expect.poll(animations).toContain("arrive");
   });
 
-  test("l'écureuil bondit quand tout est dans le panier", async ({ page }) => {
+  test("l'écureuil bondit quand tout est dans le panier, sur l'écran à jour", async ({ page }) => {
     const animations = await recordAnimations(page);
     await page.goto("/");
     await page.getByRole("switch", { name: "Courses" }).click();
@@ -183,18 +183,7 @@ test.describe("les fêtes et les micro-victoires", () => {
 
     await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
     await expect.poll(animations).toContain("hop");
-  });
-
-  test("la case et l'écureuil s'animent sur l'écran à jour, jamais sous une transition", async ({
-    page,
-  }) => {
-    const animations = await recordAnimations(page);
-    await page.goto("/");
-    await page.getByRole("switch", { name: "Courses" }).click();
-
-    await checkEverythingToBuy(page);
-
-    await expect.poll(animations).toContain("hop");
+    // Neither the boxes' pops nor the hop may play hidden under a transition.
     expect(await animations()).not.toContain("under-view-transition");
   });
 });
@@ -240,6 +229,9 @@ test("sous reduced-motion, ni la case ni l'écureuil ne bougent", async ({ page 
 });
 
 test.describe("accessibilité", () => {
+  // A still screen: no box mid-pop, no squirrel mid-hop.
+  test.use({ reducedMotion: "reduce" });
+
   for (const { name, reach } of screens) {
     test(`${name} respecte WCAG 2.2 AA`, async ({ page }) => {
       await page.goto("/");
