@@ -1,4 +1,4 @@
-import { foyerJournal, type MagasinSeed, seedMagasins } from "@ecureuil/domain";
+import { foyerJournal, seedMagasins } from "@ecureuil/domain";
 
 /**
  * The journal of a foyer written as a plain list, one article a line: a leading `.` means
@@ -33,11 +33,12 @@ export function foyerEvents(liste: string) {
 type Ligne = {
   readonly slug: string;
   readonly name: string;
-  readonly magasin: MagasinSeed["slug"];
+  readonly magasin: "costco" | "maxi";
   readonly quantity: number | undefined;
 };
 
-const LIGNE = /^(?<costco>\.\s*)?(?<name>.*?)(?:\s+x(?<quantity>\d+))?$/u;
+/** `x0` is no quantity (the wire refuses 0): it stays part of the name, visibly. */
+const LIGNE = /^(?<costco>\.\s*)?(?<name>.*?)(?:\s+x(?<quantity>[1-9]\d*))?$/iu;
 
 function parseListe(liste: string): ReadonlyArray<Ligne> {
   const seen = new Set<string>();
@@ -67,7 +68,7 @@ function parseListe(liste: string): ReadonlyArray<Ligne> {
 function slugOf(name: string) {
   return name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{M}/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");

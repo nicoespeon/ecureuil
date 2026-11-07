@@ -8,6 +8,7 @@ import { pushJournal } from "./push-seed.ts";
  */
 export async function runPush(
   journal: (positional: string | undefined) => Promise<ReadonlyArray<Event>>,
+  { onlyIfEmpty = false } = {},
 ) {
   const { values: options, positionals } = parseArgs({
     options: { remote: { type: "boolean", default: false } },
@@ -21,6 +22,7 @@ export async function runPush(
       secret: requiredEnv("LIEN_SECRET"),
       fetch,
       journal: await journal(positionals[0]),
+      onlyIfEmpty,
     });
     console.log(`${pushed} événements envoyés à ${apiUrl}`);
     for (const { type } of ignored) console.log(`1 événement invite ignoré (${type})`);

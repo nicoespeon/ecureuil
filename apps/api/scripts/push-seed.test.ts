@@ -27,6 +27,20 @@ it("pousse les événements proprietaire du seed et ignore ceux de l'invite", as
   expect(await pullAll()).toEqual(proprietaireEvents);
 });
 
+it("refuse de pousser dans un journal qui n'est pas vide quand on le demande", async () => {
+  await pushJournal({ apiUrl, secret: secrets.proprietaire, fetch: toApp, journal: seed });
+
+  await expect(
+    pushJournal({
+      apiUrl,
+      secret: secrets.proprietaire,
+      fetch: toApp,
+      journal: seed,
+      onlyIfEmpty: true,
+    }),
+  ).rejects.toThrow("Le journal n'est pas vide");
+});
+
 it.each([
   ["un secret inconnu", "pas-un-secret", "401"],
   ["le secret de l'invite", secrets.invite, "403"],
