@@ -9,3 +9,26 @@ html {
 ::view-transition-group(*) {
   animation-duration: 180ms;
 }
+
+/* The squirrel's single hop when a moment arrives: nothing moves for who asks for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .hop {
+    animation: hop 600ms ease-out;
+  }
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-18%) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  78% {
+    transform: translateY(-5%);
+  }
+}

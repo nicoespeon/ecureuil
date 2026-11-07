@@ -328,7 +328,7 @@ describe("terminer les courses", () => {
 
     await finishSortie(user);
 
-    expect(screen.getByRole("status")).toHaveTextContent("Courses terminées");
+    expect(screen.getByRole("status")).toHaveTextContent("Courses terminées, 2 articles rangés");
   });
 
   it("laisse les autres articles à acheter", async () => {

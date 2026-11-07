@@ -2,7 +2,7 @@ import { Tabs } from "@base-ui/react/tabs";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { pendingDemandes } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
-import { type ReactNode, useRef, useSyncExternalStore } from "react";
+import { type ReactNode, useRef, useState, useSyncExternalStore } from "react";
 import { Accueil } from "./acces/Accueil";
 import type { AccesStore } from "./acces/acces";
 import { CollerLeLien } from "./acces/CollerLeLien";
@@ -17,7 +17,9 @@ import { InvitePanel } from "./invite/InvitePanel";
 import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
+import { CelebrationBanner } from "./liste/CelebrationBanner";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
+import { celebrationFor, putAwayText } from "./liste/celebration";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
@@ -93,6 +95,12 @@ function ListeScreen({
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
+  // Held here, above the switch: a new trip to the magasin closes the last one's message.
+  const [putAway, setPutAway] = useState<number>();
+  const changeMode = (next: Mode) => {
+    setPutAway(undefined);
+    setMode(next);
+  };
 
   return (
     <Tabs.Root
@@ -118,7 +126,7 @@ function ListeScreen({
         </Tabs.List>
         {writer.actor === "proprietaire" && (
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            <CoursesSwitch mode={mode} setMode={setMode} />
+            <CoursesSwitch mode={mode} setMode={changeMode} />
             <ConfigurationButton
               focusOnMount={configuration.focusOnMount}
               onClick={configuration.open}
@@ -130,7 +138,19 @@ function ListeScreen({
         {writer.actor === "invite" ? (
           <InvitePanel foyer={foyer} />
         ) : (
-          <MagasinPanel foyer={foyer} writer={writer} mode={mode} setMode={setMode} />
+          <MagasinPanel
+            foyer={foyer}
+            writer={writer}
+            mode={mode}
+            finished={{
+              putAway,
+              finish: (count) => {
+                changeMode("preparer");
+                setPutAway(count);
+              },
+              dismiss: () => setPutAway(undefined),
+            }}
+          />
         )}
       </main>
     </Tabs.Root>
@@ -141,12 +161,17 @@ function MagasinPanel({
   foyer,
   writer,
   mode,
-  setMode,
+  finished,
 }: {
   foyer: FoyerWithListe;
   writer: Writer;
   mode: Mode;
-  setMode: (mode: Mode) => void;
+  /** The sortie just finished, until its message is closed or the mode changes. */
+  finished: {
+    putAway: number | undefined;
+    finish: (putAway: number) => void;
+    dismiss: () => void;
+  };
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -157,10 +182,19 @@ function MagasinPanel({
     focusAfterRemove: panelRef,
   });
   const { magasinActif: magasin, liste } = foyer;
+  const celebration = celebrationFor({
+    liste,
+    mode,
+    magasinName: magasin.name,
+    putAway: finished.putAway,
+  });
 
   return (
     <>
       <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
+        {celebration && (
+          <CelebrationBanner celebration={celebration} onDismiss={finished.dismiss} />
+        )}
         <AValider
           demandes={pendingDemandes(foyer.state)}
           actions={{
@@ -191,9 +225,10 @@ function MagasinPanel({
           liste={liste}
           mode={mode}
           finishSortie={() => {
+            const putAway = liste.panier.length;
             foyer.finishSortie();
-            setMode("preparer");
-            announce("Courses terminées");
+            finished.finish(putAway);
+            announce(`Courses terminées, ${putAwayText(putAway)}`);
           }}
           focusAfterFinish={panelRef}
         />
