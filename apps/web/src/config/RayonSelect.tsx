@@ -24,7 +24,7 @@ export function RayonSelect({
       onChange={(event) =>
         setArticleRayon(magasin.id, { articleId: article.id, choice: event.currentTarget.value })
       }
-      className={fieldClassName}
+      className={`${fieldClassName} clay-select pr-10`}
     >
       {magasin.rayons.map((rayon) => (
         <option key={rayon.id} value={rayonChoiceOf(rayon.id)}>

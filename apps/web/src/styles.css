@@ -72,6 +72,20 @@ body {
   }
 }
 
+/* The native arrow clashes with the pebble: a drawn chevron instead. */
+@utility clay-select {
+  appearance: none;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a3a22' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-size: 1.125rem;
+  background-position: right 0.875rem center;
+  background-repeat: no-repeat;
+
+  @media (forced-colors: active) {
+    appearance: auto;
+  }
+}
+
 /* The one action of the screen: it sinks under the finger. */
 @utility button-primary {
   display: inline-flex;

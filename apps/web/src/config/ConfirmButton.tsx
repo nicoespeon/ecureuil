@@ -56,10 +56,10 @@ function idleOrConfirmClassName({
 }
 
 const labelButtonClassName =
-  "flex h-11 shrink-0 items-center gap-2 rounded-md border border-neutral-400 px-3 text-base font-medium text-red-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "button-secondary min-h-11 shrink-0 gap-2 px-4 text-base text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const iconButtonClassName =
-  "grid size-11 shrink-0 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "grid size-11 shrink-0 place-items-center rounded-full text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
 
 const confirmClassName =
-  "h-11 shrink-0 rounded-md bg-red-700 px-3 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "h-11 shrink-0 rounded-full bg-red-700 px-4 text-sm font-extrabold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";

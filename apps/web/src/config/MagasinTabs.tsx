@@ -31,17 +31,17 @@ export function MagasinTabs({
       value={magasinActif.id}
       onValueChange={(value) => typeof value === "string" && selectMagasin(value)}
     >
-      <div className="flex h-12 items-stretch border-b border-neutral-200 px-2">
+      <div className="flex h-16 items-center px-2">
         <Tabs.List
           ref={listRef}
           aria-label="Magasin"
-          className="flex min-w-0 gap-1 overflow-x-auto"
+          className="flex min-w-0 items-center gap-1 overflow-x-auto px-1 py-2"
         >
           {magasins.map((magasin) => (
             <Tabs.Tab
               key={magasin.id}
               value={magasin.id}
-              className="h-full border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
+              className="h-11 shrink-0 whitespace-nowrap rounded-full px-4 text-base font-bold text-neutral-700 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 data-active:clay data-active:font-extrabold data-active:text-neutral-950"
             >
               {magasin.name}
             </Tabs.Tab>
@@ -68,4 +68,4 @@ export function MagasinTabs({
 }
 
 const plusClassName =
-  "grid size-11 shrink-0 self-center place-items-center rounded-md text-2xl font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "clay grid size-11 shrink-0 self-center place-items-center rounded-full text-2xl font-bold text-neutral-900 focus-visible:outline-2 focus-visible:outline-blue-700";
