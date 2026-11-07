@@ -213,6 +213,24 @@ test.describe("captures des fêtes à 375 px", () => {
   });
 });
 
+test.describe("compteur à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  test("un grand compte à côté de « Terminer les courses »", async ({ page }) => {
+    await page.goto("/");
+    // The seed plans 12 and a quantity stops at 10: 37 more taps make 49.
+    const added = { Lait: 7, Babybel: 9, Nutella: 9, Yaourts: 9, Champignons: 3 };
+    for (const [name, taps] of Object.entries(added)) {
+      const plus = page.getByRole("button", { name: `Augmenter la quantité de ${name}` });
+      for (let tap = 0; tap < taps; tap += 1) await plus.click();
+    }
+    await expect(page.getByText("49 articles")).toBeVisible();
+    await startCourses(page);
+    await checkEverythingToBuy(page);
+    await screenshot(page, "compteur-49-375", { fullPage: false });
+  });
+});
+
 test.describe("vidéo des fêtes à 375 px", () => {
   test.use({ viewport: narrowPhone });
 

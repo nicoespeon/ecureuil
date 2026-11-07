@@ -1,5 +1,5 @@
 export { articleNamed, duplicateOf, pendingDemandes } from "./demandes";
-export { type ListArticle, type Liste, listForMagasin, type Section } from "./list";
+export { type ListArticle, type Liste, listForMagasin, type Section, unitCount } from "./list";
 export { magasinCreation } from "./magasin";
 export { Clock, type Cursor, EventStore, SyncTransport, TransportError } from "./ports";
 export {

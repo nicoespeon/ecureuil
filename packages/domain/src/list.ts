@@ -58,6 +58,17 @@ export function listForMagasin(state: State, magasinId: string): Liste {
   };
 }
 
+/** Units, not rows: "Lait ×3" counts 3, like the item count on the receipt. */
+export function unitCount(liste: Liste) {
+  const inPanier = units(liste.panier);
+  const leftToTake = liste.sections.reduce((count, section) => count + units(section.articles), 0);
+  return { inPanier, planned: inPanier + leftToTake };
+}
+
+function units(articles: ReadonlyArray<ListArticle>) {
+  return articles.reduce((count, article) => count + article.quantity, 0);
+}
+
 function toListArticle({ id, name, quantity }: Article): ListArticle {
   return { id, name, quantity };
 }
