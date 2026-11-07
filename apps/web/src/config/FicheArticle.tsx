@@ -46,14 +46,14 @@ export function useFicheArticle({
     fiche: (
       <Dialog.Root open={article !== undefined} onOpenChange={(open) => open || setArticleId(null)}>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
+          <Dialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
           <Dialog.Popup
             finalFocus={() =>
               focusAfterClose?.current ??
               ficheTrigger(lastArticleId.current) ??
               focusAfterRemove.current
             }
-            className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-white text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
+            className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-neutral-100 text-neutral-950 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:shadow-xl"
           >
             {article && (
               <FicheContent
@@ -98,8 +98,8 @@ function FicheContent({
 
   return (
     <>
-      <div className="flex h-14 items-center gap-2 border-b border-neutral-300 px-4">
-        <Dialog.Title className="min-w-0 flex-1 truncate text-lg font-semibold">
+      <div className="flex h-16 items-center gap-2 px-4">
+        <Dialog.Title className="min-w-0 flex-1 truncate text-xl font-black">
           {article.name}
         </Dialog.Title>
         <Dialog.Close className={closeClassName}>Fermer</Dialog.Close>
@@ -122,7 +122,7 @@ function FicheContent({
               type="checkbox"
               checked={article.status !== "notToBuy"}
               onChange={(event) => actions.setToBuy(article.id, event.currentTarget.checked)}
-              className="size-6 accent-neutral-900"
+              className="clay-checkbox focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             />
             À acheter
           </label>
@@ -145,7 +145,7 @@ function FicheContent({
             </div>
           ))}
         </fieldset>
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 pt-4">
+        <div className="flex items-center justify-end gap-2 border-t-2 border-neutral-200 pt-4">
           <ConfirmButton
             subject={article.name}
             warning={{ announce, message: `Supprimer ${article.name} ?` }}
@@ -161,7 +161,7 @@ function FicheContent({
   );
 }
 
-const labelClassName = "text-sm font-medium text-neutral-800";
+const labelClassName = "text-sm font-extrabold text-neutral-800";
 
 const closeClassName =
-  "h-11 shrink-0 rounded-md px-3 text-base font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
+  "button-secondary min-h-11 shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";

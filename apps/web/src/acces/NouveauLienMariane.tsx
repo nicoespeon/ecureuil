@@ -77,9 +77,9 @@ function RemplacerLeLien({ disabled, onConfirm }: { disabled: boolean; onConfirm
         Nouveau lien pour Mariane
       </AlertDialog.Trigger>
       <AlertDialog.Portal>
-        <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
-        <AlertDialog.Popup className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl">
-          <AlertDialog.Title className="text-lg font-semibold">
+        <AlertDialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
+        <AlertDialog.Popup className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-neutral-50 p-6 text-neutral-950 shadow-xl">
+          <AlertDialog.Title className="text-xl font-black">
             Remplacer le lien de Mariane ?
           </AlertDialog.Title>
           <AlertDialog.Description className="text-neutral-800">
@@ -106,7 +106,7 @@ function LienCree({ lien }: { lien: string }) {
   useEffect(() => inputRef.current?.focus(), []);
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-neutral-300 p-3">
+    <div className="clay flex flex-col gap-2 rounded-lg p-4">
       <label htmlFor={inputId} className="font-medium">
         Lien de Mariane
       </label>

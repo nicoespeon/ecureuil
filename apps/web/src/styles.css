@@ -1,8 +1,219 @@
 @import "tailwindcss";
+@import "@fontsource-variable/nunito";
+
+/*
+ * Plasticine: a warm cream table, lumps of clay with matte offset shadows, a rounded type.
+ * The neutral scale is warmed so every grey of the app turns to the squirrel's browns.
+ */
+@theme {
+  --font-sans: "Nunito Variable", ui-rounded, system-ui, sans-serif;
+
+  --color-neutral-50: oklch(98.6% 0.01 80);
+  --color-neutral-100: oklch(96.6% 0.022 78);
+  --color-neutral-200: oklch(92.6% 0.032 75);
+  --color-neutral-300: oklch(87% 0.038 70);
+  --color-neutral-400: oklch(70% 0.05 62);
+  --color-neutral-500: oklch(58% 0.055 58);
+  --color-neutral-600: oklch(49% 0.06 55);
+  --color-neutral-700: oklch(42% 0.06 52);
+  --color-neutral-800: oklch(34% 0.055 50);
+  --color-neutral-900: oklch(28% 0.05 48);
+  --color-neutral-950: oklch(24% 0.045 46);
+
+  --color-roux: oklch(54% 0.15 45);
+  --color-roux-800: oklch(42% 0.12 42);
+
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-card);
+}
+
+/* The default variant: big pebbles, a marked relief, the squirrel's russet for the action. */
+:root {
+  --radius-card: 1.5rem;
+  --radius-control: 9999px;
+  --relief: 3px;
+  --clay-edge: oklch(45% 0.06 50 / 0.18);
+  --action: var(--color-roux);
+  --action-edge: var(--color-roux-800);
+  --shadow-raised:
+    0 var(--relief) 0 var(--clay-edge), inset 0 -2px 0 oklch(45% 0.06 50 / 0.06),
+    inset 0 2px 0 oklch(100% 0 0 / 0.7);
+  --shadow-well: inset 0 2px 3px oklch(45% 0.06 50 / 0.22);
+}
+
+/* Softer: flat rows on the table, squarer controls, a lighter relief. */
+[data-variante="a2"] {
+  --radius-card: 0.75rem;
+  --radius-control: 0.625rem;
+  --relief: 2px;
+
+  & .clay-checkbox {
+    border-radius: 0.625rem;
+  }
+}
+
+/* The magasin's hue takes the table and the action; the squirrel keeps the celebrations. */
+[data-variante="a3"] {
+  --color-neutral-100: var(--t-50, oklch(96.6% 0.022 78));
+  --action: var(--t-700, var(--color-roux));
+  --action-edge: var(--t-900, var(--color-roux-800));
+}
+
+[data-tint="indigo"] {
+  --t-50: var(--color-indigo-50);
+  --t-100: var(--color-indigo-100);
+  --t-200: var(--color-indigo-200);
+  --t-700: var(--color-indigo-700);
+  --t-800: var(--color-indigo-800);
+  --t-900: var(--color-indigo-900);
+}
+
+[data-tint="amber"] {
+  --t-50: var(--color-amber-50);
+  --t-100: var(--color-amber-100);
+  --t-200: var(--color-amber-200);
+  --t-700: var(--color-amber-700);
+  --t-800: var(--color-amber-800);
+  --t-900: var(--color-amber-900);
+}
+
+[data-tint="cyan"] {
+  --t-50: var(--color-cyan-50);
+  --t-100: var(--color-cyan-100);
+  --t-200: var(--color-cyan-200);
+  --t-700: var(--color-cyan-700);
+  --t-800: var(--color-cyan-800);
+  --t-900: var(--color-cyan-900);
+}
+
+[data-tint="fuchsia"] {
+  --t-50: var(--color-fuchsia-50);
+  --t-100: var(--color-fuchsia-100);
+  --t-200: var(--color-fuchsia-200);
+  --t-700: var(--color-fuchsia-700);
+  --t-800: var(--color-fuchsia-800);
+  --t-900: var(--color-fuchsia-900);
+}
+
+[data-tint="lime"] {
+  --t-50: var(--color-lime-50);
+  --t-100: var(--color-lime-100);
+  --t-200: var(--color-lime-200);
+  --t-700: var(--color-lime-700);
+  --t-800: var(--color-lime-800);
+  --t-900: var(--color-lime-900);
+}
+
+body {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-950);
+}
+
+/* A lump of clay on the table. */
+@utility clay {
+  background-color: white;
+  box-shadow: var(--shadow-raised);
+}
+
+/* Pressed into the clay: a field, an empty box. */
+@utility clay-well {
+  box-shadow: var(--shadow-well);
+}
+
+/* The one action of the screen: it sinks under the finger. */
+@utility button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: var(--radius-control);
+  background-color: var(--action);
+  color: white;
+  font-weight: 800;
+  box-shadow:
+    0 calc(var(--relief) + 1px) 0 var(--action-edge),
+    inset 0 2px 0 oklch(100% 0 0 / 0.25);
+
+  &:active {
+    box-shadow: 0 1px 0 var(--action-edge);
+    translate: 0 var(--relief);
+  }
+}
+
+@utility button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: var(--radius-control);
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-950);
+  font-weight: 700;
+  box-shadow: var(--shadow-raised);
+
+  &:active {
+    box-shadow: 0 1px 0 var(--clay-edge);
+    translate: 0 calc(var(--relief) - 1px);
+  }
+}
+
+/* The box of the courses: a hollow to fill, then a green pellet with its tick. */
+@utility clay-checkbox {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-neutral-200);
+  box-shadow: var(--shadow-well);
+  cursor: pointer;
+
+  &:checked {
+    background-color: var(--color-emerald-700);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 17 19 7'/%3E%3C/svg%3E");
+    background-size: 1.5rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow:
+      0 var(--relief) 0 var(--color-emerald-900),
+      inset 0 2px 0 oklch(100% 0 0 / 0.3);
+  }
+}
+
+/* A rayon's articles on one pebble; flat on the table in the softer variant. */
+@utility list-card {
+  margin-inline: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background-color: white;
+  box-shadow: var(--shadow-raised);
+
+  [data-variante="a2"] & {
+    margin-inline: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+
+    & > li {
+      border-color: var(--color-neutral-200);
+    }
+  }
+}
+
+/* Nothing slides for who asks for less motion: the shadow alone says the press. */
+@media (prefers-reduced-motion: reduce) {
+  .button-primary:active,
+  .button-secondary:active {
+    translate: none;
+  }
+}
 
 /* Whatever gets the keyboard focus scrolls clear of the sticky header and rayon heading, and of the bottom bar. */
 html {
-  scroll-padding-top: 6rem;
+  scroll-padding-top: 7rem;
   scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 

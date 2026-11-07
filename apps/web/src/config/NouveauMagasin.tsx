@@ -36,15 +36,15 @@ export function NouveauMagasin({
     >
       <Dialog.Trigger className={trigger.className}>{trigger.label}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-30 bg-black/40" />
+        <Dialog.Backdrop className="fixed inset-0 z-30 bg-neutral-950/40" />
         <Dialog.Popup
           finalFocus={!created}
-          className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-white p-5 text-neutral-950 shadow-xl"
+          className="fixed top-1/2 left-1/2 z-40 flex w-96 max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg bg-neutral-50 p-6 text-neutral-950 shadow-xl"
         >
-          <Dialog.Title className="text-lg font-semibold">Nouveau magasin</Dialog.Title>
+          <Dialog.Title className="text-xl font-black">Nouveau magasin</Dialog.Title>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+              <label htmlFor={inputId} className="text-sm font-extrabold text-neutral-800">
                 Nom
               </label>
               <input id={inputId} name="name" autoComplete="off" className={fieldClassName} />
@@ -63,4 +63,4 @@ export function NouveauMagasin({
 }
 
 const cancelClassName =
-  "h-11 rounded-md border border-neutral-400 px-4 text-base font-semibold hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "button-secondary text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";

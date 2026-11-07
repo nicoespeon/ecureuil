@@ -84,13 +84,13 @@ function sectionTitle(section: Section) {
 }
 
 const headingClassName =
-  "sticky top-14 z-10 border-b border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-800";
+  "sticky top-16 z-10 bg-neutral-100 px-5 pt-4 pb-2 text-sm font-black tracking-wide text-neutral-700 uppercase";
 
 /** Rows carry the tint too: a row moving in or out keeps it in its view transition. */
-const panierClassName = "bg-emerald-50 [&_li]:border-emerald-200 [&_li]:bg-emerald-50";
+const panierClassName = "[&_li]:border-emerald-100 [&_li]:bg-emerald-50 [&_ul]:bg-emerald-50";
 
 const panierHeadingClassName =
-  "sticky top-14 z-10 border-b border-emerald-200 bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-900";
+  "sticky top-16 z-10 bg-neutral-100 px-5 pt-4 pb-2 text-sm font-black tracking-wide text-emerald-800 uppercase";
 
 function PasVenduIci({
   magasinName,
@@ -107,7 +107,7 @@ function PasVenduIci({
       <h2
         id={headingId}
         style={{ viewTransitionName: headingTransitionName("pas-vendu-ici") }}
-        className={`${headingClassName} py-0`}
+        className={`${headingClassName} pt-2 pb-0`}
       >
         <Collapsible.Trigger className="group flex min-h-11 w-full items-center gap-2 text-left focus-visible:outline-2 focus-visible:outline-blue-700">
           <svg

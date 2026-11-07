@@ -74,7 +74,7 @@ export function RayonsView({
         accessibility={{ announcements, screenReaderInstructions }}
       >
         <SortableContext items={rayonIds} strategy={verticalListSortingStrategy}>
-          <ul aria-label="Rayons" className="max-w-xl">
+          <ul aria-label="Rayons" className="list-card mx-0! max-w-xl">
             {rayons.map((rayon) => (
               <RayonRow
                 key={rayon.id}
@@ -190,7 +190,7 @@ function NomDuMagasin({
   return (
     <div className="mb-4 flex max-w-xl items-end gap-2">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+        <label htmlFor={inputId} className="text-sm font-extrabold text-neutral-800">
           Nom du magasin
         </label>
         <NameInput
@@ -249,7 +249,7 @@ function NouveauRayon({
   return (
     <form onSubmit={onSubmit} className="mt-4 flex max-w-xl items-end gap-2">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+        <label htmlFor={inputId} className="text-sm font-extrabold text-neutral-800">
           Nouveau rayon
         </label>
         <input id={inputId} name="name" autoComplete="off" className={fieldClassName} />
