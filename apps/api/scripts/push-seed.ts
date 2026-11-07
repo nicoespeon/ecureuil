@@ -1,23 +1,24 @@
-import { seed } from "@ecureuil/domain";
-import { authorizationHeader, journalPath, PushRequest } from "@ecureuil/wire";
+import { authorizationHeader, type Event, journalPath, PushRequest } from "@ecureuil/wire";
 import { Schema } from "effect";
 
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
 /**
- * Pushes the seed's proprietaire events to `POST /journal` with the proprietaire secret.
+ * Pushes a journal's proprietaire events to `POST /journal` with the proprietaire secret.
  * The invite's events are left out: the server refuses a push whose actor is not the lien's role.
  */
-export async function pushSeed({
+export async function pushJournal({
   apiUrl,
   secret,
   fetch,
+  journal,
 }: {
   apiUrl: string;
   secret: string;
   fetch: Fetch;
+  journal: ReadonlyArray<Event>;
 }) {
-  const events = seed.filter(({ actor }) => actor === "proprietaire");
+  const events = journal.filter(({ actor }) => actor === "proprietaire");
   for (const batch of inBatches(events)) {
     const response = await fetch(new URL(journalPath, apiUrl).href, {
       method: "POST",
@@ -31,7 +32,10 @@ export async function pushSeed({
       throw new Error(`POST ${journalPath} : ${response.status} ${await response.text()}${hint}`);
     }
   }
-  return { pushed: events.length, ignored: seed.filter(({ actor }) => actor !== "proprietaire") };
+  return {
+    pushed: events.length,
+    ignored: journal.filter(({ actor }) => actor !== "proprietaire"),
+  };
 }
 
 const hints: Partial<Record<number, string>> = {

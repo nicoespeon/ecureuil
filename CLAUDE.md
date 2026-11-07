@@ -25,6 +25,7 @@ pnpm qa:capture            # screenshots + video of the seed in qa-output/ (QA_O
 pnpm --filter api dev      # http://localhost:8787/health (wrangler, local D1)
 pnpm --filter api db:migrate   # apply apps/api/migrations to the local D1 (--remote for production)
 pnpm --filter api liens        # create (or replace) the two secret links (--remote for production)
+pnpm --filter api seed:foyer <liste.txt> --remote   # the real list of the foyer instead of the dev seed (apps/api/README.md)
 ```
 
 The API (`/journal` push and pull, curl examples) is documented in [`apps/api/README.md`](apps/api/README.md).
