@@ -118,7 +118,6 @@ function ListeScreen({
     >
       <header
         data-tint={tint}
-        style={{ viewTransitionName: "magasins" }}
         className={`sticky top-0 z-20 flex h-16 items-center gap-1 border-b-2 px-2 ${tintClasses.header}`}
       >
         <h1 className="sr-only">Écureuil</h1>
@@ -263,10 +262,7 @@ function MagasinPanel({
 /** Within thumb reach. Hidden when it holds nothing: a trigger alone renders, never a dialog. */
 function BottomBar({ children }: { children: ReactNode }) {
   return (
-    <div
-      style={{ viewTransitionName: "bottom-bar" }}
-      className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-xl gap-3 bg-neutral-100/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden"
-    >
+    <div className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-xl gap-3 bg-neutral-100/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm empty:hidden">
       {children}
     </div>
   );

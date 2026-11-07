@@ -1,5 +1,4 @@
 import { rm } from "node:fs/promises";
-import { join } from "node:path";
 import type { Actor, LienResponse } from "@ecureuil/wire";
 import { expect, type Page, test } from "@playwright/test";
 import { outDir, pause, saveVideo, screenshot } from "./qaCapture";
@@ -11,7 +10,7 @@ const desktop = { viewport: { width: 1280, height: 800 }, isMobile: false, hasTo
 test.beforeAll(() => rm(outDir, { recursive: true, force: true }));
 
 test.describe("captures", () => {
-  // Rows move with a view transition: a still frame mid-move would differ from run to run.
+  // A box mid-pop or a squirrel mid-hop would differ from run to run.
   test.use({ reducedMotion: "reduce" });
 
   test("listes Costco et Maxi", async ({ page }) => {
@@ -262,23 +261,21 @@ test.describe("captures sur desktop", () => {
   });
 });
 
-test("vidéo : passer en Courses, cocher puis terminer les courses", async ({ page }) => {
+test("vidéo : passer en Courses, cocher, décocher, terminer les courses", async ({ page }) => {
   await page.goto("/");
   await pause(page);
   await startCourses(page);
   await pause(page);
   await checkLaitAndBabybel(page);
+  await page.getByRole("checkbox", { name: "Lait", exact: true }).uncheck();
+  await pause(page);
 
   await page.getByRole("button", { name: "Terminer les courses" }).click();
   await pause(page);
   await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
   await expect(page.getByRole("region", { name: "Dans le panier" })).toBeHidden();
   await expect(page.getByRole("switch", { name: "Courses" })).not.toBeChecked();
-  await pause(page);
-
-  // The video is only written once the page closes.
-  await page.close();
-  await page.video()?.saveAs(join(outDir, "courses.webm"));
+  await saveVideo(page, "courses");
 });
 
 test("vidéo : réordonner un rayon au clavier", async ({ page }) => {

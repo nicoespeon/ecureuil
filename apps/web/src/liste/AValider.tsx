@@ -34,7 +34,7 @@ export function AValider({
   };
 
   return (
-    <ListeSection id="a-valider" title={`À valider (${demandes.length})`}>
+    <ListeSection title={`À valider (${demandes.length})`}>
       <ul ref={listRef} className="pebble-list mx-3">
         {demandes.map((demande) => (
           <li

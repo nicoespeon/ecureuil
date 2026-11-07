@@ -174,7 +174,7 @@ test.describe("les fêtes et les micro-victoires", () => {
     await expect.poll(animations).toContain("arrive");
   });
 
-  test("l'écureuil bondit quand tout est dans le panier", async ({ page }) => {
+  test("l'écureuil bondit quand tout est dans le panier, sur l'écran à jour", async ({ page }) => {
     const animations = await recordAnimations(page);
     await page.goto("/");
     await page.getByRole("switch", { name: "Courses" }).click();
@@ -183,11 +183,13 @@ test.describe("les fêtes et les micro-victoires", () => {
 
     await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
     await expect.poll(animations).toContain("hop");
+    // Neither the boxes' pops nor the hop may play hidden under a transition.
+    expect(await animations()).not.toContain("under-view-transition");
   });
 });
 
 test("aucun titre de rayon ne recouvre l'ombre de ce qui est posé au-dessus", async ({ page }) => {
-  // Without the rows' view transition: its overlay would answer every hit test.
+  // A box mid-pop would carry its shadow elsewhere.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.getByRole("switch", { name: "Courses" }).click();
@@ -227,7 +229,7 @@ test("sous reduced-motion, ni la case ni l'écureuil ne bougent", async ({ page 
 });
 
 test.describe("accessibilité", () => {
-  // A row caught mid view transition would be read half transparent.
+  // A still screen: no box mid-pop, no squirrel mid-hop.
   test.use({ reducedMotion: "reduce" });
 
   for (const { name, reach } of screens) {
@@ -258,8 +260,19 @@ async function recordAnimations(page: Page) {
     document.addEventListener("animationstart", (event) => {
       // The browser's own view transition animations are noise here.
       if (event.animationName.startsWith("-ua-")) return;
+      // The old screen's snapshot hides whatever starts under it.
+      const underViewTransition = document
+        .getAnimations()
+        .some(
+          ({ effect }) =>
+            effect instanceof KeyframeEffect &&
+            effect.pseudoElement?.startsWith("::view-transition"),
+        );
+      const name = underViewTransition
+        ? `${event.animationName}-under-view-transition`
+        : event.animationName;
       const seen = document.documentElement.dataset.animations ?? "";
-      document.documentElement.dataset.animations = `${seen} ${event.animationName}`;
+      document.documentElement.dataset.animations = `${seen} ${name}`;
     });
   });
   return async () => (await page.locator("html").getAttribute("data-animations")) ?? "";

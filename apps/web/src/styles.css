@@ -179,10 +179,6 @@ html {
   scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
-::view-transition-group(*) {
-  animation-duration: 180ms;
-}
-
 /* The squirrel's hop and a checked box's pop: nothing moves for who asks for less motion. */
 @media (prefers-reduced-motion: no-preference) {
   .hop {

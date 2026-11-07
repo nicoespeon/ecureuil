@@ -1,7 +1,6 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import type { ListArticle, Liste, Section } from "@ecureuil/domain";
 import { type ReactNode, useId } from "react";
-import { headingTransitionName } from "./animateMove";
 
 type Rows = (articles: ReadonlyArray<ListArticle>) => ReactNode;
 
@@ -23,16 +22,12 @@ export function ListeSections({
   return (
     <>
       {liste.sections.map((section) => (
-        <ListeSection
-          key={sectionKey(section)}
-          id={sectionKey(section)}
-          title={sectionTitle(section)}
-        >
+        <ListeSection key={sectionKey(section)} title={sectionTitle(section)}>
           {toBuyRows(section.articles)}
         </ListeSection>
       ))}
       {liste.panier.length > 0 && (
-        <ListeSection id="panier" title="Dans le panier" tone="panier">
+        <ListeSection title="Dans le panier" tone="panier">
           {panierRows(liste.panier)}
         </ListeSection>
       )}
@@ -46,12 +41,10 @@ export function ListeSections({
 }
 
 export function ListeSection({
-  id,
   title,
   tone = "rayon",
   children,
 }: {
-  id: string;
   title: string;
   /** The panier is not a rayon of the magasin: the whole block is tinted, rows included. */
   tone?: "rayon" | "panier";
@@ -63,11 +56,7 @@ export function ListeSection({
       aria-labelledby={headingId}
       className={tone === "panier" ? panierClassName : undefined}
     >
-      <h2
-        id={headingId}
-        style={{ viewTransitionName: headingTransitionName(id) }}
-        className={tone === "panier" ? panierHeadingClassName : headingClassName}
-      >
+      <h2 id={headingId} className={tone === "panier" ? panierHeadingClassName : headingClassName}>
         {title}
       </h2>
       {children}
@@ -86,8 +75,7 @@ function sectionTitle(section: Section) {
 const headingClassName =
   "sticky-heading px-5 pt-3 pb-2 text-sm font-black tracking-wide text-neutral-700 uppercase";
 
-/** Rows carry the tint too: a row moving in or out keeps it in its view transition. */
-const panierClassName = "[&_li]:border-emerald-100 [&_li]:bg-emerald-50 [&_ul]:bg-emerald-50";
+const panierClassName = "[&_li]:border-emerald-100 [&_ul]:bg-emerald-50";
 
 const panierHeadingClassName =
   "sticky-heading px-5 pt-3 pb-2 text-sm font-black tracking-wide text-emerald-800 uppercase";
@@ -104,11 +92,7 @@ function PasVenduIci({
   const headingId = useId();
   return (
     <Collapsible.Root render={<section aria-labelledby={headingId} />}>
-      <h2
-        id={headingId}
-        style={{ viewTransitionName: headingTransitionName("pas-vendu-ici") }}
-        className={`${headingClassName} pt-2 pb-0`}
-      >
+      <h2 id={headingId} className={`${headingClassName} pt-2 pb-0`}>
         <Collapsible.Trigger className="group flex min-h-11 w-full items-center gap-2 text-left uppercase focus-visible:outline-2 focus-visible:outline-blue-700">
           <svg
             aria-hidden="true"
