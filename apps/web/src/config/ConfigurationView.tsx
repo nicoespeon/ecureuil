@@ -6,9 +6,9 @@ import { Reglages } from "../acces/Reglages";
 import { ArticlesView } from "./ArticlesView";
 import { configActions, createMagasin, type Writer } from "./configActions";
 import { type FicheFoyer, useFicheArticle } from "./FicheArticle";
+import { LiveRegion } from "./LiveRegion";
 import { MagasinTabs } from "./MagasinTabs";
 import { RayonsView } from "./RayonsView";
-
 import { useAnnouncer } from "./useAnnouncer";
 import { useFocusOnMount } from "./useFocusOnMount";
 import { useFocusRequest } from "./useFocusRequest";
@@ -103,10 +103,7 @@ export function ConfigurationView({
         </Tabs.Panel>
       </Tabs.Root>
       {fiche}
-      {/* aria-live keeps it audible while the sheet is open: the dialog hides the rest, live regions aside. */}
-      <p role="status" aria-live="polite" className="sr-only">
-        {announcement}
-      </p>
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

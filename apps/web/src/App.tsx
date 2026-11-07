@@ -10,6 +10,7 @@ import { ConfigurationButton } from "./ConfigurationButton";
 import { ConfigurationView } from "./config/ConfigurationView";
 import { createMagasin, type Writer } from "./config/configActions";
 import { useFicheArticle } from "./config/FicheArticle";
+import { LiveRegion } from "./config/LiveRegion";
 import { NouveauMagasin } from "./config/NouveauMagasin";
 import { useAnnouncer } from "./config/useAnnouncer";
 import { InvitePanel } from "./invite/InvitePanel";
@@ -252,9 +253,7 @@ function MagasinPanel({
         />
       </BottomBar>
       {fiche}
-      <p role="status" className="sr-only">
-        {announcement}
-      </p>
+      <LiveRegion>{announcement}</LiveRegion>
     </>
   );
 }

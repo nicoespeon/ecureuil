@@ -145,14 +145,11 @@ function rows() {
   return within(screen.getByRole("list", { name: "Articles" })).getAllByRole("listitem");
 }
 
-/** The articles shown, without the « Créer » row. */
+/** The articles shown, each with its rayon: the « Créer » row has none. */
 function rowNames() {
-  return rows().flatMap((row) =>
-    within(row)
-      .getAllByRole("button")
-      .filter((button) => button.getAttribute("aria-haspopup") === "dialog")
-      .map((button) => button.textContent),
-  );
+  return rows()
+    .filter((row) => within(row).queryByRole("combobox"))
+    .map((row) => within(row).getAllByRole("button")[0]?.textContent);
 }
 
 function searchbox() {

@@ -20,7 +20,8 @@ export function ArticlesView({
 }) {
   const searchId = useId();
   const [search, setSearch] = useState("");
-  const { shown, exactMatch, nameToCreate } = searchCatalogue(articles, search);
+  const { articles: found, exactMatch, nameToCreate } = searchArticles({ articles }, search);
+  const shown = search.trim() === "" ? byName(articles) : found;
 
   // A new article has no rayon yet: its sheet opens to sort it in every magasin.
   const create = (name: string) => {
@@ -30,8 +31,7 @@ export function ArticlesView({
   };
   // Like the list's quick add: the exact name, the first result, or a new article.
   const openOrCreate = () => {
-    if (search.trim() === "") return;
-    const choice = exactMatch ?? shown[0];
+    const choice = exactMatch ?? found[0];
     if (choice) actions.openFiche(choice.id);
     else if (nameToCreate !== null) create(nameToCreate);
   };
@@ -93,12 +93,6 @@ export function ArticlesView({
   );
 }
 
-/** The whole catalogue by name until a search narrows it. */
-function searchCatalogue(articles: State["articles"], search: string) {
-  const { articles: found, ...result } = searchArticles({ articles }, search);
-  if (search.trim() !== "") return { shown: found, ...result };
-  return {
-    ...result,
-    shown: Object.values(articles).sort((a, b) => a.name.localeCompare(b.name, "fr")),
-  };
+function byName(articles: State["articles"]) {
+  return Object.values(articles).sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }

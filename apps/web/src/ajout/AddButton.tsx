@@ -3,16 +3,25 @@ import type { ReactNode } from "react";
 /** The last row of a search with no article of that exact name, in the list's panel as in the configuration. */
 export function CreateArticleButton({ name, create }: { name: string; create: () => void }) {
   return (
-    <AddButton onClick={create}>
+    <AddButton onClick={create} opensDialog>
       <span className="min-w-0 flex-1 truncate">Créer « {name} »</span>
     </AddButton>
   );
 }
 
-export function AddButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+export function AddButton({
+  onClick,
+  opensDialog = false,
+  children,
+}: {
+  onClick: () => void;
+  opensDialog?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
+      aria-haspopup={opensDialog ? "dialog" : undefined}
       onClick={onClick}
       className={`${rowLayoutClassName} font-bold hover:bg-neutral-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700`}
     >

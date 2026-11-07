@@ -3,6 +3,7 @@ import type { Article, Magasin } from "@ecureuil/domain";
 import { type RefObject, useEffect, useId, useRef, useState } from "react";
 import type { Writer } from "../config/configActions";
 import { useFicheArticle } from "../config/FicheArticle";
+import { LiveRegion } from "../config/LiveRegion";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
 import { AddButton, CreateArticleButton, rowLayoutClassName } from "./AddButton";
@@ -103,9 +104,7 @@ function AjoutPanel({
       ) : (
         <Results {...ajout.result} magasin={magasin} add={ajout.add} create={ajout.create} />
       )}
-      <p role="status" className="sr-only">
-        {announcer.announcement}
-      </p>
+      <LiveRegion>{announcer.announcement}</LiveRegion>
     </>
   );
 }
