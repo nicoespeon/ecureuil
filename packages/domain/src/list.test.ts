@@ -1,7 +1,7 @@
 import { type Actor, Event } from "@ecureuil/wire";
 import { Schema } from "effect";
 import { expect, it } from "vitest";
-import { listForMagasin } from "./list";
+import { listForMagasin, unitCount } from "./list";
 import { fold } from "./reducer";
 
 const decode = Schema.decodeUnknownSync(Event);
@@ -97,5 +97,18 @@ it("retrie la même liste pour un autre magasin sans en changer le contenu", () 
     ],
     pasVenduIci: [],
     panier: [{ id: "eggs", name: "Œufs", quantity: 1 }],
+  });
+});
+
+it("compte les unités dans le panier et prévues, sans ce qui n'est pas vendu ici", () => {
+  const withQuantities = [
+    ...journal,
+    event({ type: "ArticleQuantitySet", payload: { articleId: "eggs", quantity: 3 } }),
+    event({ type: "ArticleQuantitySet", payload: { articleId: "beer", quantity: 6 } }),
+  ];
+
+  expect(unitCount(listForMagasin(fold(withQuantities), "costco"))).toEqual({
+    inPanier: 3,
+    planned: 8,
   });
 });
