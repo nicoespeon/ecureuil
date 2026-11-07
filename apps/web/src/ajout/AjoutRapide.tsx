@@ -188,7 +188,7 @@ function Results({
   create: (name: string) => void;
 }) {
   return (
-    <ul aria-label="Résultats" className="pebble-list">
+    <ul aria-label="Résultats" className="pebble-list mx-3">
       {articles.map((article) => (
         <li key={article.id}>
           <ArticleOption article={article} magasin={magasin} add={add} />
@@ -225,7 +225,7 @@ function Frequents({
       >
         Fréquents
       </h2>
-      <ul className="pebble-list">
+      <ul className="pebble-list mx-3">
         {articles.map((article) => (
           <li key={article.id}>
             <ArticleOption article={article} magasin={magasin} add={add} />
@@ -299,4 +299,4 @@ const closeClassName =
   "button-secondary shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const rowLayoutClassName =
-  "flex min-h-14 w-full items-center gap-3 border-b-2 border-neutral-100 px-4 text-left text-base in-[li:last-child]:border-b-0";
+  "flex min-h-14 w-full items-center gap-3 border-b-2 border-neutral-100 px-4 text-left text-base in-[li:last-child]:border-b-0 rounded-[inherit]";
