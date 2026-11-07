@@ -151,7 +151,7 @@ const sections = [
 ];
 
 const headerButtonClassName =
-  "button-secondary min-h-11 gap-1 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "button-secondary gap-1 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const sectionTabClassName =
   "h-11 flex-1 rounded-full px-4 text-base font-bold text-neutral-700 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 data-active:clay data-active:font-extrabold data-active:text-neutral-950 md:flex-none md:text-left";

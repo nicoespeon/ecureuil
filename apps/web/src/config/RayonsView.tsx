@@ -74,7 +74,7 @@ export function RayonsView({
         accessibility={{ announcements, screenReaderInstructions }}
       >
         <SortableContext items={rayonIds} strategy={verticalListSortingStrategy}>
-          <ul aria-label="Rayons" className="pebble-list mx-0! max-w-xl">
+          <ul aria-label="Rayons" className="pebble-list max-w-xl">
             {rayons.map((rayon) => (
               <RayonRow
                 key={rayon.id}

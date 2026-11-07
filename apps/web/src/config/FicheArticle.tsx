@@ -164,4 +164,4 @@ function FicheContent({
 const labelClassName = "text-sm font-extrabold text-neutral-800";
 
 const closeClassName =
-  "button-secondary min-h-11 shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "button-secondary shrink-0 px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";

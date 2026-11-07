@@ -56,7 +56,7 @@ function idleOrConfirmClassName({
 }
 
 const labelButtonClassName =
-  "button-secondary min-h-11 shrink-0 gap-2 px-4 text-base text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
+  "button-secondary shrink-0 gap-2 px-4 text-base text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const iconButtonClassName =
   "grid size-11 shrink-0 place-items-center rounded-full text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";

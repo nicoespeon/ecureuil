@@ -36,7 +36,7 @@ export function ArticlesView({
           className={fieldClassName}
         />
       </div>
-      <ul aria-label="Articles" className="pebble-list mx-0! mt-3 max-w-2xl">
+      <ul aria-label="Articles" className="pebble-list mt-3 max-w-2xl">
         {shown.map((article) => (
           <li
             key={article.id}
@@ -51,7 +51,7 @@ export function ArticlesView({
             >
               {article.name}
             </button>
-            <div className="w-[48%] max-w-64 shrink-0">
+            <div className="w-[56%] max-w-64 shrink-0">
               <RayonSelect
                 article={article}
                 magasin={magasin}
