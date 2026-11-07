@@ -19,6 +19,7 @@ import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
 import { ListeView } from "./liste/ListeView";
+import { tintClassName, tintForTab } from "./liste/magasinTint";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
 import { useHistoryScreen } from "./useHistoryScreen";
@@ -93,6 +94,8 @@ function ListeScreen({
   configuration: { focusOnMount: boolean; open: () => void };
 }) {
   const { magasins, magasinActif } = foyer;
+  const tint = tintForTab(magasins.findIndex((magasin) => magasin.id === magasinActif.id));
+  const tintClasses = tintClassName(tint);
 
   return (
     <Tabs.Root
@@ -101,8 +104,9 @@ function ListeScreen({
       className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
     >
       <header
+        data-tint={tint}
         style={{ viewTransitionName: "magasins" }}
-        className="sticky top-0 z-20 flex h-14 items-center border-b border-neutral-300 bg-white px-2"
+        className={`sticky top-0 z-20 flex h-14 items-center border-b-2 px-2 ${tintClasses.header}`}
       >
         <h1 className="sr-only">Écureuil</h1>
         <Tabs.List aria-label="Magasin" className="flex h-full min-w-0 gap-1 overflow-x-auto">
@@ -110,7 +114,7 @@ function ListeScreen({
             <Tabs.Tab
               key={magasin.id}
               value={magasin.id}
-              className="h-full shrink-0 whitespace-nowrap border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:border-neutral-950 data-active:text-neutral-950"
+              className={`h-full shrink-0 whitespace-nowrap border-b-4 border-transparent px-4 text-base font-medium text-neutral-700 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 data-active:text-neutral-950 ${tintClasses.activeTab}`}
             >
               {magasin.name}
             </Tabs.Tab>
@@ -118,7 +122,7 @@ function ListeScreen({
         </Tabs.List>
         {writer.actor === "proprietaire" && (
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            <CoursesSwitch mode={mode} setMode={setMode} />
+            <CoursesSwitch mode={mode} setMode={setMode} tint={tint} />
             <ConfigurationButton
               focusOnMount={configuration.focusOnMount}
               onClick={configuration.open}

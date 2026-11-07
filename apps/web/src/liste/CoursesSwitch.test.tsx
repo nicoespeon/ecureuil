@@ -11,6 +11,20 @@ describe("préparer ou faire les courses", () => {
     expect(screen.getByRole("switch", { name: "Courses" })).not.toBeChecked();
   });
 
+  it("dessine le mode au lieu de l'écrire : le mot « Courses » n'est qu'un nom accessible", () => {
+    renderApp();
+
+    expect(screen.queryByText("Courses")).toBeNull();
+  });
+
+  it("survoler l'interrupteur affiche l'infobulle « Courses »", async () => {
+    const { user } = renderApp();
+
+    await user.hover(screen.getByRole("switch", { name: "Courses" }));
+
+    expect(await screen.findByText("Courses", {}, { timeout: 2000 })).toBeVisible();
+  });
+
   it("en Préparer, aucune case à cocher", () => {
     renderApp();
 

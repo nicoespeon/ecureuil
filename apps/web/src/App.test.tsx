@@ -54,6 +54,17 @@ describe("la liste d'un magasin", () => {
     ).toBeVisible();
   });
 
+  it.each([
+    ["Costco", "indigo"],
+    ["Maxi", "amber"],
+  ])("le header de %s, selon sa place dans les onglets, est %s", async (magasin, tint) => {
+    const { user } = renderApp();
+
+    await user.click(screen.getByRole("tab", { name: magasin }));
+
+    expect(screen.getByRole("banner")).toHaveAttribute("data-tint", tint);
+  });
+
   it("s'affiche quand le stockage de l'appareil est bloqué", () => {
     vi.stubGlobal("localStorage", blockedStorage());
 
