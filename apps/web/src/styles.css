@@ -54,13 +54,22 @@ body {
 
 /* A rayon's articles on one pebble. */
 @utility pebble-list {
-  margin-inline: 0.75rem;
   /* Room for the shadow: the next sticky heading would paint over it. */
   margin-bottom: calc(var(--relief) + 2px);
-  overflow: hidden;
   border-radius: var(--radius-pebble);
   background-color: white;
   box-shadow: var(--shadow-raised);
+
+  /* Rounded rows, not a clipped list: a dragged row or a focus ring may step out of it. */
+  & > li:first-child {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+  }
+
+  & > li:last-child {
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
 }
 
 /* The one action of the screen: it sinks under the finger. */
