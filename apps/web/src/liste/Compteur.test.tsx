@@ -20,11 +20,17 @@ const foyer: FoyerSeed = {
   onTheList: ["lait", "pain", "biere"],
 };
 
-describe("le compteur d'unités", () => {
-  it("en Préparer, compte les unités prévues sans ce qui n'est pas vendu ici", () => {
+describe("le compteur d'articles, en unités", () => {
+  it("en Préparer, compte les unités prévues en articles, sans ce qui n'est pas vendu ici", () => {
     renderFoyer(foyer);
 
-    expect(screen.getByText("4 unités")).toBeInTheDocument();
+    expect(screen.getByText("4 articles")).toBeInTheDocument();
+  });
+
+  it("en Préparer, dit « 1 article » au singulier", () => {
+    renderFoyer({ ...foyer, onTheList: ["pain"] });
+
+    expect(screen.getByText("1 article")).toBeInTheDocument();
   });
 
   it("en Courses, lit les unités du panier sur les unités prévues", async () => {
@@ -33,7 +39,7 @@ describe("le compteur d'unités", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
-    expect(screen.getByText("3 unités dans le panier sur 4 prévues")).toBeInTheDocument();
+    expect(screen.getByText("3 articles dans le panier sur 4 prévus")).toBeInTheDocument();
   });
 
   it("en Courses, affiche « 3 / 4 » à côté de « Terminer les courses »", async () => {
@@ -50,13 +56,13 @@ describe("le compteur d'unités", () => {
 
     await startCourses(user);
 
-    expect(screen.getByText("0 unité dans le panier sur 4 prévues")).toBeInTheDocument();
+    expect(screen.getByText("0 article dans le panier sur 4 prévus")).toBeInTheDocument();
   });
 
   it("sans rien à acheter ni dans le panier, pas de compteur", () => {
     renderFoyer({ ...foyer, onTheList: ["biere"] });
 
-    expect(screen.queryByText(/unité/)).toBeNull();
+    expect(screen.queryByText(/article/)).toBeNull();
   });
 });
 

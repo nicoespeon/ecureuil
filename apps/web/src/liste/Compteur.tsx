@@ -2,8 +2,8 @@ import { type Liste, unitCount } from "@ecureuil/domain";
 import type { Mode } from "./useMode";
 
 /**
- * Units, to compare with the item count on the receipt: planned at home, panier over planned in
- * the magasin. The slash is for the eye; a screen reader hears the sentence.
+ * Units, worded "articles" as on the receipt's item count: planned at home, panier over planned
+ * in the magasin. The slash is for the eye; a screen reader hears the sentence.
  */
 export function Compteur({ liste, mode }: { liste: Liste; mode: Mode }) {
   const { inPanier, planned } = unitCount(liste);
@@ -19,7 +19,7 @@ export function Compteur({ liste, mode }: { liste: Liste; mode: Mode }) {
           <span className="sr-only">{inPanierOverPlanned(inPanier, planned)}</span>
         </>
       ) : (
-        units(planned)
+        articles(planned)
       )}
     </p>
   );
@@ -28,10 +28,10 @@ export function Compteur({ liste, mode }: { liste: Liste; mode: Mode }) {
 const plural = new Intl.PluralRules("fr");
 
 function inPanierOverPlanned(inPanier: number, planned: number) {
-  const prevues = plural.select(planned) === "one" ? "prévue" : "prévues";
-  return `${units(inPanier)} dans le panier sur ${planned} ${prevues}`;
+  const prevus = plural.select(planned) === "one" ? "prévu" : "prévus";
+  return `${articles(inPanier)} dans le panier sur ${planned} ${prevus}`;
 }
 
-function units(count: number) {
-  return plural.select(count) === "one" ? `${count} unité` : `${count} unités`;
+function articles(count: number) {
+  return plural.select(count) === "one" ? `${count} article` : `${count} articles`;
 }
