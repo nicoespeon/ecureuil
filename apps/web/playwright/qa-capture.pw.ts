@@ -170,6 +170,49 @@ test.describe("vidéo de l'ajout rapide à 375 px", () => {
   });
 });
 
+test.describe("captures des fêtes à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  test("tout dans le panier, courses terminées, liste vide", async ({ page }) => {
+    await page.goto("/");
+    await startCourses(page);
+    await checkEverythingToBuy(page);
+    await screenshot(page, "tout-dans-le-panier-375", { fullPage: false });
+
+    await page.getByRole("button", { name: "Terminer les courses" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
+    await expect(page.getByRole("region", { name: "Dans le panier" })).toBeHidden();
+    await screenshot(page, "courses-terminees-375", { fullPage: false });
+
+    // Absent on main: the before has no message to close.
+    const fermer = page.getByRole("button", { name: "Fermer" });
+    if (await fermer.isVisible()) await fermer.click();
+    await removeEverythingToBuy(page);
+    await screenshot(page, "liste-vide-375", { fullPage: false });
+  });
+});
+
+test.describe("vidéo des fêtes à 375 px", () => {
+  test.use({ viewport: narrowPhone });
+
+  test("vidéo : ajouter, tout cocher, terminer les courses", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await searchbox(page).pressSequentially("pom", { delay: 200 });
+    await page.getByRole("button", { name: "Pommes" }).click();
+    await page.getByRole("button", { name: "Fermer" }).click();
+    await pause(page);
+    await startCourses(page);
+    await pause(page);
+    await checkEverythingToBuy(page);
+    await pause(page);
+    await page.getByRole("button", { name: "Terminer les courses" }).click();
+    await pause(page);
+    await page.getByRole("alertdialog").getByRole("button", { name: "Terminer" }).click();
+    await saveVideo(page, "fetes");
+  });
+});
+
 test.describe("captures sur desktop", () => {
   test.use({ reducedMotion: "reduce", ...desktop });
 
@@ -425,4 +468,26 @@ async function screenshot(page: Page, name: string, { fullPage = true } = {}) {
 /** Leaves the viewer of the video time to see each step. Stills wait on the UI state, not on it. */
 function pause(page: Page) {
   return page.waitForTimeout(800);
+}
+
+/** Checked by name, then scrolled back up: each check moves its row to the panier. */
+async function checkEverythingToBuy(page: Page) {
+  const names = await page
+    .getByRole("checkbox", { checked: false })
+    .evaluateAll((boxes) => boxes.map((box) => box.getAttribute("aria-label") ?? ""));
+  const panier = page.getByRole("region", { name: "Dans le panier" });
+  for (const name of names) {
+    await page.getByRole("checkbox", { name, exact: true }).click();
+    await expect(panier.getByRole("checkbox", { name, exact: true })).toBeChecked();
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+}
+
+/** Two taps on each trash, the second one confirming. */
+async function removeEverythingToBuy(page: Page) {
+  const trash = page.getByRole("button", { name: /^Retirer .+ de la liste$/ }).first();
+  while (await trash.isVisible()) {
+    await trash.click();
+    await page.getByRole("button", { name: /^Retirer .+ \?$/ }).click();
+  }
 }
