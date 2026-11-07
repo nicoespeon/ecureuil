@@ -20,7 +20,7 @@
     "@cloudflare/vitest-plugin": "1.5.1",
     "@cloudflare/workers-types": "5.20261104.1",
     "@ecureuil/domain": "workspace:*",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.6",
     "tsx": "4.23.15",
     "vitest": "5.1.0",
     "wrangler": "4.157.0"
