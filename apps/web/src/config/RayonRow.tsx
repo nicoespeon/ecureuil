@@ -31,7 +31,7 @@ export function RayonRow({
         transform: CSS.Transform.toString(sortable.transform),
         transition: sortable.transition,
       }}
-      className={`flex items-center gap-1 border-b border-neutral-200 bg-white py-1 ${sortable.isDragging ? "relative z-10 shadow-lg" : ""}`}
+      className={`flex items-center gap-1 border-b-2 border-neutral-100 bg-white py-1 last:border-b-0 ${sortable.isDragging ? "relative z-10 shadow-lg" : ""}`}
     >
       <button
         ref={sortable.setActivatorNodeRef}
@@ -39,7 +39,7 @@ export function RayonRow({
         data-rayon-id={rayon.id}
         {...sortable.attributes}
         {...sortable.listeners}
-        className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-md text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 active:cursor-grabbing"
+        className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-full text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 active:cursor-grabbing"
       >
         <GripIcon />
         <span className="sr-only">Déplacer {rayon.name}</span>
@@ -77,7 +77,7 @@ function MoveButton({
       type="button"
       aria-disabled={onMove === undefined}
       onClick={onMove}
-      className="grid size-11 shrink-0 place-items-center rounded-md text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 aria-disabled:text-neutral-400 aria-disabled:hover:bg-transparent"
+      className="grid size-11 shrink-0 place-items-center rounded-full text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700 aria-disabled:text-neutral-400 aria-disabled:hover:bg-transparent"
     >
       <svg
         aria-hidden="true"

@@ -24,7 +24,7 @@ export function ArticlesView({
   return (
     <div className="p-4">
       <div className="flex max-w-2xl flex-col gap-1">
-        <label htmlFor={searchId} className="text-sm font-medium text-neutral-800">
+        <label htmlFor={searchId} className="text-sm font-extrabold text-neutral-800">
           Rechercher un article
         </label>
         <input
@@ -36,19 +36,22 @@ export function ArticlesView({
           className={fieldClassName}
         />
       </div>
-      <ul aria-label="Articles" className="mt-2 max-w-2xl">
+      <ul aria-label="Articles" className="pebble-list mt-3 max-w-2xl">
         {shown.map((article) => (
-          <li key={article.id} className="flex items-center gap-2 border-b border-neutral-200 py-1">
+          <li
+            key={article.id}
+            className="flex items-center gap-2 border-b-2 border-neutral-100 px-2 py-1 last:border-b-0"
+          >
             <button
               type="button"
               aria-haspopup="dialog"
               data-fiche-article-id={article.id}
               onClick={() => actions.openFiche(article.id)}
-              className="min-h-11 min-w-0 flex-1 rounded-md px-1 text-left text-base break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-700"
+              className="min-h-11 min-w-0 flex-1 rounded-md px-1 text-left text-base font-bold break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-700"
             >
               {article.name}
             </button>
-            <div className="w-[48%] max-w-64 shrink-0">
+            <div className="w-[56%] max-w-64 shrink-0">
               <RayonSelect
                 article={article}
                 magasin={magasin}
