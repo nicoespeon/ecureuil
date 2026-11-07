@@ -168,7 +168,7 @@ function readOnlyRows(articles: ReadonlyArray<ListArticle>) {
         >
           <span className="min-w-0 truncate">{article.name}</span>
           {article.quantity > 1 && (
-            <span className="ml-2 rounded-full bg-(--t-100) px-2 text-sm font-extrabold text-(--t-900)">
+            <span className="ml-2 rounded-full bg-neutral-200 px-2 text-sm font-extrabold text-neutral-900">
               <span aria-hidden="true">×{article.quantity}</span>
               <span className="sr-only">quantité {article.quantity}</span>
             </span>
