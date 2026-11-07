@@ -67,7 +67,7 @@ export function ListeView({
           <ToBuyRows articles={articles} actions={rowActions} mode={mode} arrived={arrived} />
         )}
         panierRows={(articles) => (
-          <ul>
+          <ul className="pebble-list mx-3">
             {articles.map((article) => (
               <PanierRow
                 key={article.id}
@@ -130,7 +130,7 @@ function ToBuyRows({
   arrived: ReadonlySet<string>;
 }) {
   return (
-    <ul>
+    <ul className="pebble-list mx-3">
       {articles.map((article) => (
         <ToBuyRow
           key={article.id}

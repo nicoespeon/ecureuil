@@ -25,14 +25,14 @@ export function CoursesSwitch({
         aria-checked={on}
         aria-label="Courses"
         onClick={() => setMode(on ? "preparer" : "courses")}
-        className="grid h-11 place-items-center rounded-md px-1 focus-visible:outline-2 focus-visible:outline-blue-700"
+        className="grid h-11 place-items-center rounded-full px-1 focus-visible:outline-2 focus-visible:outline-blue-700"
       >
         <span
           aria-hidden="true"
-          className={`relative block h-9 w-16 rounded-full motion-safe:transition-colors ${on ? tintClassName(tint).track : "bg-neutral-600"}`}
+          className={`clay-well relative block h-9 w-16 rounded-full motion-safe:transition-colors ${on ? tintClassName(tint).track : "bg-neutral-600"}`}
         >
           <span
-            className={`absolute top-1 left-1 size-7 rounded-full bg-white shadow motion-safe:transition-transform ${on ? "translate-x-7" : ""}`}
+            className={`clay absolute top-1 left-1 size-7 rounded-full motion-safe:transition-transform ${on ? "translate-x-7" : ""}`}
           />
           <HouseIcon className={`left-2.5 ${on ? "text-white" : "text-neutral-900"}`} />
           <CartIcon className={`left-[2.375rem] ${on ? "text-neutral-900" : "text-white"}`} />
@@ -40,7 +40,7 @@ export function CoursesSwitch({
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner sideOffset={4} className="z-30">
-          <Tooltip.Popup className="rounded-md bg-neutral-900 px-2 py-1 text-sm text-white">
+          <Tooltip.Popup className="rounded-lg bg-neutral-950 px-2 py-1 text-sm font-bold text-white">
             Courses
           </Tooltip.Popup>
         </Tooltip.Positioner>

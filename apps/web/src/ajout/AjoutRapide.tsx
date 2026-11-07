@@ -29,9 +29,7 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
   return (
     // The panel's live region opens silent, not with the last opening's words.
     <Dialog.Root onOpenChange={(open) => open && announcer.clear()}>
-      <Dialog.Trigger
-        className={`${buttonClassName} grow whitespace-nowrap border border-neutral-400 bg-white`}
-      >
+      <Dialog.Trigger className="button-primary h-14 grow whitespace-nowrap text-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
         <span aria-hidden="true" className="mr-2">
           +
         </span>
@@ -288,9 +286,6 @@ function articlesFound(count: number) {
   if (count === 0) return "Aucun article trouvé";
   return plural.select(count) === "one" ? `${count} article trouvé` : `${count} articles trouvés`;
 }
-
-const buttonClassName =
-  "h-12 rounded-md px-4 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 const closeClassName =
   "h-11 shrink-0 rounded-md px-3 text-base font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-blue-700";
