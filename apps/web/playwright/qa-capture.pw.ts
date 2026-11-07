@@ -185,7 +185,7 @@ test.describe("captures des fêtes à 375 px", () => {
     await screenshot(page, "courses-terminees-375", { fullPage: false });
 
     // Absent on main: the before has no message to close.
-    const fermer = page.getByRole("button", { name: "Fermer" });
+    const fermer = page.getByRole("button", { name: "Fermer le message" });
     if (await fermer.isVisible()) await fermer.click();
     await removeEverythingToBuy(page);
     await screenshot(page, "liste-vide-375", { fullPage: false });

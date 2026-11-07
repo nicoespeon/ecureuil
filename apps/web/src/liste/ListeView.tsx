@@ -37,7 +37,14 @@ export function ListeView({
     check: (article: ListArticle) => {
       focusNeighborOf(article.id);
       actions.check(article.id);
-      actions.announce(`${article.name} dans le panier`);
+      const othersToBuy = liste.sections.some((section) =>
+        section.articles.some((other) => other.id !== article.id),
+      );
+      actions.announce(
+        othersToBuy
+          ? `${article.name} dans le panier`
+          : `${article.name} dans le panier. Tout est dans le panier !`,
+      );
     },
     uncheck: (article: ListArticle) => {
       focusNeighborOf(article.id);

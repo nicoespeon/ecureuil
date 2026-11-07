@@ -1,13 +1,20 @@
-import type { Celebration } from "./celebration";
+import type { RefObject } from "react";
+import { celebrationFor } from "./celebration";
 import { Ecureuil } from "./Ecureuil";
 
+/** The squirrel's message for the list as it stands, if the moment calls for one. */
 export function CelebrationBanner({
-  celebration,
-  onDismiss,
+  moment,
+  dismiss,
+  focusAfterDismiss,
 }: {
-  celebration: Celebration;
-  onDismiss: () => void;
+  moment: Parameters<typeof celebrationFor>[0];
+  dismiss: () => void;
+  /** The close button leaves with the message: the focus goes here instead of the page. */
+  focusAfterDismiss: RefObject<HTMLElement | null>;
 }) {
+  const celebration = celebrationFor(moment);
+  if (!celebration) return null;
   const { title, detail, pose, dismissable } = celebration;
   return (
     <div
@@ -24,8 +31,11 @@ export function CelebrationBanner({
       {dismissable && (
         <button
           type="button"
-          aria-label="Fermer"
-          onClick={onDismiss}
+          aria-label="Fermer le message"
+          onClick={() => {
+            dismiss();
+            focusAfterDismiss.current?.focus();
+          }}
           className="grid size-11 shrink-0 place-items-center rounded-md text-xl hover:bg-white/60 focus-visible:outline-2 focus-visible:outline-blue-700"
         >
           <span aria-hidden="true">×</span>

@@ -41,9 +41,42 @@ describe("les moments de fête", () => {
     await checkLaitAndBabybel(user);
     await finishSortie(user);
 
-    await user.click(screen.getByRole("button", { name: "Fermer" }));
+    await user.click(screen.getByRole("button", { name: "Fermer le message" }));
 
     expect(screen.queryByText("Courses terminées")).toBeNull();
+  });
+
+  it("« Fermer le message » rend le focus à la liste", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
+    await checkLaitAndBabybel(user);
+    await finishSortie(user);
+
+    await user.click(screen.getByRole("button", { name: "Fermer le message" }));
+
+    expect(screen.getByRole("tabpanel", { name: "Costco" })).toHaveFocus();
+  });
+
+  it("passer à un autre magasin range le message de fin des courses", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
+    await checkLaitAndBabybel(user);
+    await finishSortie(user);
+
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+
+    expect(screen.queryByText("Courses terminées")).toBeNull();
+  });
+
+  it("annonce que tout est dans le panier", async () => {
+    const { user } = renderApp();
+    await startCourses(user);
+
+    await checkEverythingToBuy(user);
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /dans le panier\. Tout est dans le panier !$/,
+    );
   });
 
   it("une liste vide le dit", async () => {

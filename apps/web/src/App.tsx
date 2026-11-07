@@ -19,7 +19,7 @@ import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
 import { CelebrationBanner } from "./liste/CelebrationBanner";
 import { CoursesSwitch } from "./liste/CoursesSwitch";
-import { celebrationFor, putAwayText } from "./liste/celebration";
+import { putAwayText } from "./liste/celebration";
 import { ListeView } from "./liste/ListeView";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
@@ -105,7 +105,11 @@ function ListeScreen({
   return (
     <Tabs.Root
       value={magasinActif.id}
-      onValueChange={(value) => typeof value === "string" && foyer.selectMagasin(value)}
+      onValueChange={(value) => {
+        if (typeof value !== "string") return;
+        setPutAway(undefined);
+        foyer.selectMagasin(value);
+      }}
       className="mx-auto min-h-dvh max-w-xl bg-white text-neutral-950"
     >
       <header
@@ -166,7 +170,7 @@ function MagasinPanel({
   foyer: FoyerWithListe;
   writer: Writer;
   mode: Mode;
-  /** The sortie just finished, until its message is closed or the mode changes. */
+  /** The sortie just finished, until its message is closed, or the mode or magasin changes. */
   finished: {
     putAway: number | undefined;
     finish: (putAway: number) => void;
@@ -182,19 +186,15 @@ function MagasinPanel({
     focusAfterRemove: panelRef,
   });
   const { magasinActif: magasin, liste } = foyer;
-  const celebration = celebrationFor({
-    liste,
-    mode,
-    magasinName: magasin.name,
-    putAway: finished.putAway,
-  });
 
   return (
     <>
       <Tabs.Panel ref={panelRef} value={magasin.id} className="outline-none">
-        {celebration && (
-          <CelebrationBanner celebration={celebration} onDismiss={finished.dismiss} />
-        )}
+        <CelebrationBanner
+          moment={{ liste, mode, magasinName: magasin.name, putAway: finished.putAway }}
+          dismiss={finished.dismiss}
+          focusAfterDismiss={panelRef}
+        />
         <AValider
           demandes={pendingDemandes(foyer.state)}
           actions={{

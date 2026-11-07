@@ -98,7 +98,7 @@ const screens: ReadonlyArray<{ name: string; reach: (page: Page) => Promise<unkn
     reach: async (page) => {
       await page.getByRole("switch", { name: "Courses" }).click();
       await checkEverythingToBuy(page);
-      await expect(page.getByText("Tout est dans le panier !")).toBeVisible();
+      await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
     },
   },
   {
@@ -181,7 +181,7 @@ test.describe("les fêtes et les micro-victoires", () => {
 
     await checkEverythingToBuy(page);
 
-    await expect(page.getByText("Tout est dans le panier !")).toBeVisible();
+    await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
     await expect.poll(animations).toContain("hop");
   });
 });
@@ -194,7 +194,7 @@ test("sous reduced-motion, ni la case ni l'écureuil ne bougent", async ({ page 
 
   await checkEverythingToBuy(page);
 
-  await expect(page.getByText("Tout est dans le panier !")).toBeVisible();
+  await expect(page.getByText("Tout est dans le panier !", { exact: true })).toBeVisible();
   expect(await animations()).not.toMatch(/\b(pop|hop)\b/);
 });
 
