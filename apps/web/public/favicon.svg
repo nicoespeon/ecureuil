@@ -1,7 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Écureuil</title>
-  <rect width="512" height="512" fill="#fef3c7"/>
-  <path d="M164 236c0 92 50 158 92 178 42-20 92-86 92-178z" fill="#b45309"/>
-  <path d="M128 252c0-66 58-106 128-106s128 40 128 106z" fill="#78350f"/>
-  <path d="M246 150c0-24 10-42 30-54l12 14c-14 10-22 24-22 40z" fill="#78350f"/>
+  <defs>
+    <!-- The mascot's plasticine filter (src/liste/Ecureuil.tsx), scaled to 512, lit from the top left. -->
+    <filter id="clay" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009" numOctaves="1" seed="4" result="lumps"/>
+      <feDisplacementMap in="SourceGraphic" in2="lumps" scale="7" result="shape"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset in="blur" dx="-7" dy="-9.1" result="towardsLight"/>
+      <feComposite in="SourceAlpha" in2="towardsLight" operator="out" result="darkRim"/>
+      <feFlood flood-color="#5A2A0C" flood-opacity="0.3"/>
+      <feComposite in2="darkRim" operator="in" result="innerShade"/>
+      <feOffset in="blur" dx="7" dy="9.1" result="awayFromLight"/>
+      <feComposite in="SourceAlpha" in2="awayFromLight" operator="out" result="lightRim"/>
+      <feFlood flood-color="#FFF4E0" flood-opacity="0.22"/>
+      <feComposite in2="lightRim" operator="in" result="innerLight"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.3" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.14 0" result="grainAlpha"/>
+      <feComposite in="grainAlpha" in2="shape" operator="in" result="grainInShape"/>
+      <feMerge>
+        <feMergeNode in="shape"/>
+        <feMergeNode in="innerShade"/>
+        <feMergeNode in="innerLight"/>
+        <feMergeNode in="grainInShape"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#fcf2e4"/>
+  <ellipse cx="256" cy="432" rx="84" ry="11" fill="#000" opacity="0.1"/>
+  <g filter="url(#clay)">
+    <path d="M160 236 C160 332 214 404 256 424 C298 404 352 332 352 236 Z" fill="#C08A45"/>
+    <ellipse cx="256" cy="424" rx="9" ry="11" fill="#9C6630"/>
+    <ellipse cx="212" cy="314" rx="16" ry="42" transform="rotate(-14 212 314)" fill="#DDA862"/>
+    <ellipse cx="256" cy="262" rx="94" ry="20" fill="#9C6630" opacity="0.7"/>
+  </g>
+  <g filter="url(#clay)">
+    <path d="M252 150 C247 122 256 100 276 88" fill="none" stroke="#6E4320" stroke-width="28" stroke-linecap="round"/>
+    <path d="M128 254 C126 184 186 138 256 138 C326 138 386 184 384 254 C362 274 150 274 128 254 Z" fill="#6E4320"/>
+  </g>
 </svg>
