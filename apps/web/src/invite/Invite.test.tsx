@@ -6,27 +6,18 @@ import { renderApp } from "../config/renderApp";
 import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import { inMemoryJournal } from "../journal/journal";
 
-describe("la liste vue par l'invité", () => {
-  it("montre les articles du magasin sans case à cocher ni « Terminer les courses »", () => {
+describe("l'écran de l'invité", () => {
+  it("ne montre ni onglet Magasin ni la liste", () => {
     renderApp({ role: "invite" });
 
-    expect(section("Produits laitiers").getByText("Lait")).toBeVisible();
-    expect(screen.queryByRole("checkbox")).toBeNull();
-    expect(screen.queryByRole("button", { name: /Terminer les courses/ })).toBeNull();
+    expect(screen.queryByRole("tablist", { name: "Magasin" })).toBeNull();
+    expect(screen.queryByText("Lait")).toBeNull();
   });
 
   it("ne donne pas accès à la configuration", () => {
     renderApp({ role: "invite" });
 
     expect(screen.queryByRole("button", { name: "Configuration" })).toBeNull();
-  });
-
-  it("montre la quantité à côté de Lait", () => {
-    renderApp({ role: "invite" });
-
-    expect(section("Produits laitiers").getByText("Lait").closest("li")).toHaveTextContent(
-      "Lait×3",
-    );
   });
 });
 
@@ -147,6 +138,22 @@ describe("mes demandes", () => {
     renderApp({ role: "invite", journal });
 
     expect(screen.queryByRole("region", { name: "Mes demandes" })).toBeNull();
+  });
+
+  it("sans demande, dit quoi faire", () => {
+    const journal = inMemoryJournal(seed);
+    appendEvent(
+      journal,
+      written("proprietaire", "DemandeRefused", { demandeId: "demande-chocolat-chaud" }),
+    );
+
+    renderApp({ role: "invite", journal });
+
+    expect(
+      screen.getByText(
+        "Écrivez ce qu'il manque : vos demandes attendent ici qu'on les mette sur la liste.",
+      ),
+    ).toBeVisible();
   });
 });
 
