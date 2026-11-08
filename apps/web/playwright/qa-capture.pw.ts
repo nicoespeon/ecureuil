@@ -408,7 +408,6 @@ async function enterAs(page: Page, role: Actor) {
     role === "invite" ? "secret-qa-invite" : null,
   );
   await page.reload();
-  await expect(page.getByRole("tab", { name: "Costco" })).toBeVisible();
 }
 
 async function captureConfiguration(page: Page, suffix: string) {

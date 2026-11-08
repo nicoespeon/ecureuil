@@ -13,7 +13,7 @@ import { useFicheArticle } from "./config/FicheArticle";
 import { LiveRegion } from "./config/LiveRegion";
 import { NouveauMagasin } from "./config/NouveauMagasin";
 import { useAnnouncer } from "./config/useAnnouncer";
-import { InvitePanel } from "./invite/InvitePanel";
+import { InviteScreen } from "./invite/InviteScreen";
 import type { Journal } from "./journal/journal";
 import { type FoyerWithListe, useFoyer } from "./journal/useFoyer";
 import { AValider } from "./liste/AValider";
@@ -59,6 +59,7 @@ export function App({
         }
       />
     );
+  if (role === "invite") return <InviteScreen foyer={{ ...foyer, magasinActif, liste }} />;
   if (screen === "configuration")
     return (
       <ConfigurationView
@@ -122,34 +123,28 @@ function ListeScreen({
       >
         <h1 className="sr-only">Écureuil</h1>
         <MagasinTabList magasins={magasins} tabClassName={tintClasses.tab} />
-        {writer.actor === "proprietaire" && (
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            <CoursesSwitch mode={mode} setMode={changeMode} tint={tint} />
-            <ConfigurationButton
-              focusOnMount={configuration.focusOnMount}
-              onClick={configuration.open}
-            />
-          </div>
-        )}
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <CoursesSwitch mode={mode} setMode={changeMode} tint={tint} />
+          <ConfigurationButton
+            focusOnMount={configuration.focusOnMount}
+            onClick={configuration.open}
+          />
+        </div>
       </header>
       <main>
-        {writer.actor === "invite" ? (
-          <InvitePanel foyer={foyer} />
-        ) : (
-          <MagasinPanel
-            foyer={foyer}
-            writer={writer}
-            mode={mode}
-            finished={{
-              putAway,
-              finish: (count) => {
-                changeMode("preparer");
-                setPutAway(count);
-              },
-              dismiss: () => setPutAway(undefined),
-            }}
-          />
-        )}
+        <MagasinPanel
+          foyer={foyer}
+          writer={writer}
+          mode={mode}
+          finished={{
+            putAway,
+            finish: (count) => {
+              changeMode("preparer");
+              setPutAway(count);
+            },
+            dismiss: () => setPutAway(undefined),
+          }}
+        />
       </main>
     </Tabs.Root>
   );

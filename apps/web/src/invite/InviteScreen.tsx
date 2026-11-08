@@ -1,49 +1,50 @@
-import { Tabs } from "@base-ui/react/tabs";
-import { type Demande, duplicateOf, type ListArticle, pendingDemandes } from "@ecureuil/domain";
+import { type Demande, duplicateOf, pendingDemandes } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { FoyerWithListe } from "../journal/useFoyer";
 import { TrashIcon } from "../liste/ArticleRow";
-import { ListeSections } from "../liste/ListeSections";
+import { Ecureuil } from "../liste/Ecureuil";
 import { useFocusNextDemande } from "../liste/useFocusNextDemande";
 
-/** What the invite sees: the list to read, a field to ask for more, and what still waits. */
-export function InvitePanel({ foyer }: { foyer: FoyerWithListe }) {
+/**
+ * What the invite sees: a field to ask, and what still waits. No magasin and no list, so
+ * nothing reads as a choice of where to buy.
+ */
+export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
   const { announcement, announce } = useAnnouncer();
   const [duplicate, setDuplicate] = useState<Duplicate>();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { magasinActif: magasin, liste } = foyer;
 
   return (
-    <Tabs.Panel value={magasin.id} className="pb-24 outline-none">
-      <AjouterDemande
-        inputRef={inputRef}
-        askFor={(name) => {
-          const found = duplicateOf(foyer.state, name);
-          setDuplicate(found);
-          if (found === undefined) foyer.askFor(name);
-          announce(found === undefined ? `${name} demandé` : duplicateMessages[found]);
-        }}
-        message={announcement}
-        // The new demande at the top of "Mes demandes" says it all; only a refusal needs words.
-        showMessage={duplicate !== undefined}
-      />
-      <MesDemandes
-        demandes={pendingDemandes(foyer.state).toReversed()}
-        withdraw={(demande) => {
-          setDuplicate(undefined);
-          foyer.withdrawDemande(demande);
-          announce(`${demande.name} retiré`);
-        }}
-        focusAfterLast={inputRef}
-      />
-      <ListeSections
-        liste={liste}
-        magasinName={magasin.name}
-        toBuyRows={readOnlyRows}
-        panierRows={readOnlyRows}
-      />
-    </Tabs.Panel>
+    <div className="mx-auto min-h-dvh max-w-xl">
+      <header className="flex h-16 items-center gap-2 border-b-2 border-neutral-200 px-4">
+        <Ecureuil size={40} />
+        <h1 className="text-2xl font-black">Écureuil</h1>
+      </header>
+      <main className="pb-8">
+        <AjouterDemande
+          inputRef={inputRef}
+          askFor={(name) => {
+            const found = duplicateOf(foyer.state, name);
+            setDuplicate(found);
+            if (found === undefined) foyer.askFor(name);
+            announce(found === undefined ? `${name} demandé` : duplicateMessages[found]);
+          }}
+          message={announcement}
+          // The new demande at the top of "Mes demandes" says it all; only a refusal needs words.
+          showMessage={duplicate !== undefined}
+        />
+        <MesDemandes
+          demandes={pendingDemandes(foyer.state).toReversed()}
+          withdraw={(demande) => {
+            setDuplicate(undefined);
+            foyer.withdrawDemande(demande);
+            announce(`${demande.name} retiré`);
+          }}
+          focusAfterLast={inputRef}
+        />
+      </main>
+    </div>
   );
 }
 
@@ -109,8 +110,8 @@ function AjouterDemande({
 }
 
 /**
- * Only what still waits: a verdict is said out loud, not shown. A tinted card, newest first, so
- * it does not read as one more rayon of the list.
+ * Only what still waits: a verdict is said out loud, not shown. A tinted card, newest first. Empty,
+ * it says what the field is for.
  */
 function MesDemandes({
   demandes,
@@ -123,7 +124,12 @@ function MesDemandes({
 }) {
   const headingId = useId();
   const { listRef, focusNeighborOf } = useFocusNextDemande(focusAfterLast);
-  if (demandes.length === 0) return null;
+  if (demandes.length === 0)
+    return (
+      <p className="px-6 text-neutral-700">
+        Écrivez ce qu'il manque : vos demandes attendent ici qu'on les mette sur la liste.
+      </p>
+    );
   return (
     <section aria-labelledby={headingId} className="clay mx-3 mb-2 rounded-pebble bg-amber-50">
       <h2
@@ -155,26 +161,5 @@ function MesDemandes({
         ))}
       </ul>
     </section>
-  );
-}
-
-function readOnlyRows(articles: ReadonlyArray<ListArticle>) {
-  return (
-    <ul className="pebble-list mx-3">
-      {articles.map((article) => (
-        <li
-          key={article.id}
-          className="flex min-h-14 items-center border-b-2 border-neutral-100 px-4 font-bold last:border-b-0"
-        >
-          <span className="min-w-0 truncate">{article.name}</span>
-          {article.quantity > 1 && (
-            <span className="ml-2 rounded-full bg-neutral-200 px-2 text-sm font-extrabold text-neutral-900">
-              <span aria-hidden="true">×{article.quantity}</span>
-              <span className="sr-only">quantité {article.quantity}</span>
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
   );
 }
