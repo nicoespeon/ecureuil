@@ -24,7 +24,6 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
   const { openFiche, fiche } = useFicheArticle({
     foyer,
     writer,
-    announce: announcer.announce,
     focusAfterRemove: searchRef,
     focusAfterClose: searchRef,
   });

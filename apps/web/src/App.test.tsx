@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { accesStore } from "./acces/acces";
-import { statusTexts } from "./config/renderApp";
+import { shownMessages, statusTexts } from "./config/renderApp";
 import { inMemoryJournal, type Journal } from "./journal/journal";
 
 describe("la liste d'un magasin", () => {
@@ -234,6 +234,15 @@ describe("retirer de la liste", () => {
     await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
 
     expect(screen.queryByRole("button", { name: "Babybel" })).toBeNull();
+  });
+
+  it("le retrait de Babybel le dit", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
+
+    await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
+
+    expect(shownMessages()).toEqual(["Babybel retiré de la liste"]);
   });
 
   it("donne le focus à la poubelle de l'article suivant après le retrait de Babybel", async () => {

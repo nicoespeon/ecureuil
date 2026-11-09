@@ -2,6 +2,7 @@ import type { Magasin, State } from "@ecureuil/domain";
 import { useId, useState } from "react";
 import { CreateArticleButton } from "../ajout/AddButton";
 import { searchArticles } from "../ajout/suggestions";
+import { useMessage } from "../message/Message";
 import { fieldClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
 import { RayonSelect } from "./RayonSelect";
@@ -15,26 +16,13 @@ export function ArticlesView({
   articles: State["articles"];
   actions: Pick<ConfigActions, "setArticleRayon" | "createArticle"> & {
     readonly openFiche: (articleId: string) => void;
-    readonly announce: (message: string) => void;
   };
 }) {
   const searchId = useId();
-  const [search, setSearch] = useState("");
-  const { articles: found, exactMatch, nameToCreate } = searchArticles({ articles }, search);
-  const shown = search.trim() === "" ? byName(articles) : found;
-
-  // A new article has no rayon yet: its sheet opens to sort it in every magasin.
-  const create = (name: string) => {
-    const articleId = actions.createArticle(name);
-    actions.announce(`Au catalogue : ${name}`);
-    actions.openFiche(articleId);
-  };
-  // Like the list's quick add: the exact name, the first result, or a new article.
-  const openOrCreate = () => {
-    const choice = exactMatch ?? found[0];
-    if (choice) actions.openFiche(choice.id);
-    else if (nameToCreate !== null) create(nameToCreate);
-  };
+  const { search, setSearch, shown, nameToCreate, create, openOrCreate } = useArticleSearch(
+    articles,
+    actions,
+  );
 
   return (
     <div className="p-4">
@@ -91,6 +79,39 @@ export function ArticlesView({
       </ul>
     </div>
   );
+}
+
+/** The articles matching the search, and what Enter or « Créer » does with it. */
+function useArticleSearch(
+  articles: State["articles"],
+  actions: Pick<ConfigActions, "createArticle"> & {
+    readonly openFiche: (articleId: string) => void;
+  },
+) {
+  const showMessage = useMessage();
+  const [search, setSearch] = useState("");
+  const { articles: found, exactMatch, nameToCreate } = searchArticles({ articles }, search);
+
+  // A new article has no rayon yet: its sheet opens to sort it in every magasin.
+  const create = (name: string) => {
+    const articleId = actions.createArticle(name);
+    showMessage(`Au catalogue : ${name}`);
+    actions.openFiche(articleId);
+  };
+
+  return {
+    search,
+    setSearch,
+    shown: search.trim() === "" ? byName(articles) : found,
+    nameToCreate,
+    create,
+    // Like the list's quick add: the exact name, the first result, or a new article.
+    openOrCreate: () => {
+      const choice = exactMatch ?? found[0];
+      if (choice) actions.openFiche(choice.id);
+      else if (nameToCreate !== null) create(nameToCreate);
+    },
+  };
 }
 
 function byName(articles: State["articles"]) {

@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { inMemoryJournal } from "../journal/journal";
-import { renderApp } from "./renderApp";
+import { renderApp, shownMessages } from "./renderApp";
 
 describe("créer un magasin", () => {
   it("le « + » ouvre une fenêtre ; le magasin créé devient actif, avec les rayons par défaut", async () => {
@@ -29,7 +29,7 @@ describe("créer un magasin", () => {
     await createMagasin(user, "IGA");
 
     expect(screen.getByRole("textbox", { name: "Nom du magasin" })).toHaveFocus();
-    expect(screen.getByText("Magasin IGA créé.")).toHaveRole("status");
+    expect(shownMessages()).toEqual(["Magasin IGA créé"]);
   });
 
   it("depuis la section Articles, la création ramène à la section Rayons", async () => {
@@ -104,7 +104,7 @@ describe("renommer et supprimer un magasin", () => {
 
     expect(magasinTabNames()).toEqual(["Maxi"]);
     expect(screen.getByRole("tab", { name: "Maxi" })).toHaveFocus();
-    expect(screen.getByText("Magasin Costco supprimé.")).toHaveRole("status");
+    expect(shownMessages()).toEqual(["Magasin Costco supprimé"]);
   });
 });
 

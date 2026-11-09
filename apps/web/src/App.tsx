@@ -201,12 +201,7 @@ function MagasinPanel({
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
-  const { openFiche, fiche } = useFicheArticle({
-    foyer,
-    writer,
-    announce,
-    focusAfterRemove: panelRef,
-  });
+  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: panelRef });
   const { magasinActif: magasin, liste } = foyer;
 
   return (
@@ -222,7 +217,6 @@ function MagasinPanel({
           actions={{
             acceptDemande: foyer.acceptDemande,
             refuseDemande: foyer.refuseDemande,
-            announce,
           }}
           focusAfterLast={panelRef}
         />

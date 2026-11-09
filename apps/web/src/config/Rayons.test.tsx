@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "./renderApp";
+import { renderApp, shownMessages } from "./renderApp";
 
 describe("les rayons d'un magasin", () => {
   it("s'affichent dans l'ordre du magasin actif", async () => {
@@ -97,6 +97,15 @@ describe("les rayons d'un magasin", () => {
     expect(section("Non classé").getByRole("button", { name: "Lait" })).toBeVisible();
   });
 
+  it("supprimer un rayon le dit", async () => {
+    const { user } = await openRayons();
+
+    await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
+    await user.click(screen.getByRole("button", { name: /Confirmer/ }));
+
+    expect(shownMessages()).toEqual(["Rayon Produits laitiers supprimé"]);
+  });
+
   it("la confirmation de suppression d'un rayon retombe quand le focus quitte le bouton", async () => {
     const { user } = await openRayons();
     await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
@@ -115,7 +124,7 @@ describe("ajouter un rayon", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Boissons{Enter}");
 
-    expect(screen.getByText("Rayon Boissons ajouté.")).toHaveRole("status");
+    expect(shownMessages()).toEqual(["Rayon Boissons ajouté"]);
   });
 });
 

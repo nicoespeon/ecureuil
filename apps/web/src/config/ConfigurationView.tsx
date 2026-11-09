@@ -3,6 +3,7 @@ import type { Magasin } from "@ecureuil/domain";
 import { useState } from "react";
 import type { AccesStore } from "../acces/acces";
 import { Reglages } from "../acces/Reglages";
+import { useMessage } from "../message/Message";
 import { ArticlesView } from "./ArticlesView";
 import { configActions, createMagasin, type Writer } from "./configActions";
 import { type FicheFoyer, useFicheArticle } from "./FicheArticle";
@@ -34,7 +35,6 @@ export function ConfigurationView({
   const { openFiche, fiche } = useFicheArticle({
     foyer,
     writer,
-    announce,
     focusAfterRemove: titleRef,
   });
   const [section, setSection] = useState("rayons");
@@ -42,7 +42,6 @@ export function ConfigurationView({
   const magasinActions = useMagasinActions({
     foyer,
     writer,
-    announce,
     showRayons: () => setSection("rayons"),
     removeMagasin: config.removeMagasin,
   });
@@ -115,29 +114,28 @@ export function ConfigurationView({
 function useMagasinActions({
   foyer,
   writer,
-  announce,
   showRayons,
   removeMagasin,
 }: {
   foyer: Foyer;
   writer: Writer;
   removeMagasin: (magasinId: string) => void;
-  announce: (message: string) => void;
   showRayons: () => void;
 }) {
   const focus = useFocusRequest<"nom" | "onglet">();
+  const showMessage = useMessage();
   return {
     focus,
     createMagasin: (name: string) => {
       focus.request("nom");
       foyer.selectMagasin(createMagasin(writer, name));
       showRayons();
-      announce(`Magasin ${name} créé.`);
+      showMessage(`Magasin ${name} créé`);
     },
     removeMagasin: ({ id, name }: Magasin) => {
       focus.request("onglet");
       removeMagasin(id);
-      announce(`Magasin ${name} supprimé.`);
+      showMessage(`Magasin ${name} supprimé`);
     },
   };
 }

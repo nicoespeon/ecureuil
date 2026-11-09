@@ -1,18 +1,17 @@
 import { type Demande, duplicateOf, pendingDemandes } from "@ecureuil/domain";
-import { type RefObject, useId, useRef, useState } from "react";
-import { useAnnouncer } from "../config/useAnnouncer";
+import { type RefObject, useId, useRef } from "react";
 import type { FoyerWithListe } from "../journal/useFoyer";
 import { TrashIcon } from "../liste/ArticleRow";
 import { Ecureuil } from "../liste/Ecureuil";
 import { useFocusNextDemande } from "../liste/useFocusNextDemande";
+import { useMessage } from "../message/Message";
 
 /**
  * What the invite sees: a field to ask, and what still waits. No magasin and no list, so
  * nothing reads as a choice of where to buy.
  */
 export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
-  const { announcement, announce } = useAnnouncer();
-  const [duplicate, setDuplicate] = useState<Duplicate>();
+  const showMessage = useMessage();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -26,20 +25,15 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
           inputRef={inputRef}
           askFor={(name) => {
             const found = duplicateOf(foyer.state, name);
-            setDuplicate(found);
             if (found === undefined) foyer.askFor(name);
-            announce(found === undefined ? `${name} demandé` : duplicateMessages[found]);
+            showMessage(found === undefined ? `${name} demandé` : duplicateMessages[found]);
           }}
-          message={announcement}
-          // The new demande at the top of "Mes demandes" says it all; only a refusal needs words.
-          showMessage={duplicate !== undefined}
         />
         <MesDemandes
           demandes={pendingDemandes(foyer.state).toReversed()}
           withdraw={(demande) => {
-            setDuplicate(undefined);
             foyer.withdrawDemande(demande);
-            announce(`${demande.name} retiré`);
+            showMessage(`${demande.name} retiré`);
           }}
           focusAfterLast={inputRef}
         />
@@ -50,7 +44,7 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
 
 type Duplicate = NonNullable<ReturnType<typeof duplicateOf>>;
 
-/** Why nothing was sent, shown under the field. */
+/** Why nothing was sent. */
 const duplicateMessages = {
   Liste: "Déjà sur la liste",
   Demande: "Déjà demandé",
@@ -59,13 +53,9 @@ const duplicateMessages = {
 function AjouterDemande({
   inputRef,
   askFor,
-  message,
-  showMessage,
 }: {
   inputRef: RefObject<HTMLInputElement | null>;
   askFor: (name: string) => void;
-  message: string;
-  showMessage: boolean;
 }) {
   const inputId = useId();
 
@@ -102,9 +92,6 @@ function AjouterDemande({
           Ajouter
         </button>
       </form>
-      <p role="status" className={showMessage ? "mt-2 text-sm text-neutral-700" : "sr-only"}>
-        {message}
-      </p>
     </div>
   );
 }

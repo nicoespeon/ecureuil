@@ -15,6 +15,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Magasin, Rayon, State } from "@ecureuil/domain";
 import { type FormEvent, useId, useLayoutEffect, useRef } from "react";
+import { useMessage } from "../message/Message";
 import { ConfirmButton } from "./ConfirmButton";
 import { fieldClassName, submitClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
@@ -47,6 +48,7 @@ export function RayonsView({
   const announcements = useRayonAnnouncements(rayons);
   const { containerRef, focusNeighborOf } = useFocusNeighborOfRemovedRayon(rayonIds);
   const moveBy = moveRayon({ magasinId: magasin.id, rayonIds, actions });
+  const showMessage = useMessage();
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     const from = rayonIds.indexOf(String(active.id));
@@ -89,6 +91,7 @@ export function RayonsView({
                   remove: () => {
                     focusNeighborOf(rayon.id);
                     actions.removeRayon(magasin.id, rayon.id);
+                    showMessage(`Rayon ${rayon.name} supprimé`);
                   },
                   announce: actions.announce,
                 }}
@@ -98,8 +101,10 @@ export function RayonsView({
         </SortableContext>
       </DndContext>
       <NouveauRayon
-        create={(name) => actions.createRayon(magasin.id, name)}
-        announce={actions.announce}
+        create={(name) => {
+          actions.createRayon(magasin.id, name);
+          showMessage(`Rayon ${name} ajouté`);
+        }}
       />
     </div>
   );
@@ -227,13 +232,7 @@ function classifiedArticleCount(articles: State["articles"], magasinId: string) 
   ).length;
 }
 
-function NouveauRayon({
-  create,
-  announce,
-}: {
-  create: (name: string) => void;
-  announce: (message: string) => void;
-}) {
+function NouveauRayon({ create }: { create: (name: string) => void }) {
   const inputId = useId();
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -241,7 +240,6 @@ function NouveauRayon({
     const name = new FormData(form).get("name");
     if (typeof name === "string" && name.trim() !== "") {
       create(name.trim());
-      announce(`Rayon ${name.trim()} ajouté.`);
     }
     form.reset();
   };

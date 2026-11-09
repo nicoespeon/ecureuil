@@ -1,12 +1,12 @@
 import type { Demande } from "@ecureuil/domain";
 import type { RefObject } from "react";
+import { useMessage } from "../message/Message";
 import { ListeSection } from "./ListeSections";
 import { useFocusNextDemande } from "./useFocusNextDemande";
 
 type Actions = {
   readonly acceptDemande: (demande: Demande) => void;
   readonly refuseDemande: (demande: Demande) => void;
-  readonly announce: (message: string) => void;
 };
 
 /** The invite's demandes waiting for a verdict, at the head of the list. */
@@ -20,17 +20,18 @@ export function AValider({
   focusAfterLast: RefObject<HTMLElement | null>;
 }) {
   const { listRef, focusNeighborOf } = useFocusNextDemande(focusAfterLast);
+  const showMessage = useMessage();
   if (demandes.length === 0) return null;
 
   const accept = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
     actions.acceptDemande(demande);
-    actions.announce(`${demande.name} ajouté à la liste`);
+    showMessage(`${demande.name} ajouté à la liste`);
   };
   const refuse = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
     actions.refuseDemande(demande);
-    actions.announce(`${demande.name} refusé`);
+    showMessage(`${demande.name} refusé`);
   };
 
   return (
