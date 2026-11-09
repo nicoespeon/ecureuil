@@ -1,7 +1,7 @@
 import { fold, seed } from "@ecureuil/domain";
 import { cleanup, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, statusTexts } from "../config/renderApp";
 import { appendEvent } from "../journal/appendEvent";
 import { inMemoryJournal, type Journal } from "../journal/journal";
 
@@ -64,7 +64,7 @@ describe("la section « À valider »", () => {
 
     await user.click(screen.getByRole("button", { name: `${verdict} Chocolat chaud` }));
 
-    expect(screen.getByRole("status")).toHaveTextContent(announcement);
+    expect(statusTexts()).toContain(announcement);
   });
 
   it("donne le focus à la demande suivante après un verdict", async () => {

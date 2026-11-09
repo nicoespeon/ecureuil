@@ -6,6 +6,7 @@ import { useFicheArticle } from "../config/FicheArticle";
 import { LiveRegion } from "../config/LiveRegion";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
+import { useMessage } from "../message/Message";
 import { AddButton, CreateArticleButton, rowLayoutClassName } from "./AddButton";
 import { frequentArticles, searchArticles } from "./suggestions";
 
@@ -126,10 +127,11 @@ function useAjout(
   const result = searchArticles(foyer.state, query);
   const countAnnouncement = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(countAnnouncement.current), []);
+  const showMessage = useMessage();
   // An answer to a gesture wins over the count still waiting for the typing to pause.
   const say = (message: string) => {
     clearTimeout(countAnnouncement.current);
-    announce(message);
+    showMessage(message);
   };
 
   // The tapped row disappears: the focus goes back to the field, ready for the next article.

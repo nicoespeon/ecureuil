@@ -2,7 +2,7 @@ import { seed } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, statusTexts } from "../config/renderApp";
 import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import { inMemoryJournal } from "../journal/journal";
 
@@ -58,7 +58,7 @@ describe("ajouter une demande", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café{Enter}");
 
-    expect(screen.getByRole("status")).toHaveTextContent("Café demandé");
+    expect(statusTexts()).toContain("Café demandé");
   });
 
   it("n'envoie rien sans nom", async () => {
@@ -82,8 +82,8 @@ describe("une demande en double", () => {
     await user.type(screen.getByRole("textbox", { name: "Nom" }), `${name}{Enter}`);
 
     expect(journal.all()).toHaveLength(before);
-    expect(screen.getByRole("status")).toHaveTextContent(message);
-    expect(screen.getByRole("status")).toBeVisible();
+    expect(statusTexts()).toContain(message);
+    expect(screen.getByText(message)).toBeVisible();
   });
 
   it("vide le champ", async () => {
@@ -184,7 +184,7 @@ describe("retirer une demande", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Chocolat chaud retiré");
+    expect(statusTexts()).toContain("Chocolat chaud retiré");
   });
 
   it("donne le focus à la demande suivante", async () => {

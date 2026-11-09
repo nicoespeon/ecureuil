@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { accesStore } from "./acces/acces";
+import { statusTexts } from "./config/renderApp";
 import { inMemoryJournal, type Journal } from "./journal/journal";
 
 describe("la liste d'un magasin", () => {
@@ -119,7 +120,7 @@ describe("le panier", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Lait" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Lait dans le panier");
+    expect(statusTexts()).toContain("Lait dans le panier");
   });
 
   it("cocher Lait donne le focus à l'article suivant", async () => {
@@ -186,7 +187,7 @@ describe("la quantité", () => {
 
     await user.click(screen.getByRole("button", { name: "Augmenter la quantité de Babybel" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Babybel : 2");
+    expect(statusTexts()).toContain("Babybel : 2");
   });
 
   it("en Courses, la case de Lait dit sa quantité", async () => {
@@ -221,7 +222,9 @@ describe("retirer de la liste", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Babybel de la liste" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Touchez encore pour retirer Babybel");
+    expect(statusTexts()).toContainEqual(
+      expect.stringContaining("Touchez encore pour retirer Babybel"),
+    );
   });
 
   it("un second tap retire Babybel de la liste", async () => {
@@ -339,7 +342,7 @@ describe("terminer les courses", () => {
 
     await finishSortie(user);
 
-    expect(screen.getByRole("status")).toHaveTextContent("Courses terminées, 2 articles rangés");
+    expect(statusTexts()).toContain("Courses terminées, 2 articles rangés");
   });
 
   it("laisse les autres articles à acheter", async () => {
