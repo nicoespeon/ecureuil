@@ -4,13 +4,13 @@
  * stands where the finger hit it. Only a picture: the article goes to the panier at once, the
  * gestures that follow are never kept waiting. Nothing flies for who asks for less motion.
  */
-export function flyToChariot(box: HTMLElement | null | undefined) {
+export function flyToCart(box: HTMLElement | null | undefined) {
   const row = box?.closest("li");
   if (!box || !row || !canFly()) return;
   const from = { box: box.getBoundingClientRect(), row: row.getBoundingClientRect() };
   // The ball on top: the row melts under it.
-  melt(overlay(ghostOf(row), from.row), from);
-  void throwBall(overlay(ballElement(), from.box), from.box);
+  melt(overlay(ghostOf(row), { at: from.row, layer: UNDER_HEADINGS }), from);
+  void throwBall(overlay(ballElement(), { at: from.box, layer: OVER_EVERYTHING }), from.box);
 }
 
 function canFly() {
@@ -26,6 +26,8 @@ function ghostOf(row: HTMLElement) {
   if (!(ghost instanceof HTMLElement)) throw new Error("A row clones into an element");
   for (const element of [ghost, ...ghost.querySelectorAll("[id]")]) element.removeAttribute("id");
   ghost.querySelector("input")?.style.setProperty("visibility", "hidden");
+  // A row just added would replay its highlight from the start.
+  ghost.style.animation = "none";
   return ghost;
 }
 
@@ -46,31 +48,38 @@ function melt(ghost: HTMLElement, { box, row }: { box: DOMRect; row: DOMRect }) 
     ],
     { duration: 260, easing: "ease-in" },
   );
-  void animation.finished.finally(() => ghost.remove());
+  const remove = () => ghost.remove();
+  void animation.finished.then(remove, remove);
 }
 
 async function throwBall(ball: HTMLElement, box: DOMRect) {
-  const chariot = document.querySelector<HTMLElement>("[data-flight-target=chariot]");
-  const target = chariot ? center(chariot.getBoundingClientRect()) : undefined;
-  if (!target) {
+  const cart = document.querySelector<HTMLElement>("[data-flight-target=cart]");
+  if (!cart) {
     ball.remove();
     return;
   }
-  const flight = ball.animate(arc(center(box), target), {
+  const flight = ball.animate(arc(center(box), center(cart.getBoundingClientRect())), {
     duration: 760,
     easing: "cubic-bezier(0.2, 0.1, 0.6, 1)",
     fill: "both",
   });
   await flight.finished.catch(() => undefined);
   ball.remove();
-  chariot?.animate([{ scale: "1" }, { scale: "1.5", rotate: "-14deg" }, { scale: "1" }], {
+  cart.animate([{ scale: "1" }, { scale: "1.5", rotate: "-14deg" }, { scale: "1" }], {
     duration: 320,
     easing: "ease-out",
   });
 }
 
-/** Above the header and the bottom bar, out of the way of fingers and screen readers. */
-function overlay(element: HTMLElement, at: DOMRect) {
+/**
+ * The ghost stays under the sticky headings, as its row did; the ball flies over the header to
+ * reach the cart.
+ */
+const UNDER_HEADINGS = "5";
+const OVER_EVERYTHING = "40";
+
+/** Out of the way of fingers and screen readers. */
+function overlay(element: HTMLElement, { at, layer }: { at: DOMRect; layer: string }) {
   element.setAttribute("aria-hidden", "true");
   element.inert = true;
   Object.assign(element.style, {
@@ -80,7 +89,7 @@ function overlay(element: HTMLElement, at: DOMRect) {
     width: `${at.width}px`,
     height: `${at.height}px`,
     margin: "0",
-    zIndex: "40",
+    zIndex: layer,
     pointerEvents: "none",
     listStyle: "none",
   });
