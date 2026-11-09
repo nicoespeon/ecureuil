@@ -6,6 +6,7 @@ import { useFicheArticle } from "../config/FicheArticle";
 import { LiveRegion } from "../config/LiveRegion";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
+import { type Message, useMessage } from "../message/Message";
 import { AddButton, CreateArticleButton, rowLayoutClassName } from "./AddButton";
 import { frequentArticles, searchArticles } from "./suggestions";
 
@@ -23,7 +24,6 @@ export function AjoutRapide({ foyer, writer }: { foyer: AjoutFoyer; writer: Writ
   const { openFiche, fiche } = useFicheArticle({
     foyer,
     writer,
-    announce: announcer.announce,
     focusAfterRemove: searchRef,
     focusAfterClose: searchRef,
   });
@@ -126,25 +126,26 @@ function useAjout(
   const result = searchArticles(foyer.state, query);
   const countAnnouncement = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(countAnnouncement.current), []);
+  const showMessage = useMessage();
   // An answer to a gesture wins over the count still waiting for the typing to pause.
-  const say = (message: string) => {
+  const say = (message: Message) => {
     clearTimeout(countAnnouncement.current);
-    announce(message);
+    showMessage(message);
   };
 
   // The tapped row disappears: the focus goes back to the field, ready for the next article.
-  const added = (name: string) => {
+  const added = (message: Message) => {
     setQuery("");
-    say(`Sur la liste : ${name}`);
+    say(message);
     searchRef.current?.focus();
   };
   const add = (article: Article) => {
     foyer.markToBuy(article.id);
-    added(article.name);
+    added({ icon: "ajoute", text: `Sur la liste : ${article.name}` });
   };
   const create = (name: string) => {
     const articleId = foyer.createArticle(name);
-    added(name);
+    added({ icon: "cree", text: `Créé et ajouté : ${name}` });
     openFiche(articleId);
   };
 
@@ -168,7 +169,7 @@ function useAjout(
       const { articles, exactMatch, nameToCreate } = result;
       const choice = exactMatch ?? articles.find((article) => article.status === "notToBuy");
       if (choice?.status === "notToBuy") add(choice);
-      else if (choice) say(`Déjà sur la liste : ${choice.name}`);
+      else if (choice) say({ icon: "deja", text: `Déjà sur la liste : ${choice.name}` });
       else if (nameToCreate !== null) create(nameToCreate);
     },
   };

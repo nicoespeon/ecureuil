@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "./renderApp";
+import { renderApp, shownMessages } from "./renderApp";
 
 describe("tous les articles", () => {
   it("liste le catalogue par nom, avec le rayon de chaque article dans le magasin actif", async () => {
@@ -97,9 +97,7 @@ describe("créer un article depuis la configuration", () => {
 
     await user.click(screen.getByRole("button", { name: "Créer « Laitue »" }));
 
-    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
-      "Au catalogue : Laitue",
-    );
+    expect(shownMessages()).toEqual(["Au catalogue : Laitue"]);
   });
 
   it("Entrée crée l'article quand aucun nom ne correspond", async () => {

@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
-import type { Actor, LienResponse } from "@ecureuil/wire";
 import { expect, type Page, test } from "@playwright/test";
 import { outDir, pause, saveVideo, screenshot } from "./qaCapture";
+import { walkDemandes } from "./qaDemandes";
 
 const narrowPhone = { width: 375, height: 812 };
 const desktop = { viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false };
@@ -145,6 +145,29 @@ test.describe("captures de la liste et de l'ajout rapide à 375 px", () => {
     await page.getByRole("button", { name: "Créer « lai »" }).click();
     await expect(page.getByRole("dialog", { name: "lai" })).toBeVisible();
     await screenshot(page, "ajout-fiche", { fullPage: false });
+  });
+});
+
+test.describe("captures du message après une action à 375 px", () => {
+  test.use({ reducedMotion: "reduce", viewport: narrowPhone });
+
+  // Waits on the gesture, not on the message: the same steps capture `main`, which has none.
+  test("ajouter Pommes, puis retirer Babybel", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Ajouter" }).click();
+    await searchbox(page).fill("pom");
+    await page.getByRole("button", { name: "Pommes" }).click();
+    await expect(searchbox(page)).toHaveValue("");
+    await screenshot(page, "message-ajout", { fullPage: false });
+
+    await page
+      .getByRole("dialog", { name: "Ajouter à la liste" })
+      .getByRole("button", { name: "Fermer" })
+      .click();
+    await page.getByRole("button", { name: "Retirer Babybel de la liste" }).click();
+    await page.getByRole("button", { name: "Retirer Babybel ?" }).click();
+    await expect(page.getByRole("button", { name: "Babybel", exact: true })).toBeHidden();
+    await screenshot(page, "message-retrait", { fullPage: false });
   });
 });
 
@@ -352,63 +375,6 @@ test.describe("vidéo des demandes", () => {
     await saveVideo(page, "demandes");
   });
 });
-
-/**
- * The invite asks for two things, the proprietaire accepts one and refuses the other, then the
- * invite withdraws the last one waiting.
- */
-async function walkDemandes(page: Page, capture: (name: string) => Promise<unknown>) {
-  const inviteLien: LienResponse = { role: "invite", invite: null };
-  await page.route("**/lien", (route) => route.fulfill({ json: inviteLien }));
-  await page.route("**/journal**", (route) => route.abort());
-  await page.goto("/");
-  await enterAs(page, "invite");
-  for (const name of ["Café", "Thé"]) {
-    await page.getByRole("textbox", { name: "Nom" }).fill(name);
-    await page.keyboard.press("Enter");
-    await expect(page.getByRole("region", { name: "Mes demandes" })).toContainText(name);
-  }
-  await capture("invite-demandes");
-  await page.getByRole("textbox", { name: "Nom" }).fill("lait");
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("status")).toHaveText("Déjà sur la liste");
-  await capture("invite-deja-sur-la-liste");
-
-  await enterAs(page, "proprietaire");
-  await expect(page.getByRole("region", { name: "À valider (3)" })).toBeVisible();
-  await capture("a-valider");
-  await page.getByRole("button", { name: "Accepter Café" }).click();
-  await expect(page.getByRole("region", { name: "À valider (2)" })).toBeVisible();
-  await pause(page);
-  await page.getByRole("button", { name: "Refuser Thé" }).click();
-  await expect(page.getByRole("region", { name: "À valider (1)" })).toBeVisible();
-  await capture("a-valider-apres");
-
-  await enterAs(page, "invite");
-  // One demande left waiting: one « Retirer » button in the card.
-  await expect(
-    page.getByRole("region", { name: "Mes demandes" }).getByRole("button"),
-  ).toHaveAccessibleName("Retirer Chocolat chaud");
-  await capture("invite-verdicts");
-  await page.getByRole("button", { name: "Retirer Chocolat chaud" }).click();
-  await expect(page.getByRole("region", { name: "Mes demandes" })).toBeHidden();
-  await capture("invite-retrait");
-}
-
-/**
- * Without a lien the device is the proprietaire's. With one, the role comes from `GET /lien`,
- * answered by `walkDemandes`; the journal routes fail, as offline.
- */
-async function enterAs(page: Page, role: Actor) {
-  await page.evaluate(
-    (lien) =>
-      lien === null
-        ? localStorage.removeItem("ecureuil.lien")
-        : localStorage.setItem("ecureuil.lien", lien),
-    role === "invite" ? "secret-qa-invite" : null,
-  );
-  await page.reload();
-}
 
 async function captureConfiguration(page: Page, suffix: string) {
   await openRayons(page);

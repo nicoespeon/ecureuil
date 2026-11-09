@@ -1,7 +1,7 @@
 import { fold, seed } from "@ecureuil/domain";
 import { cleanup, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, shownMessages } from "../config/renderApp";
 import { appendEvent } from "../journal/appendEvent";
 import { inMemoryJournal, type Journal } from "../journal/journal";
 
@@ -57,14 +57,14 @@ describe("la section « À valider »", () => {
   });
 
   it.each([
-    ["Accepter", "Chocolat chaud ajouté à la liste"],
-    ["Refuser", "Chocolat chaud refusé"],
+    ["Accepter", "Sur la liste : Chocolat chaud"],
+    ["Refuser", "Refusé : Chocolat chaud"],
   ])("« %s » annonce « %s »", async (verdict, announcement) => {
     const { user } = renderApp();
 
     await user.click(screen.getByRole("button", { name: `${verdict} Chocolat chaud` }));
 
-    expect(screen.getByRole("status")).toHaveTextContent(announcement);
+    expect(shownMessages()).toEqual([announcement]);
   });
 
   it("donne le focus à la demande suivante après un verdict", async () => {

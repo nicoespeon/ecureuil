@@ -25,18 +25,26 @@ import { ListeView } from "./liste/ListeView";
 import { tintClassName, tintForTab } from "./liste/magasinTint";
 import { TerminerLesCourses } from "./liste/TerminerLesCourses";
 import { type Mode, useMode } from "./liste/useMode";
+import { MessageProvider } from "./message/Message";
 import { useHistoryScreen } from "./useHistoryScreen";
 
-export function App({
-  journal,
-  role,
-  acces,
-}: {
+type AppProps = {
   journal: Journal;
   /** Every event written here carries it: the API refuses any other actor. */
   role: Actor;
   acces: AccesStore;
-}) {
+};
+
+/** Above the screens: a message outlives the screen whose gesture showed it. */
+export function App(props: AppProps) {
+  return (
+    <MessageProvider>
+      <Screens {...props} />
+    </MessageProvider>
+  );
+}
+
+function Screens({ journal, role, acces }: AppProps) {
   const foyer = useFoyer(journal, role);
   const { screen, openConfiguration, closeConfiguration } = useHistoryScreen();
   // Held above the screens: with storage blocked, a trip to the configuration keeps the mode.
@@ -193,12 +201,7 @@ function MagasinPanel({
 }) {
   const { announcement, announce } = useAnnouncer();
   const panelRef = useRef<HTMLDivElement>(null);
-  const { openFiche, fiche } = useFicheArticle({
-    foyer,
-    writer,
-    announce,
-    focusAfterRemove: panelRef,
-  });
+  const { openFiche, fiche } = useFicheArticle({ foyer, writer, focusAfterRemove: panelRef });
   const { magasinActif: magasin, liste } = foyer;
 
   return (
@@ -214,7 +217,6 @@ function MagasinPanel({
           actions={{
             acceptDemande: foyer.acceptDemande,
             refuseDemande: foyer.refuseDemande,
-            announce,
           }}
           focusAfterLast={panelRef}
         />

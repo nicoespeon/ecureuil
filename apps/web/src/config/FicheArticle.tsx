@@ -2,6 +2,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import type { Article, Magasin, State } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
 import { Stepper } from "../liste/ArticleRow";
+import { useMessage } from "../message/Message";
 import { ConfirmButton } from "./ConfirmButton";
 import { type ConfigActions, configActions, type Writer } from "./configActions";
 import { LiveRegion } from "./LiveRegion";
@@ -22,14 +23,11 @@ export type FicheFoyer = {
 export function useFicheArticle({
   foyer,
   writer,
-  announce,
   focusAfterRemove,
   focusAfterClose,
 }: {
   foyer: FicheFoyer;
   writer: Writer;
-  /** The opener's live region: the sheet's own leaves with it once the article is removed. */
-  announce: (message: string) => void;
   focusAfterRemove: RefObject<HTMLElement | null>;
   /** Where the focus goes on close, whatever became of the article, when the opener is not a row. */
   focusAfterClose?: RefObject<HTMLElement | null>;
@@ -38,6 +36,7 @@ export function useFicheArticle({
   const lastArticleId = useRef<string | null>(null);
   const article = articleId === null ? undefined : foyer.state.articles[articleId];
   const actions = configActions(writer, foyer.magasinActif.id);
+  const showMessage = useMessage();
 
   return {
     openFiche: (id: string) => {
@@ -64,7 +63,7 @@ export function useFicheArticle({
                   ...actions,
                   removeArticle: (articleId) => {
                     actions.removeArticle(articleId);
-                    announce(`${article.name} supprimé`);
+                    showMessage({ icon: "refuse", text: `Supprimé : ${article.name}` });
                   },
                 }}
               />

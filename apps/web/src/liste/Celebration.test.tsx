@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, statusTexts } from "../config/renderApp";
 
 describe("les moments de fête", () => {
   it("en Courses, cocher le dernier article à acheter affiche « Tout est dans le panier »", async () => {
@@ -74,8 +74,8 @@ describe("les moments de fête", () => {
 
     await checkEverythingToBuy(user);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      /dans le panier\. Tout est dans le panier !$/,
+    expect(statusTexts()).toContainEqual(
+      expect.stringMatching(/dans le panier\. Tout est dans le panier !$/),
     );
   });
 

@@ -1,6 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "./renderApp";
+import { renderApp, shownMessages } from "./renderApp";
 
 describe("la fiche d'un article", () => {
   it("s'ouvre en touchant le nom d'un article dans la liste", async () => {
@@ -58,7 +58,7 @@ describe("la fiche d'un article", () => {
     await user.click(fiche("Lait").getByRole("button", { name: "Supprimer Lait" }));
     await user.click(fiche("Lait").getByRole("button", { name: /Confirmer/ }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Lait supprimé");
+    expect(shownMessages()).toEqual(["Supprimé : Lait"]);
   });
 
   it("la quantité se règle depuis la fiche", async () => {

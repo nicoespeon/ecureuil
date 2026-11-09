@@ -2,7 +2,7 @@ import { seed } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, shownMessages } from "../config/renderApp";
 import { appendEvent, type EventType, type PayloadOf } from "../journal/appendEvent";
 import { inMemoryJournal } from "../journal/journal";
 
@@ -58,7 +58,7 @@ describe("ajouter une demande", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café{Enter}");
 
-    expect(screen.getByRole("status")).toHaveTextContent("Café demandé");
+    expect(shownMessages()).toEqual(["Demandé : Café"]);
   });
 
   it("n'envoie rien sans nom", async () => {
@@ -73,8 +73,8 @@ describe("ajouter une demande", () => {
 
 describe("une demande en double", () => {
   it.each([
-    ["lait", "Déjà sur la liste"],
-    ["chocolat chaud", "Déjà demandé"],
+    ["lait", "Déjà sur la liste : lait"],
+    ["chocolat chaud", "Déjà demandé : chocolat chaud"],
   ])("« %s » n'envoie rien et affiche « %s »", async (name, message) => {
     const { user, journal } = renderApp({ role: "invite" });
     const before = journal.all().length;
@@ -82,8 +82,7 @@ describe("une demande en double", () => {
     await user.type(screen.getByRole("textbox", { name: "Nom" }), `${name}{Enter}`);
 
     expect(journal.all()).toHaveLength(before);
-    expect(screen.getByRole("status")).toHaveTextContent(message);
-    expect(screen.getByRole("status")).toBeVisible();
+    expect(shownMessages()).toEqual([message]);
   });
 
   it("vide le champ", async () => {
@@ -184,7 +183,7 @@ describe("retirer une demande", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Chocolat chaud retiré");
+    expect(shownMessages()).toEqual(["Demande retirée : Chocolat chaud"]);
   });
 
   it("donne le focus à la demande suivante", async () => {

@@ -47,6 +47,16 @@ body {
   box-shadow: var(--shadow-raised);
 }
 
+/* Dark clay, for what lands over the cream cards: a message stands out from the list under it. */
+@utility clay-dark {
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-50);
+  box-shadow:
+    0 var(--relief) 0 var(--color-neutral-950),
+    0 8px 20px oklch(24% 0.045 46 / 0.35),
+    inset 0 2px 0 oklch(100% 0 0 / 0.12);
+}
+
 /* Pressed into the clay: a field, a stepper. */
 @utility clay-well {
   box-shadow: var(--shadow-well);
@@ -188,11 +198,27 @@ html {
   .pop {
     animation: pop 150ms ease-out;
   }
+
+  /* A message drops in like a lump of clay, squashing as it lands. */
+  .message {
+    animation: message-lands 450ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
 }
 
 /* A colour that fades, not a motion: a new row lights up for everyone. */
 .arrive {
   animation: arrive 600ms ease-out;
+}
+
+@keyframes message-lands {
+  from {
+    transform: translateY(120%) scale(0.9, 1.1);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(0) scale(1.06, 0.94);
+    opacity: 1;
+  }
 }
 
 @keyframes pop {

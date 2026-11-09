@@ -1,6 +1,6 @@
 import { seed } from "@ecureuil/domain";
 import type { Actor } from "@ecureuil/wire";
-import { render } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../App";
 import { accesStore } from "../acces/acces";
@@ -18,4 +18,17 @@ export function renderApp({
   const acces = accesStore({ apiUrl: undefined, secret: null, reload: () => {} });
   render(<App journal={journal} role={role} acces={acces} />);
   return { user, journal };
+}
+
+/** What every live region says right now: the message and the screen's own announcements. */
+export function statusTexts() {
+  return screen.getAllByRole("status").map((status) => status.textContent);
+}
+
+/** The message a gesture shows, the one a tap closes: none, or the latest. */
+export function shownMessages() {
+  return screen
+    .getAllByRole("status")
+    .flatMap((status) => within(status).queryAllByRole("button"))
+    .map((message) => message.textContent);
 }

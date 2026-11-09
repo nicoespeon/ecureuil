@@ -1,6 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { renderApp } from "../config/renderApp";
+import { renderApp, shownMessages } from "../config/renderApp";
 
 describe("l'ajout rapide", () => {
   it("« Ajouter » ouvre le champ de recherche avec le focus", async () => {
@@ -55,9 +55,7 @@ describe("l'ajout rapide", () => {
     await user.type(searchbox(), "pom");
     await user.click(screen.getByRole("button", { name: "Pommes" }));
 
-    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(
-      "Sur la liste : Pommes",
-    );
+    expect(shownMessages()).toEqual(["Sur la liste : Pommes"]);
   });
 
   it("après un ajout, le champ se vide et garde le focus pour enchaîner", async () => {
@@ -107,9 +105,7 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), "Laitue{Enter}");
 
-    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
-      "Sur la liste : Laitue",
-    );
+    expect(shownMessages()).toEqual(["Créé et ajouté : Laitue"]);
   });
 
   it("fermer la fiche de l'article créé ramène au champ, vide, avec le focus", async () => {
@@ -156,9 +152,7 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), "lait{Enter}");
 
-    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(
-      "Déjà sur la liste : Lait",
-    );
+    expect(shownMessages()).toEqual(["Déjà sur la liste : Lait"]);
     expect(journal.all()).toHaveLength(before);
   });
 
@@ -180,9 +174,7 @@ describe("l'ajout rapide", () => {
     await user.type(searchbox(), "lait{Enter}");
     await new Promise((resolve) => setTimeout(resolve, 600));
 
-    expect(within(screen.getByRole("dialog")).getByRole("status")).toHaveTextContent(
-      "Déjà sur la liste : Lait",
-    );
+    expect(shownMessages()).toEqual(["Déjà sur la liste : Lait"]);
   });
 
   it("rouvert, ne répète pas la dernière annonce", async () => {

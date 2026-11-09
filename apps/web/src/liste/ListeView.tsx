@@ -1,6 +1,7 @@
 import type { ListArticle, Liste } from "@ecureuil/domain";
 import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
+import { useMessage } from "../message/Message";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { flyToCart } from "./flyToCart";
 import { ListeSections } from "./ListeSections";
@@ -31,6 +32,7 @@ export function ListeView({
 }) {
   const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow(focusWhenEmpty);
   const { arrived, checked } = useListeChanges(liste);
+  const showMessage = useMessage();
   const rowActions = {
     setQuantity: actions.setQuantity,
     announce: actions.announce,
@@ -56,7 +58,7 @@ export function ListeView({
     removeFromList: (article: ListArticle) => {
       focusNeighborOf(article.id);
       actions.removeFromList(article.id);
-      actions.announce(`${article.name} retiré de la liste`);
+      showMessage({ icon: "retire", text: `Retiré de la liste : ${article.name}` });
     },
   };
 

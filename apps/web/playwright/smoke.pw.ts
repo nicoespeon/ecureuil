@@ -119,6 +119,15 @@ const screens: ReadonlyArray<{ name: string; reach: (page: Page) => Promise<unkn
     },
   },
   {
+    name: "un message après un ajout",
+    reach: async (page) => {
+      await page.getByRole("button", { name: "Ajouter" }).click();
+      await page.getByRole("searchbox", { name: "Article à ajouter" }).fill("pom");
+      await page.getByRole("button", { name: "Pommes" }).click();
+      await expect(page.getByText("Sur la liste : Pommes")).toBeVisible();
+    },
+  },
+  {
     name: "la fiche d'un article",
     reach: async (page) => {
       await page.getByRole("button", { name: "Lait", exact: true }).click();
@@ -172,6 +181,23 @@ test.describe("les fêtes et les micro-victoires", () => {
     await page.getByRole("button", { name: "Pommes" }).click();
 
     await expect.poll(animations).toContain("arrive");
+  });
+
+  test("un article ajouté le dit dans un message qui atterrit au-dessus du panneau", async ({
+    page,
+  }) => {
+    const animations = await recordAnimations(page);
+    await page.goto("/");
+    await page.getByRole("button", { name: "Ajouter" }).click();
+
+    await page.getByRole("searchbox", { name: "Article à ajouter" }).fill("pom");
+    await page.getByRole("button", { name: "Pommes" }).click();
+
+    const message = page.getByRole("status").getByText("Sur la liste : Pommes");
+    await expect(message).toBeInViewport();
+    // A trial click fails when anything, the panel included, lies over the message.
+    await message.click({ trial: true });
+    await expect.poll(animations).toContain("message-lands");
   });
 
   test("l'écureuil bondit quand tout est dans le panier, sur l'écran à jour", async ({ page }) => {
