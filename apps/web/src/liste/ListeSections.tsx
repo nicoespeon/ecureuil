@@ -56,11 +56,7 @@ export function ListeSection({
       aria-labelledby={headingId}
       className={tone === "panier" ? panierClassName : undefined}
     >
-      <h2
-        id={headingId}
-        data-flight-target={tone === "panier" ? "panier" : undefined}
-        className={tone === "panier" ? panierHeadingClassName : headingClassName}
-      >
+      <h2 id={headingId} className={tone === "panier" ? panierHeadingClassName : headingClassName}>
         {title}
       </h2>
       {children}

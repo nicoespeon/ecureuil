@@ -262,7 +262,7 @@ test.describe("captures sur desktop", () => {
 });
 
 test("vidéo : passer en Courses, cocher, décocher, terminer les courses", async ({ page }) => {
-  await page.goto(`/?variante=${process.env.QA_VARIANTE ?? "a"}`);
+  await page.goto("/");
   await pause(page);
   await startCourses(page);
   await pause(page);
