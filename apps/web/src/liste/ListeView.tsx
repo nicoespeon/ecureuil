@@ -3,6 +3,7 @@ import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { ListeSections } from "./ListeSections";
+import { useFlightToPanier } from "./useFlightToPanier";
 import { useListeChanges } from "./useListeChanges";
 import type { Mode } from "./useMode";
 
@@ -30,11 +31,13 @@ export function ListeView({
 }) {
   const { containerRef, focusNeighborOf } = useFocusNeighborOfLeavingRow(focusWhenEmpty);
   const { arrived, checked } = useListeChanges(liste);
+  const flight = useFlightToPanier(containerRef);
   const rowActions = {
     setQuantity: actions.setQuantity,
     announce: actions.announce,
     openFiche: actions.openFiche,
     check: (article: ListArticle) => {
+      flight.takeOff(article.id);
       focusNeighborOf(article.id);
       actions.check(article.id);
       const othersToBuy = liste.sections.some((section) =>
@@ -75,6 +78,7 @@ export function ListeView({
                 actions={rowActions}
                 mode={mode}
                 justChecked={checked.has(article.id)}
+                inFlight={flight.flying.has(article.id)}
               />
             ))}
           </ul>

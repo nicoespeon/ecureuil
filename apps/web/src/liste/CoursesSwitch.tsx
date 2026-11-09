@@ -74,6 +74,7 @@ function HouseIcon({ className }: { className: string }) {
 function CartIcon({ className }: { className: string }) {
   return (
     <svg
+      data-flight-target="chariot"
       aria-hidden="true"
       viewBox="0 0 24 24"
       fill="none"

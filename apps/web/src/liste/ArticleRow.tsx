@@ -1,5 +1,5 @@
 import type { ListArticle } from "@ecureuil/domain";
-import { type ReactNode, useId, useState } from "react";
+import { type CSSProperties, type ReactNode, useId, useState } from "react";
 import { useConfirmation } from "./useConfirmation";
 import type { Mode } from "./useMode";
 
@@ -53,18 +53,29 @@ export function PanierRow({
   actions,
   mode,
   justChecked,
+  inFlight,
 }: {
   article: ListArticle;
   actions: { uncheck: (article: ListArticle) => void; openFiche: (articleId: string) => void };
   mode: Mode;
   /** Just put in the panier: its box pops once, a small victory. */
   justChecked: boolean;
+  /** Its box is still flying here: the row waits, unseen, for it to land. */
+  inFlight: boolean;
 }) {
   const checkbox =
     mode === "courses"
       ? { checked: true, onToggle: () => actions.uncheck(article), pop: justChecked }
       : undefined;
-  return <Row article={article} checkbox={checkbox} showsQuantity openFiche={actions.openFiche} />;
+  return (
+    <Row
+      article={article}
+      checkbox={checkbox}
+      showsQuantity
+      openFiche={actions.openFiche}
+      unseen={inFlight}
+    />
+  );
 }
 
 function Row({
@@ -73,6 +84,7 @@ function Row({
   showsQuantity,
   openFiche,
   highlight,
+  unseen = false,
   children,
 }: {
   article: ListArticle;
@@ -81,6 +93,8 @@ function Row({
   showsQuantity: boolean;
   openFiche: (articleId: string) => void;
   highlight?: boolean;
+  /** Still there for screen readers, not yet for the eyes. */
+  unseen?: boolean;
   children?: ReactNode;
 }) {
   const quantityId = useId();
@@ -90,7 +104,8 @@ function Row({
   const quantityShown = showsQuantity && article.quantity > 1;
   return (
     <li
-      className={`flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 gap-1 ${checkbox ? "" : "pl-4"} ${highlighted ? "arrive" : ""}`}
+      className={rowClassName({ withBox: Boolean(checkbox), highlighted })}
+      style={unseen ? unseenStyle : undefined}
       onAnimationEnd={(event) => {
         if (event.animationName === "arrive") setHighlighted(false);
         if (event.animationName === "pop") setPopping(false);
@@ -139,6 +154,12 @@ function Row({
     </li>
   );
 }
+
+function rowClassName({ withBox, highlighted }: { withBox: boolean; highlighted: boolean }) {
+  return `flex min-h-16 items-center border-b-2 border-neutral-100 pr-2 last:border-b-0 gap-1 ${withBox ? "" : "pl-4"} ${highlighted ? "arrive" : ""}`;
+}
+
+const unseenStyle: CSSProperties = { opacity: 0 };
 
 const iconButtonClassName =
   "grid size-11 shrink-0 place-items-center rounded-full text-lg font-bold text-neutral-900 hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:text-neutral-400 disabled:hover:bg-transparent";
