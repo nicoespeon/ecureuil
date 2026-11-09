@@ -2,6 +2,7 @@ import type { ListArticle, Liste } from "@ecureuil/domain";
 import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
+import { flyToCart } from "./flyToCart";
 import { ListeSections } from "./ListeSections";
 import { useListeChanges } from "./useListeChanges";
 import type { Mode } from "./useMode";
@@ -35,6 +36,7 @@ export function ListeView({
     announce: actions.announce,
     openFiche: actions.openFiche,
     check: (article: ListArticle) => {
+      flyToCart(boxOf(containerRef.current, article.id));
       focusNeighborOf(article.id);
       actions.check(article.id);
       const othersToBuy = liste.sections.some((section) =>
@@ -142,4 +144,8 @@ function ToBuyRows({
       ))}
     </ul>
   );
+}
+
+function boxOf(container: HTMLElement | null, articleId: string) {
+  return container?.querySelector<HTMLElement>(`input[data-article-id="${CSS.escape(articleId)}"]`);
 }
