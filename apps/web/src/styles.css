@@ -47,6 +47,16 @@ body {
   box-shadow: var(--shadow-raised);
 }
 
+/* Dark clay, for what lands over the cream cards: a message stands out from the list under it. */
+@utility clay-dark {
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-50);
+  box-shadow:
+    0 var(--relief) 0 var(--color-neutral-950),
+    0 8px 20px oklch(24% 0.045 46 / 0.35),
+    inset 0 2px 0 oklch(100% 0 0 / 0.12);
+}
+
 /* Pressed into the clay: a field, a stepper. */
 @utility clay-well {
   box-shadow: var(--shadow-well);

@@ -49,9 +49,12 @@ export function MessageProvider({ children }: { children: ReactNode }) {
             type="button"
             tabIndex={-1}
             onClick={() => setShown(undefined)}
-            className="message clay pointer-events-auto min-h-14 max-w-md flex items-center gap-3 rounded-[1.75rem] py-2 pr-6 pl-2 text-left text-lg font-extrabold"
+            className="message clay-dark pointer-events-auto min-h-14 max-w-md flex items-center gap-3 rounded-[1.75rem] py-2 pr-6 pl-2 text-left text-lg font-extrabold"
           >
-            <MessageIcon icon={shown.icon} />
+            {/* A cream hollow: the brown acorn would sink into the brown clay. */}
+            <span className="clay-well grid size-12 shrink-0 place-items-center rounded-full bg-neutral-100">
+              <MessageIcon icon={shown.icon} />
+            </span>
             {shown.text}
           </button>
         )}
