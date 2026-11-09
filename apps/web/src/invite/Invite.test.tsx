@@ -58,7 +58,7 @@ describe("ajouter une demande", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Nom" }), "Café{Enter}");
 
-    expect(shownMessages()).toEqual(["Café demandé"]);
+    expect(shownMessages()).toEqual(["Demandé : Café"]);
   });
 
   it("n'envoie rien sans nom", async () => {
@@ -73,8 +73,8 @@ describe("ajouter une demande", () => {
 
 describe("une demande en double", () => {
   it.each([
-    ["lait", "Déjà sur la liste"],
-    ["chocolat chaud", "Déjà demandé"],
+    ["lait", "Déjà sur la liste : lait"],
+    ["chocolat chaud", "Déjà demandé : chocolat chaud"],
   ])("« %s » n'envoie rien et affiche « %s »", async (name, message) => {
     const { user, journal } = renderApp({ role: "invite" });
     const before = journal.all().length;
@@ -183,7 +183,7 @@ describe("retirer une demande", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Chocolat chaud" }));
 
-    expect(shownMessages()).toEqual(["Chocolat chaud retiré"]);
+    expect(shownMessages()).toEqual(["Demande retirée : Chocolat chaud"]);
   });
 
   it("donne le focus à la demande suivante", async () => {

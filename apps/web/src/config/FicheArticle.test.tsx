@@ -58,7 +58,7 @@ describe("la fiche d'un article", () => {
     await user.click(fiche("Lait").getByRole("button", { name: "Supprimer Lait" }));
     await user.click(fiche("Lait").getByRole("button", { name: /Confirmer/ }));
 
-    expect(shownMessages()).toEqual(["Lait supprimé"]);
+    expect(shownMessages()).toEqual(["Supprimé : Lait"]);
   });
 
   it("la quantité se règle depuis la fiche", async () => {

@@ -95,7 +95,7 @@ function useArticleSearch(
   // A new article has no rayon yet: its sheet opens to sort it in every magasin.
   const create = (name: string) => {
     const articleId = actions.createArticle(name);
-    showMessage(`Au catalogue : ${name}`);
+    showMessage({ icon: "cree", text: `Au catalogue : ${name}` });
     actions.openFiche(articleId);
   };
 

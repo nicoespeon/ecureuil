@@ -57,8 +57,8 @@ describe("la section « À valider »", () => {
   });
 
   it.each([
-    ["Accepter", "Chocolat chaud ajouté à la liste"],
-    ["Refuser", "Chocolat chaud refusé"],
+    ["Accepter", "Sur la liste : Chocolat chaud"],
+    ["Refuser", "Refusé : Chocolat chaud"],
   ])("« %s » annonce « %s »", async (verdict, announcement) => {
     const { user } = renderApp();
 

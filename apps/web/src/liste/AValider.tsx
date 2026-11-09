@@ -26,12 +26,12 @@ export function AValider({
   const accept = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
     actions.acceptDemande(demande);
-    showMessage(`${demande.name} ajouté à la liste`);
+    showMessage({ icon: "ajoute", text: `Sur la liste : ${demande.name}` });
   };
   const refuse = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
     actions.refuseDemande(demande);
-    showMessage(`${demande.name} refusé`);
+    showMessage({ icon: "refuse", text: `Refusé : ${demande.name}` });
   };
 
   return (

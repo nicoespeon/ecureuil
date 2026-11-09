@@ -56,7 +56,7 @@ export function ListeView({
     removeFromList: (article: ListArticle) => {
       focusNeighborOf(article.id);
       actions.removeFromList(article.id);
-      showMessage(`${article.name} retiré de la liste`);
+      showMessage({ icon: "retire", text: `Retiré de la liste : ${article.name}` });
     },
   };
 

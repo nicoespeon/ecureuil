@@ -20,7 +20,7 @@ export async function walkDemandes(page: Page, capture: (name: string) => Promis
   await capture("invite-demandes");
   await page.getByRole("textbox", { name: "Nom" }).fill("lait");
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("status")).toHaveText("Déjà sur la liste");
+  await expect(page.getByRole("status")).toHaveText("Déjà sur la liste : lait");
   await capture("invite-deja-sur-la-liste");
 
   await enterAs(page, "proprietaire");

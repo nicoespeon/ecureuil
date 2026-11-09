@@ -1,10 +1,12 @@
 import { createContext, type ReactNode, use, useCallback, useEffect, useState } from "react";
+import { type Icon, MessageIcon } from "./MessageIcon";
 
 const DURATION_MS = 2500;
 
-type Shown = { readonly id: number; readonly text: string };
+export type Message = { readonly icon: Icon; readonly text: string };
+type Shown = Message & { readonly id: number };
 
-const ShowMessage = createContext<((text: string) => void) | null>(null);
+const ShowMessage = createContext<((message: Message) => void) | null>(null);
 
 /** Shows what a gesture changed in the foyer. Its text is what screen readers say. */
 export function useMessage() {
@@ -21,7 +23,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   const [shown, setShown] = useState<Shown>();
   // Stable: the screens that show messages do not re-render each time one comes and goes.
   const show = useCallback(
-    (text: string) => setShown((previous) => ({ id: (previous?.id ?? 0) + 1, text })),
+    (message: Message) => setShown((previous) => ({ ...message, id: (previous?.id ?? 0) + 1 })),
     [],
   );
 
@@ -47,8 +49,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
             type="button"
             tabIndex={-1}
             onClick={() => setShown(undefined)}
-            className="message clay pointer-events-auto min-h-14 max-w-md rounded-[1.75rem] px-6 py-3 text-left text-lg font-extrabold"
+            className="message clay pointer-events-auto min-h-14 max-w-md flex items-center gap-3 rounded-[1.75rem] py-2 pr-6 pl-2 text-left text-lg font-extrabold"
           >
+            <MessageIcon icon={shown.icon} />
             {shown.text}
           </button>
         )}

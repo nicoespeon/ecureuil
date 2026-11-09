@@ -242,7 +242,7 @@ describe("retirer de la liste", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer Babybel ?" }));
 
-    expect(shownMessages()).toEqual(["Babybel retiré de la liste"]);
+    expect(shownMessages()).toEqual(["Retiré de la liste : Babybel"]);
   });
 
   it("donne le focus à la poubelle de l'article suivant après le retrait de Babybel", async () => {

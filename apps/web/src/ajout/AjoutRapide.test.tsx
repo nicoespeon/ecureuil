@@ -105,7 +105,7 @@ describe("l'ajout rapide", () => {
 
     await user.type(searchbox(), "Laitue{Enter}");
 
-    expect(shownMessages()).toEqual(["Sur la liste : Laitue"]);
+    expect(shownMessages()).toEqual(["Créé et ajouté : Laitue"]);
   });
 
   it("fermer la fiche de l'article créé ramène au champ, vide, avec le focus", async () => {

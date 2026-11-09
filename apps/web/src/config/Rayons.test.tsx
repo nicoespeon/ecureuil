@@ -103,7 +103,7 @@ describe("les rayons d'un magasin", () => {
     await user.click(screen.getByRole("button", { name: "Supprimer Produits laitiers" }));
     await user.click(screen.getByRole("button", { name: /Confirmer/ }));
 
-    expect(shownMessages()).toEqual(["Rayon Produits laitiers supprimé"]);
+    expect(shownMessages()).toEqual(["Rayon supprimé : Produits laitiers"]);
   });
 
   it("la confirmation de suppression d'un rayon retombe quand le focus quitte le bouton", async () => {
@@ -124,7 +124,7 @@ describe("ajouter un rayon", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Nouveau rayon" }), "Boissons{Enter}");
 
-    expect(shownMessages()).toEqual(["Rayon Boissons ajouté"]);
+    expect(shownMessages()).toEqual(["Rayon ajouté : Boissons"]);
   });
 });
 

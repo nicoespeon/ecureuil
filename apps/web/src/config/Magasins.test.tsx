@@ -29,7 +29,7 @@ describe("créer un magasin", () => {
     await createMagasin(user, "IGA");
 
     expect(screen.getByRole("textbox", { name: "Nom du magasin" })).toHaveFocus();
-    expect(shownMessages()).toEqual(["Magasin IGA créé"]);
+    expect(shownMessages()).toEqual(["Magasin créé : IGA"]);
   });
 
   it("depuis la section Articles, la création ramène à la section Rayons", async () => {
@@ -104,7 +104,7 @@ describe("renommer et supprimer un magasin", () => {
 
     expect(magasinTabNames()).toEqual(["Maxi"]);
     expect(screen.getByRole("tab", { name: "Maxi" })).toHaveFocus();
-    expect(shownMessages()).toEqual(["Magasin Costco supprimé"]);
+    expect(shownMessages()).toEqual(["Magasin supprimé : Costco"]);
   });
 });
 

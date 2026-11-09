@@ -63,7 +63,7 @@ export function useFicheArticle({
                   ...actions,
                   removeArticle: (articleId) => {
                     actions.removeArticle(articleId);
-                    showMessage(`${article.name} supprimé`);
+                    showMessage({ icon: "refuse", text: `Supprimé : ${article.name}` });
                   },
                 }}
               />

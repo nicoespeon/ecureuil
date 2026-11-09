@@ -91,7 +91,7 @@ export function RayonsView({
                   remove: () => {
                     focusNeighborOf(rayon.id);
                     actions.removeRayon(magasin.id, rayon.id);
-                    showMessage(`Rayon ${rayon.name} supprimé`);
+                    showMessage({ icon: "refuse", text: `Rayon supprimé : ${rayon.name}` });
                   },
                   announce: actions.announce,
                 }}
@@ -103,7 +103,7 @@ export function RayonsView({
       <NouveauRayon
         create={(name) => {
           actions.createRayon(magasin.id, name);
-          showMessage(`Rayon ${name} ajouté`);
+          showMessage({ icon: "ajoute", text: `Rayon ajouté : ${name}` });
         }}
       />
     </div>

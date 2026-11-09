@@ -26,14 +26,18 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
           askFor={(name) => {
             const found = duplicateOf(foyer.state, name);
             if (found === undefined) foyer.askFor(name);
-            showMessage(found === undefined ? `${name} demandé` : duplicateMessages[found]);
+            showMessage(
+              found === undefined
+                ? { icon: "ajoute", text: `Demandé : ${name}` }
+                : { icon: "deja", text: `${duplicatePrefixes[found]} : ${name}` },
+            );
           }}
         />
         <MesDemandes
           demandes={pendingDemandes(foyer.state).toReversed()}
           withdraw={(demande) => {
             foyer.withdrawDemande(demande);
-            showMessage(`${demande.name} retiré`);
+            showMessage({ icon: "retire", text: `Demande retirée : ${demande.name}` });
           }}
           focusAfterLast={inputRef}
         />
@@ -45,7 +49,7 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
 type Duplicate = NonNullable<ReturnType<typeof duplicateOf>>;
 
 /** Why nothing was sent. */
-const duplicateMessages = {
+const duplicatePrefixes = {
   Liste: "Déjà sur la liste",
   Demande: "Déjà demandé",
 } satisfies Record<Duplicate, string>;

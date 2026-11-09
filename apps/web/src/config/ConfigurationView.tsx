@@ -130,12 +130,12 @@ function useMagasinActions({
       focus.request("nom");
       foyer.selectMagasin(createMagasin(writer, name));
       showRayons();
-      showMessage(`Magasin ${name} créé`);
+      showMessage({ icon: "cree", text: `Magasin créé : ${name}` });
     },
     removeMagasin: ({ id, name }: Magasin) => {
       focus.request("onglet");
       removeMagasin(id);
-      showMessage(`Magasin ${name} supprimé`);
+      showMessage({ icon: "refuse", text: `Magasin supprimé : ${name}` });
     },
   };
 }
