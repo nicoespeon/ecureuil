@@ -6,6 +6,7 @@ import { useFicheArticle } from "../config/FicheArticle";
 import { LiveRegion } from "../config/LiveRegion";
 import { useAnnouncer } from "../config/useAnnouncer";
 import type { Foyer } from "../journal/useFoyer";
+import { showMessage } from "../prototype/message";
 import { AddButton, CreateArticleButton, rowLayoutClassName } from "./AddButton";
 import { frequentArticles, searchArticles } from "./suggestions";
 
@@ -141,11 +142,13 @@ function useAjout(
   const add = (article: Article) => {
     foyer.markToBuy(article.id);
     added(article.name);
+    showMessage(`${article.name} ajouté à la liste`, "ajoute");
   };
   const create = (name: string) => {
     const articleId = foyer.createArticle(name);
     added(name);
     openFiche(articleId);
+    showMessage(`${name} créé et ajouté à la liste`, "cree");
   };
 
   return {
@@ -168,8 +171,10 @@ function useAjout(
       const { articles, exactMatch, nameToCreate } = result;
       const choice = exactMatch ?? articles.find((article) => article.status === "notToBuy");
       if (choice?.status === "notToBuy") add(choice);
-      else if (choice) say(`Déjà sur la liste : ${choice.name}`);
-      else if (nameToCreate !== null) create(nameToCreate);
+      else if (choice) {
+        say(`Déjà sur la liste : ${choice.name}`);
+        showMessage(`Déjà sur la liste : ${choice.name}`, "deja");
+      } else if (nameToCreate !== null) create(nameToCreate);
     },
   };
 }

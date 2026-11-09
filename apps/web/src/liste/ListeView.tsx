@@ -1,6 +1,7 @@
 import type { ListArticle, Liste } from "@ecureuil/domain";
 import { type RefObject, useLayoutEffect, useRef } from "react";
 import type { useFoyer } from "../journal/useFoyer";
+import { showMessage } from "../prototype/message";
 import { PanierRow, type ToBuyActions, ToBuyRow } from "./ArticleRow";
 import { ListeSections } from "./ListeSections";
 import { useListeChanges } from "./useListeChanges";
@@ -55,6 +56,7 @@ export function ListeView({
       focusNeighborOf(article.id);
       actions.removeFromList(article.id);
       actions.announce(`${article.name} retiré de la liste`);
+      showMessage(`${article.name} retiré de la liste`, "retire");
     },
   };
 

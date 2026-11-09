@@ -222,3 +222,41 @@ html {
     transform: translateY(-5%);
   }
 }
+
+/* Throwaway prototype: the message drops in like a lump of clay, and squashes as it lands. */
+.message-a {
+  animation: message-from-below 450ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.message-b {
+  animation: message-from-above 450ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+@keyframes message-from-below {
+  from {
+    transform: translateY(120%) scale(0.9, 1.1);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(0) scale(1.06, 0.94);
+    opacity: 1;
+  }
+}
+
+@keyframes message-from-above {
+  from {
+    transform: translateY(-120%) scale(0.9, 1.1);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(0) scale(1.06, 0.94);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-a,
+  .message-b {
+    animation: none;
+  }
+}

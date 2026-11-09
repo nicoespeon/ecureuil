@@ -2,6 +2,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import type { Article, Magasin, State } from "@ecureuil/domain";
 import { type RefObject, useId, useRef, useState } from "react";
 import { Stepper } from "../liste/ArticleRow";
+import { showMessage } from "../prototype/message";
 import { ConfirmButton } from "./ConfirmButton";
 import { type ConfigActions, configActions, type Writer } from "./configActions";
 import { LiveRegion } from "./LiveRegion";
@@ -65,6 +66,7 @@ export function useFicheArticle({
                   removeArticle: (articleId) => {
                     actions.removeArticle(articleId);
                     announce(`${article.name} supprimé`);
+                    showMessage(`${article.name} supprimé`, "refuse");
                   },
                 }}
               />

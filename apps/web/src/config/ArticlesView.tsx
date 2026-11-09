@@ -2,6 +2,7 @@ import type { Magasin, State } from "@ecureuil/domain";
 import { useId, useState } from "react";
 import { CreateArticleButton } from "../ajout/AddButton";
 import { searchArticles } from "../ajout/suggestions";
+import { showMessage } from "../prototype/message";
 import { fieldClassName } from "./classNames";
 import type { ConfigActions } from "./configActions";
 import { RayonSelect } from "./RayonSelect";
@@ -27,6 +28,7 @@ export function ArticlesView({
   const create = (name: string) => {
     const articleId = actions.createArticle(name);
     actions.announce(`Au catalogue : ${name}`);
+    showMessage(`${name} créé`, "cree");
     actions.openFiche(articleId);
   };
   // Like the list's quick add: the exact name, the first result, or a new article.

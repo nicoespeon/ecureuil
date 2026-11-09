@@ -5,6 +5,7 @@ import type { FoyerWithListe } from "../journal/useFoyer";
 import { TrashIcon } from "../liste/ArticleRow";
 import { Ecureuil } from "../liste/Ecureuil";
 import { useFocusNextDemande } from "../liste/useFocusNextDemande";
+import { showMessage } from "../prototype/message";
 
 /**
  * What the invite sees: a field to ask, and what still waits. No magasin and no list, so
@@ -12,7 +13,7 @@ import { useFocusNextDemande } from "../liste/useFocusNextDemande";
  */
 export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
   const { announcement, announce } = useAnnouncer();
-  const [duplicate, setDuplicate] = useState<Duplicate>();
+  const [, setDuplicate] = useState<Duplicate>();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -29,10 +30,12 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
             setDuplicate(found);
             if (found === undefined) foyer.askFor(name);
             announce(found === undefined ? `${name} demandé` : duplicateMessages[found]);
+            if (found === undefined) showMessage(`${name} demandé`, "ajoute");
+            else showMessage(duplicateMessages[found], "deja");
           }}
           message={announcement}
           // The new demande at the top of "Mes demandes" says it all; only a refusal needs words.
-          showMessage={duplicate !== undefined}
+          showMessage={false}
         />
         <MesDemandes
           demandes={pendingDemandes(foyer.state).toReversed()}
@@ -40,6 +43,7 @@ export function InviteScreen({ foyer }: { foyer: FoyerWithListe }) {
             setDuplicate(undefined);
             foyer.withdrawDemande(demande);
             announce(`${demande.name} retiré`);
+            showMessage(`${demande.name} retiré`, "retire");
           }}
           focusAfterLast={inputRef}
         />

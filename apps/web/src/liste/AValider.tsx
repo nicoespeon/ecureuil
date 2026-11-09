@@ -1,5 +1,6 @@
 import type { Demande } from "@ecureuil/domain";
 import type { RefObject } from "react";
+import { showMessage } from "../prototype/message";
 import { ListeSection } from "./ListeSections";
 import { useFocusNextDemande } from "./useFocusNextDemande";
 
@@ -26,11 +27,13 @@ export function AValider({
     focusNeighborOf(demandes, demande);
     actions.acceptDemande(demande);
     actions.announce(`${demande.name} ajouté à la liste`);
+    showMessage(`${demande.name} ajouté à la liste`, "ajoute");
   };
   const refuse = (demande: Demande) => {
     focusNeighborOf(demandes, demande);
     actions.refuseDemande(demande);
     actions.announce(`${demande.name} refusé`);
+    showMessage(`${demande.name} refusé`, "refuse");
   };
 
   return (
