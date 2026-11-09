@@ -22,6 +22,18 @@ describe("le message après une action", () => {
     expect(screen.getByText("Sur la liste : Pommes")).toBeVisible();
   });
 
+  it("les mêmes mots atterrissent de nouveau, à la place du message affiché", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+    const searchbox = screen.getByRole("searchbox", { name: "Article à ajouter" });
+    await user.type(searchbox, "lait{Enter}");
+    const first = screen.getByText("Déjà sur la liste : Lait");
+
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByText("Déjà sur la liste : Lait")).not.toBe(first);
+  });
+
   it("un tap le ferme sans fermer le panneau", async () => {
     const { user } = await addPommes();
 

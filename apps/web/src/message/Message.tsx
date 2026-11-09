@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, use, useEffect, useState } from "react";
+import { createContext, type ReactNode, use, useCallback, useEffect, useState } from "react";
 
 const DURATION_MS = 2500;
 
@@ -19,6 +19,11 @@ export function useMessage() {
  */
 export function MessageProvider({ children }: { children: ReactNode }) {
   const [shown, setShown] = useState<Shown>();
+  // Stable: the screens that show messages do not re-render each time one comes and goes.
+  const show = useCallback(
+    (text: string) => setShown((previous) => ({ id: (previous?.id ?? 0) + 1, text })),
+    [],
+  );
 
   useEffect(() => {
     if (!shown) return;
@@ -27,7 +32,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   }, [shown]);
 
   return (
-    <ShowMessage value={(text) => setShown((previous) => ({ id: (previous?.id ?? 0) + 1, text }))}>
+    <ShowMessage value={show}>
       {children}
       {/* `aria-live`, like `LiveRegion`: still heard while a dialog hides the rest of the page. */}
       <div
@@ -42,7 +47,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
             type="button"
             tabIndex={-1}
             onClick={() => setShown(undefined)}
-            className="message clay pointer-events-auto min-h-14 max-w-md rounded-full px-6 py-3 text-left text-lg font-extrabold"
+            className="message clay pointer-events-auto min-h-14 max-w-md rounded-[1.75rem] px-6 py-3 text-left text-lg font-extrabold"
           >
             {shown.text}
           </button>
