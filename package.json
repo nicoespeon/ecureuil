@@ -14,7 +14,7 @@
     "qa:qr": "node scripts/qr.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.5",
+    "@biomejs/biome": "2.6.6",
     "jscpd": "5.4.2",
     "lefthook": "2.2.2",
     "qrcode": "1.5.4",
