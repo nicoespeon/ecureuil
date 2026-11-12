@@ -26,19 +26,7 @@ Amorcer le foyer, une fois, dans cet ordre :
    pnpm --filter api liens --remote --app-url https://<app>
    ```
 
-3. Seed : pousse les magasins et articles du foyer (le `seed` de `@ecureuil/domain`) dans le journal, avec le secret du lien propriétaire :
-
-   ```sh
-   API_URL=https://<api> LIEN_SECRET=<secret-proprietaire> pnpm --filter api seed --remote
-   ```
-
-`seed` lit `API_URL` et `LIEN_SECRET` dans l'environnement, jamais en argument, et ne les affiche pas. Sans `--remote`, il vise `http://localhost:8787`. Il n'envoie que les événements du propriétaire : la demande de l'invite du seed est ignorée (l'API refuserait tout le push), une vraie viendra par le lien invite. Le relancer ne change rien, l'API ignore les ids déjà reçus. Il s'arrête avec un code non nul sur un 401 (secret inconnu), un 403 (secret de l'invite), un 400 ou une erreur réseau.
-
-4. La vraie liste du foyer, à la place du seed de dev : un fichier texte, un article par ligne, `.` en tête pour Costco (le reste est Maxi), `xN` en fin pour la quantité. Tout est « à acheter » ; un article garde le rayon du seed quand son nom correspond (« Lait », « Babybel »…), sinon il est non classé, et il est « pas vendu ici » dans l'autre magasin. Le fichier reste hors du dépôt. Vider le journal d'abord (`wrangler d1 execute ecureuil --remote --command "DELETE FROM journal"`), puis :
-
-   ```sh
-   API_URL=https://<api> LIEN_SECRET=<secret-proprietaire> pnpm --filter api seed:foyer ~/liste.txt --remote
-   ```
+Le journal de production est celui du vrai foyer : rien ne s'y pousse depuis un script. `seed` ne vise que l'API locale.
 
 ## Rôle et nouveau lien de l'invité
 

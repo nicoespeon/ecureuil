@@ -1,24 +1,15 @@
-import { type FoyerSeed, foyerJournal } from "@ecureuil/domain";
+import { ArticleRayon, Event } from "@ecureuil/wire";
 import { screen } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import { renderApp } from "../config/renderApp";
 import { inMemoryJournal } from "../journal/journal";
 
+type Foyer = { readonly onTheList: ReadonlyArray<"lait" | "pain" | "biere"> };
+
 /** Lait ×3 and Pain on the Costco list; the 6 bières are not sold there. */
-const foyer: FoyerSeed = {
-  magasins: [
-    {
-      slug: "costco",
-      name: "Costco",
-      rayons: { laitier: "Laitier" },
-      placements: { lait: "laitier", biere: "PasVenduIci" },
-    },
-  ],
-  articles: { lait: "Lait", pain: "Pain", biere: "Bière" },
-  quantities: { lait: 3, biere: 6 },
-  onTheList: ["lait", "pain", "biere"],
-};
+const foyer: Foyer = { onTheList: ["lait", "pain", "biere"] };
 
 describe("le compteur d'articles, en unités", () => {
   it("en Préparer, compte les unités prévues en articles, sans ce qui n'est pas vendu ici", () => {
@@ -68,8 +59,47 @@ describe("le compteur d'articles, en unités", () => {
 
 type User = ReturnType<typeof userEvent.setup>;
 
-function renderFoyer(seed: FoyerSeed) {
-  return renderApp({ journal: inMemoryJournal(foyerJournal(seed, "compteur")) });
+function renderFoyer({ onTheList }: Foyer) {
+  return renderApp({ journal: inMemoryJournal(journalOf(onTheList)) });
+}
+
+const decodeEvent = Schema.decodeUnknownSync(Event);
+
+/** One magasin, one rayon, three articles: Lait ×3 in the rayon, Pain non classé, Bière ×6 not sold here. */
+function journalOf(onTheList: Foyer["onTheList"]) {
+  const drafts = [
+    { type: "MagasinCreated", magasin: "costco", payload: { name: "Costco" } },
+    { type: "RayonCreated", magasin: "costco", payload: { rayonId: "laitier", name: "Laitier" } },
+    { type: "ArticleCreated", magasin: null, payload: { articleId: "lait", name: "Lait" } },
+    { type: "ArticleCreated", magasin: null, payload: { articleId: "pain", name: "Pain" } },
+    { type: "ArticleCreated", magasin: null, payload: { articleId: "biere", name: "Bière" } },
+    { type: "ArticleQuantitySet", magasin: null, payload: { articleId: "lait", quantity: 3 } },
+    { type: "ArticleQuantitySet", magasin: null, payload: { articleId: "biere", quantity: 6 } },
+    {
+      type: "ArticleRayonSet",
+      magasin: "costco",
+      payload: { articleId: "lait", rayon: ArticleRayon.cases.Rayon.make({ rayonId: "laitier" }) },
+    },
+    {
+      type: "ArticleRayonSet",
+      magasin: "costco",
+      payload: { articleId: "biere", rayon: ArticleRayon.cases.PasVenduIci.make({}) },
+    },
+    ...onTheList.map((articleId) => ({
+      type: "ArticleMarkedToBuy",
+      magasin: null,
+      payload: { articleId },
+    })),
+  ];
+  return drafts.map((draft, index) =>
+    decodeEvent({
+      id: `compteur-${index}`,
+      at: index + 1,
+      actor: "proprietaire",
+      device: "test",
+      ...draft,
+    }),
+  );
 }
 
 async function startCourses(user: User) {

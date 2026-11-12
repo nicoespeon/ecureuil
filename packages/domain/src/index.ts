@@ -14,12 +14,5 @@ export {
   type Sortie,
   type State,
 } from "./reducer";
-export {
-  type FoyerSeed,
-  foyerJournal,
-  type MagasinSeed,
-  seed,
-  seedMagasins,
-  seedSorties,
-} from "./seed";
+export { seed, seedSorties } from "./seed";
 export { sync } from "./sync";
