@@ -8,7 +8,6 @@
     "db:migrate": "wrangler d1 migrations apply ecureuil",
     "liens": "node scripts/create-liens.ts",
     "seed": "tsx scripts/seed-remote.ts",
-    "seed:foyer": "tsx scripts/seed-foyer.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run"
   },
