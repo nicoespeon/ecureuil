@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.6.0",
-    "@cloudflare/workers-types": "5.20261108.1",
+    "@cloudflare/workers-types": "5.20261109.1",
     "@ecureuil/domain": "workspace:*",
     "@types/node": "26.6.6",
     "tsx": "4.23.15",
