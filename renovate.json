@@ -3,7 +3,9 @@
   "extends": ["config:best-practices", "group:allNonMajor"],
   "rangeStrategy": "pin",
   "semanticCommits": "enabled",
-  "dependencyDashboard": false,
+  "dependencyDashboard": {
+    "enabled": false
+  },
   "automergeStrategy": "squash",
   "lockFileMaintenance": {
     "enabled": true,
