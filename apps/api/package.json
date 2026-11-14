@@ -13,16 +13,16 @@
   },
   "dependencies": {
     "@ecureuil/wire": "workspace:*",
-    "effect": "4.1.3",
+    "effect": "4.1.4",
     "hono": "4.13.17"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "1.6.1",
+    "@cloudflare/vitest-plugin": "1.7.0",
     "@cloudflare/workers-types": "5.20261110.1",
     "@ecureuil/domain": "workspace:*",
     "@types/node": "26.6.6",
     "tsx": "4.23.15",
     "vitest": "5.1.0",
-    "wrangler": "4.159.0"
+    "wrangler": "4.160.0"
   }
 }
