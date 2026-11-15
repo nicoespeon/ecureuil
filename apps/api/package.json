@@ -14,15 +14,15 @@
   "dependencies": {
     "@ecureuil/wire": "workspace:*",
     "effect": "4.1.4",
-    "hono": "4.13.17"
+    "hono": "4.13.18"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "1.7.0",
-    "@cloudflare/workers-types": "5.20261110.1",
+    "@cloudflare/vitest-plugin": "1.8.0",
+    "@cloudflare/workers-types": "5.20261112.1",
     "@ecureuil/domain": "workspace:*",
     "@types/node": "26.6.6",
     "tsx": "4.23.15",
     "vitest": "5.1.0",
-    "wrangler": "4.160.0"
+    "wrangler": "4.160.1"
   }
 }
