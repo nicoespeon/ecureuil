@@ -17,9 +17,8 @@ export function TerminerLesCourses({
   focusAfterFinish: RefObject<HTMLElement | null>;
 }) {
   const inPanier = liste.panier.length;
-  const toBuy =
-    liste.sections.reduce((count, section) => count + section.articles.length, 0) +
-    liste.pasVenduIci.length;
+  // "Pas chez X" is not bought here: it is not left behind either.
+  const toBuy = liste.sections.reduce((count, section) => count + section.articles.length, 0);
 
   return (
     <AlertDialog.Root>

@@ -324,6 +324,19 @@ describe("terminer les courses", () => {
     );
   });
 
+  it("ne compte pas « Pas chez X » dans ce qui reste à acheter", async () => {
+    const { user } = renderApp();
+    await user.click(screen.getByRole("tab", { name: "Maxi" }));
+    await startCourses(user);
+    await checkLaitAndBabybel(user);
+
+    await user.click(screen.getByRole("button", { name: "Terminer les courses" }));
+
+    expect(screen.getByRole("alertdialog")).toHaveTextContent(
+      "2 articles dans le panier, 7 restent à acheter",
+    );
+  });
+
   it("accorde un panier d'un seul article au singulier", async () => {
     const { user } = renderApp();
     await startCourses(user);
