@@ -36,6 +36,17 @@ test.describe("captures", () => {
     await screenshot(page, "terminer", { fullPage: false });
   });
 
+  test("terminer les courses chez Maxi, avec « Pas chez Maxi »", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("tab", { name: "Maxi" }).click();
+    await startCourses(page);
+    await checkLaitAndBabybel(page);
+
+    await page.getByRole("button", { name: "Terminer les courses" }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await screenshot(page, "terminer-maxi", { fullPage: false });
+  });
+
   test("réglages d'un appareil sans lien", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Configuration" }).click();
